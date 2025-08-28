@@ -19,3 +19,4 @@ __all__ = [
     "load_database",
 ]
 
+HaZE

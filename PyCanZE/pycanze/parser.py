@@ -20,17 +20,13 @@ def _read_csv(path: Path) -> Iterator[List[str]]:
             yield [col.strip() for col in line.split(",")]
 
 
+            
 def _auto_int(value: str) -> int:
-    """Return *value* parsed as int accepting hex or decimal."""
-    value = value.strip()
-    if not value:
-        return 0
-    try:
-        return int(value, 0)
-    except ValueError:
-        return int(value, 16)
+    base = 16 if any(c in "abcdefABCDEF" for c in value) else 10
+    return int(value, base)
 
 
+  
 def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
     """Parse all ``_Ecus.csv`` files found in *base_dir*.
 
@@ -114,8 +110,8 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
                     offset_s,
                     decimals_s,
                     unit,
-                    request_id_s,
-                    response_id_s,
+                    request_id,
+                    response_id,
                     options_s,
                     name,
                     raw_values,
@@ -127,17 +123,8 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
                 resolution = float(resolution_s) if resolution_s else 1.0
                 offset = float(offset_s) if offset_s else 0.0
                 decimals = int(decimals_s) if decimals_s else 0
-                try:
-                    request_id = _auto_int(request_id_s) if request_id_s else None
-                except ValueError:
-                    request_id = None
-                try:
-                    response_id = _auto_int(response_id_s) if response_id_s else None
-                except ValueError:
-                    response_id = None
                 options = [options_s[i : i + 2] for i in range(0, len(options_s), 2)] if options_s else []
-                sid = sid or f"{frame_id_s}.{start_bit_s}.{response_id_s}"
-
+                sid = sid or f"{frame_id_s}.{start_bit_s}.{response_id}"
                 field = Field(
                     sid=sid,
                     frame_id=frame_id,
@@ -147,8 +134,8 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
                     offset=offset,
                     decimals=decimals,
                     unit=unit,
-                    request_id=request_id,
-                    response_id=response_id,
+                    request_id=request_id or None,
+                    response_id=response_id or None,
                     options=options,
                     name=name or None,
                     raw_values=raw_values or None,
@@ -172,4 +159,3 @@ def load_database(base_dir: Path = DATA_DIR):
         "fields_by_sid": fields_by_sid,
         "fields_by_name": fields_by_name,
     }
-

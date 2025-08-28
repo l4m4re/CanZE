@@ -42,9 +42,8 @@ class Field:
     offset: float
     decimals: int
     unit: str
-    request_id: Optional[int]
-    response_id: Optional[int]
+    request_id: Optional[str]
+    response_id: Optional[str]
     options: List[str] = field(default_factory=list)
     name: Optional[str] = None
     raw_values: Optional[str] = None
-
