@@ -20,11 +20,13 @@ def _read_csv(path: Path) -> Iterator[List[str]]:
             yield [col.strip() for col in line.split(",")]
 
 
+            
 def _auto_int(value: str) -> int:
     base = 16 if any(c in "abcdefABCDEF" for c in value) else 10
     return int(value, base)
 
 
+  
 def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
     """Parse all ``_Ecus.csv`` files found in *base_dir*.
 
@@ -123,7 +125,6 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
                 decimals = int(decimals_s) if decimals_s else 0
                 options = [options_s[i : i + 2] for i in range(0, len(options_s), 2)] if options_s else []
                 sid = sid or f"{frame_id_s}.{start_bit_s}.{response_id}"
-
                 field = Field(
                     sid=sid,
                     frame_id=frame_id,
