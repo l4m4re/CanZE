@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 from .models import Ecu, Frame, Field
 

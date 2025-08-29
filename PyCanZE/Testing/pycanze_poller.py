@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import socket
 import time
 from pathlib import Path
 
@@ -31,8 +32,16 @@ def main() -> None:
 
     client = UDSClient(args.host, port=args.port)
     try:
-        client.connect()
-        client.initialize()
+        try:
+            client.connect()
+        except (OSError, ConnectionError, socket.timeout) as e:
+            print(f"ELM327 not reachable at {args.host}:{args.port} -> {e}")
+            sys.exit(2)
+        try:
+            client.initialize()
+        except Exception as e:
+            print(f"ELM327 initialization failed -> {e}")
+            sys.exit(3)
         while True:
             soc = client.read_field(SID_SOC)
             odo = client.read_field(SID_ODO)

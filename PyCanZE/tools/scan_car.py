@@ -10,13 +10,14 @@ from :mod:`pycanze`. Retrieved values are printed to stdout.
 from __future__ import annotations
 
 import argparse
-import csv
 import sys
+import socket
 from pathlib import Path
 
 # Allow running from repository root without installation
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from pycanze import UDSClient  # type: ignore
+from pycanze.parser import _read_csv  # type: ignore
 
 # Directory containing copied asset CSV files
 DATA_DIR = Path(__file__).resolve().parent.parent / "pycanze" / "data"
@@ -56,6 +57,25 @@ def prompt_for_car() -> str:
         print("Invalid selection. Please try again.")
 
 
+def _sid_for_row(row: list[str]) -> str | None:
+    """Return the field SID matching parser logic or ``None`` to skip.
+
+    Follows the same column layout used in ``pycanze.parser.load_fields``.
+    If the CSV provides an explicit SID (col 0), it is returned. Otherwise a
+    fallback SID of ``f"{frame_id}.{start_bit}.{response_id}"`` is generated.
+    """
+
+    # Normalize row length like the parser
+    row = (row + [""] * 13)[:13]
+    sid, frame_id_s, start_bit_s, _end_bit_s, _resolution_s, _offset_s, _decimals_s, _unit, _request_id, response_id, _options_s, _name, _raw_values = row
+    sid = sid.strip()
+    if sid and not sid.startswith("#"):
+        return sid
+    if not frame_id_s or not start_bit_s or not response_id:
+        return None
+    return f"{frame_id_s}.{start_bit_s}.{response_id}"
+
+
 def scan_car(car: str, client: UDSClient) -> None:
     car_dir = DATA_DIR / car
     field_files = sorted(f for f in car_dir.iterdir() if f.name.endswith("_Fields.csv"))
@@ -66,20 +86,39 @@ def scan_car(car: str, client: UDSClient) -> None:
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
         print(f"\nECU: {ecu}")
-        with field_file.open(newline="", encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile)
-            for row in reader:
-                if not row:
-                    continue
-                sid = row[0].strip() if len(row) > 0 else ""
-                name = row[11].strip() if len(row) > 11 else ""
-                if not sid:
-                    continue
+    for row in _read_csv(field_file):
+            # Build SID compatible with the in-memory database
+            sid = _sid_for_row(row)
+            if not sid:
+                continue
+            # Only attempt UDS ReadDataByIdentifier (0x22) queries
+            req = (row + [""] * 13)[8]
+            if not req or not req.startswith("22") or len(req) != 6:
+                continue
+            name = (row + [""] * 12)[11]
+            # If the exact SID is unknown, try the generated fallback form
+            if sid not in client.fields:
+                # Attempt swapping when CSV uses frame.response.startbit
                 try:
-                    value = client.read_field(sid)
+                    parts = sid.split(".")
+                    if len(parts) == 3 and all(parts):
+                        alt = f"{parts[0]}.{parts[2]}.{parts[1]}"
+                        if alt in client.fields:
+                            sid = alt
                 except Exception:
-                    value = None
-                print(f" {sid:>8} {name} -> {value}")
+                    pass
+            try:
+                value = client.read_field(sid)
+            except BrokenPipeError:
+                # Allow graceful exit when piped to head
+                return
+            except Exception:
+                value = None
+            # Detect sleeping bus / CAN error and exit cleanly
+            if getattr(client, "last_status", None) == "CAN_ERROR":
+                print("Vehicle CAN is asleep (CAN_ERROR). Exiting.")
+                return
+            print(f" {sid:>16} {name} -> {value}")
 
 
 def main() -> None:
@@ -87,8 +126,16 @@ def main() -> None:
     car = args.car or prompt_for_car()
     client = UDSClient(args.host, port=args.port)
     try:
-        client.connect()
-        client.initialize()
+        try:
+            client.connect()
+        except (OSError, ConnectionError, socket.timeout) as e:
+            print(f"ELM327 not reachable at {args.host}:{args.port} -> {e}")
+            sys.exit(2)
+        try:
+            client.initialize()
+        except Exception as e:
+            print(f"ELM327 initialization failed -> {e}")
+            sys.exit(3)
         scan_car(car, client)
     finally:
         client.close()

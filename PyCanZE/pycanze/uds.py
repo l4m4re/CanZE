@@ -1,17 +1,18 @@
 """UDS client for WiFi ELM327 dongles.
 
 This module exposes :class:`UDSClient` which can communicate with a WiFi
-ELM327 interface.  When the optional ``python-OBD-wifi`` package is available,
-it is used to manage the underlying connection; otherwise a small set of socket
-helpers derived from ``Testing/zoe_arrival_poller.py`` is employed.  The client
-can query diagnostic data identifiers (DIDs) defined in the CanZE database and
-decode the returned payload using the field's bit positions, resolution and
-offset.
+ELM327 interface. When the optional ``python-OBD-wifi`` package is available,
+it is used to manage the underlying connection; otherwise a small set of
+socket helpers derived from ``Testing/zoe_arrival_poller.py`` is employed.
+The client can query diagnostic data identifiers (DIDs) defined in the CanZE
+database and decode the returned payload using the field's bit positions,
+resolution and offset.
 """
 
 from __future__ import annotations
 
 import socket
+import os
 import time
 from typing import Dict, Optional, Sequence
 
@@ -21,7 +22,7 @@ except Exception:  # pragma: no cover - dependency missing
     ELM327 = None
 
 from .models import Field
-from .parser import load_fields
+from .parser import load_fields, load_ecus
 
 # Default timings copied from ``Testing/zoe_arrival_poller.py``
 ELM_CMD_SLEEP = 0.12
@@ -31,7 +32,7 @@ ELM_TIMEOUT_S = 12.0
 class UDSClient:
     """Simple UDS client for querying diagnostic fields.
 
-    Parameters mirror those used in the poller script.  By default the CanZE
+    Parameters mirror those used in the poller script. By default the CanZE
     database is loaded so fields can be looked up by SID.
     """
 
@@ -46,15 +47,40 @@ class UDSClient:
         self.host = host
         self.port = port
         self.timeout = timeout
-        self.sock: Optional[socket.socket] = None
+        self.sock = None  # type: Optional[socket.socket]
         self.elm = None
         self.use_obdwifi = use_obdwifi and ELM327 is not None
         self.fields = fields if fields is not None else load_fields()[0]
+        self.debug = bool(os.environ.get("PYCANZE_DEBUG"))
+        # Map CAN IDs (both request and response) to (request_id, response_id)
+        try:
+            _ecus = load_ecus()
+        except Exception:
+            _ecus = {}
+        self._ecu_by_can = {}
+        for ecu in _ecus.values():
+            try:
+                # _Ecus.csv has columns 'From ID' (ECU->tester) and 'To ID' (tester->ECU).
+                # Our parser currently stores them as request_id=row[3] and response_id=row[4],
+                # which means request_id actually holds the ECU response CAN id.
+                # Fix the mapping here by swapping to ensure (req -> ECU, resp <- ECU).
+                req = ecu.response_id & 0x7FF
+                resp = ecu.request_id & 0x7FF
+                self._ecu_by_can[req] = (req, resp)
+                self._ecu_by_can[resp] = (req, resp)
+            except Exception:
+                continue
+        # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
+        self.last_status = None
+        # Track currently selected CAN request id (11-bit)
+        self._current_req_id = None
 
     # ------------------------------------------------------------------
     # Socket helpers (straight from ``zoe_arrival_poller.py``)
     def _send(self, line: str, wait: float = ELM_CMD_SLEEP) -> None:
         assert self.sock is not None
+        if self.debug:
+            print(f"[PYCANZE DEBUG] SEND: {line}")
         self.sock.sendall((line + "\r").encode("ascii", errors="ignore"))
         time.sleep(wait)
 
@@ -71,6 +97,8 @@ class UDSClient:
                 break
         text = buf.decode(errors="ignore").replace("\r", "\n")
         lines = [ln.strip() for ln in text.split("\n") if ln.strip() and ln.strip() != ">"]
+        if self.debug:
+            print(f"[PYCANZE DEBUG] RECV: {lines}")
         return lines
 
     @staticmethod
@@ -104,15 +132,18 @@ class UDSClient:
             raise RuntimeError("connect() must be called before initialize()")
         self._send("ATZ", wait=0.3)
         self._read_lines(3.0)
-        for cmd in ("ATE0", "ATS0", "ATSP6", "ATAT1", "ATCAF0"):
+        for cmd in ("ATE0", "ATH0", "ATS0", "ATSP6", "ATAT1", "ATCAF0", "ATAL"):
             self._send(cmd)
             self._read_lines(3.0)
+        self.last_status = None
+        # Default header (ZE/EVC): request 0x7E4, response 0x7EC
         self._send("ATSH7E4")
         self._read_lines(3.0)
         self._send("ATFCSH7E4")
         self._read_lines(3.0)
         self._send("ATCRA 7EC")
         self._read_lines(3.0)
+        self._current_req_id = 0x7E4
 
     def close(self) -> None:
         """Close the TCP connection."""
@@ -133,23 +164,63 @@ class UDSClient:
         did_hi = (did >> 8) & 0xFF
         did_lo = did & 0xFF
         cmd = f"0322{did_hi:02X}{did_lo:02X}"
+        if self.debug:
+            print(f"[PYCANZE DEBUG] UDS RDBI: {cmd}")
         self._send(cmd)
         lines = self._read_lines()
+        # Detect common ELM/CAN error statuses early
+        up = [ln.upper() for ln in lines]
+        if any(("CAN" in ln and "ERROR" in ln) or "CAN ERROR" in ln for ln in up):
+            self.last_status = "CAN_ERROR"
+        elif any("NO DATA" in ln for ln in up):
+            self.last_status = "NO_DATA"
+        elif any("ERROR" in ln for ln in up):
+            self.last_status = "ELM_ERROR"
         b = self._only_hex_bytes(lines)
+        if self.debug:
+            print(f"[PYCANZE DEBUG] PARSED HEX: {b}")
         for i in range(0, max(0, len(b) - 2)):
             # Handle negative response (0x7F ...)
             if b[i] == 0x7F and (i + 2) < len(b):
                 return None
             # Positive response marker
             if b[i] == 0x62 and b[i + 1] == did_hi and b[i + 2] == did_lo:
+                self.last_status = None
                 return b[i:]
         return None
+
+    # ------------------------------------------------------------------
+    def _select_frame(self, req_id: int, resp_id: Optional[int] = None) -> None:
+        """Ensure ELM headers/filters are set for the given 11-bit CAN request id.
+
+        Sets request header (ATSH/ATFCSH) to ``req_id`` and response filter
+        (ATCRA) to ``resp_id`` if provided, otherwise ``req_id + 8`` which
+        matches standard UDS addressing.
+        """
+
+        # Only handle 11-bit IDs here. Extended (29-bit) support is out of scope for now.
+        if req_id <= 0 or req_id > 0x7FF:
+            return
+        if self.sock is None:
+            raise RuntimeError("connect() must be called before reading fields")
+        if self._current_req_id == req_id:
+            return
+        rid = f"{req_id & 0x7FF:03X}"
+        rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x7FF
+        resp = f"{rpid:03X}"
+        self._send(f"ATSH{rid}")
+        self._read_lines(3.0)
+        self._send(f"ATFCSH{rid}")
+        self._read_lines(3.0)
+        self._send(f"ATCRA {resp}")
+        self._read_lines(3.0)
+        self._current_req_id = req_id
 
     @staticmethod
     def _extract_bits(data: bytes, start_bit: int, end_bit: int) -> int:
         """Return integer value contained between *start_bit* and *end_bit*.
 
-        Bit 0 refers to the MSB of ``data[0]``.  The function assumes big-endian
+        Bit 0 refers to the MSB of ``data[0]``. The function assumes big-endian
         bit numbering as used by the existing CanZE database.
         """
 
@@ -173,6 +244,19 @@ class UDSClient:
             raise KeyError(f"Unknown diagnostic field SID: {sid}")
         if len(field.request_id) != 6:
             raise ValueError(f"Unexpected request id format: {field.request_id}")
+        # Switch to the ECU for this field if needed.
+        # Select ECU headers for this field
+        try:
+            fid = field.frame_id & 0x7FF
+            pair = self._ecu_by_can.get(fid)
+            if pair is not None:
+                self._select_frame(pair[0], pair[1])
+            else:
+                # Fallback heuristic: fields often list the response id
+                self._select_frame((fid - 0x8) & 0x7FF, fid)
+        except Exception:
+            # Fallback: keep current header; some fields may still respond
+            pass
         did = int(field.request_id[2:], 16)
         resp = self._read_did(did)
         if not resp:
