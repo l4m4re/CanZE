@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Simple SoC and odometer poller using PyCanZE.
 
-Connects to a WiFi ELM327 dongle, performs minimal initialization and
-repeatedly queries the state of charge (DID 0x2002) and total vehicle
-distance (DID 0x2006).  Results are printed to stdout.
+Connects to a WiFi ELM327 dongle, performs minimal initialization and repeatedly
+queries the state of charge (DID 0x2002) and total vehicle distance (DID 0x2006).
+Results are printed to stdout.
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 # Allow running from repository root without installation
-sys.path.append(str(Path(__file__).resolve().parents[1] / "PyCanZE"))
+sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pycanze import UDSClient  # type: ignore
 
 # Diagnostic field SIDs
@@ -49,3 +49,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
