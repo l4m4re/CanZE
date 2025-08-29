@@ -22,18 +22,6 @@ SID_SOC = "7ec.24.622002"
 SID_ODO = "7ec.24.622006"
 
 
-def elm327_init(client: UDSClient) -> None:
-    """Minimal ELM327 initialization for UDS polling."""
-
-    client._send("ATZ", wait=0.3); client._read_lines(3.0)
-    for cmd in ("ATE0", "ATS0", "ATSP6", "ATAT1", "ATCAF0"):
-        client._send(cmd)
-        client._read_lines(3.0)
-    client._send("ATSH7E4"); client._read_lines(3.0)
-    client._send("ATFCSH7E4"); client._read_lines(3.0)
-    client._send("ATCRA 7EC"); client._read_lines(3.0)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Poll SoC and odometer via PyCanZE")
     parser.add_argument("--host", default="192.168.2.21", help="ELM327 host")
@@ -44,7 +32,7 @@ def main() -> None:
     client = UDSClient(args.host, port=args.port)
     try:
         client.connect()
-        elm327_init(client)
+        client.initialize()
         while True:
             soc = client.read_field(SID_SOC)
             odo = client.read_field(SID_ODO)

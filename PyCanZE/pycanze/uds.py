@@ -1,9 +1,11 @@
-"""UDS client built on ELM327 socket helpers.
+"""UDS client for WiFi ELM327 dongles.
 
-This module provides :class:`UDSClient` which reuses the small set of socket
-helpers from :mod:`Testing.zoe_arrival_poller` to talk to a WiFi ELM327 dongle.
-It can query diagnostic data identifiers (DIDs) defined in the CanZE database
-and decode the returned payload using the field's bit positions, resolution and
+This module exposes :class:`UDSClient` which can communicate with a WiFi
+ELM327 interface.  When the optional ``python-OBD-wifi`` package is available,
+it is used to manage the underlying connection; otherwise a small set of socket
+helpers derived from ``Testing/zoe_arrival_poller.py`` is employed.  The client
+can query diagnostic data identifiers (DIDs) defined in the CanZE database and
+decode the returned payload using the field's bit positions, resolution and
 offset.
 """
 
@@ -12,6 +14,11 @@ from __future__ import annotations
 import socket
 import time
 from typing import Dict, Optional, Sequence
+
+try:  # optional dependency for proper ELM327 management
+    from obd_wifi.elm327 import ELM327  # type: ignore
+except Exception:  # pragma: no cover - dependency missing
+    ELM327 = None
 
 from .models import Field
 from .parser import load_fields
@@ -34,11 +41,14 @@ class UDSClient:
         port: int = 35000,
         timeout: float = ELM_TIMEOUT_S,
         fields: Optional[Dict[str, Field]] = None,
+        use_obdwifi: bool = True,
     ) -> None:
         self.host = host
         self.port = port
         self.timeout = timeout
         self.sock: Optional[socket.socket] = None
+        self.elm = None
+        self.use_obdwifi = use_obdwifi and ELM327 is not None
         self.fields = fields if fields is not None else load_fields()[0]
 
     # ------------------------------------------------------------------
@@ -76,10 +86,33 @@ class UDSClient:
 
     # ------------------------------------------------------------------
     def connect(self) -> None:
-        """Open the TCP connection to the ELM327 dongle."""
+        """Open the connection to the ELM327 dongle."""
 
+        if self.sock is not None:
+            return
+        if self.use_obdwifi and ELM327 is not None:
+            self.elm = ELM327(self.host, port=self.port, timeout=self.timeout)  # type: ignore[call-arg]
+            self.elm.connect()  # type: ignore[attr-defined]
+            self.sock = getattr(self.elm, "sock", None)  # type: ignore[attr-defined]
         if self.sock is None:
             self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
+
+    def initialize(self) -> None:
+        """Send a standard AT init sequence to the dongle."""
+
+        if self.sock is None:
+            raise RuntimeError("connect() must be called before initialize()")
+        self._send("ATZ", wait=0.3)
+        self._read_lines(3.0)
+        for cmd in ("ATE0", "ATS0", "ATSP6", "ATAT1", "ATCAF0"):
+            self._send(cmd)
+            self._read_lines(3.0)
+        self._send("ATSH7E4")
+        self._read_lines(3.0)
+        self._send("ATFCSH7E4")
+        self._read_lines(3.0)
+        self._send("ATCRA 7EC")
+        self._read_lines(3.0)
 
     def close(self) -> None:
         """Close the TCP connection."""
