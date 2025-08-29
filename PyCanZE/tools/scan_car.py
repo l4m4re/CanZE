@@ -37,6 +37,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("car", nargs="?", choices=cars, help="Car model to scan")
     parser.add_argument("--host", default="192.168.2.21", help="ELM327 host")
     parser.add_argument("--port", type=int, default=35000, help="ELM327 TCP port")
+    parser.add_argument(
+        "--ecu",
+        action="append",
+        help="Limit scan to ECUs whose file name contains this token (can be repeated)",
+    )
+    parser.add_argument(
+        "--only-values",
+        action="store_true",
+        help="Only print fields that returned a value",
+    )
     return parser.parse_args()
 
 
@@ -83,9 +93,16 @@ def scan_car(car: str, client: UDSClient) -> None:
         print(f"No field definitions found for {car}")
         return
 
+    args = parse_args()  # reuse same args for filters when invoked as module
+    filters = [t.lower() for t in (args.ecu or [])]
+
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
+        if filters and not any(tok in ecu.lower() for tok in filters):
+            continue
         print(f"\nECU: {ecu}")
+    ok = 0
+    total = 0
     for row in _read_csv(field_file):
             # Build SID compatible with the in-memory database
             sid = _sid_for_row(row)
@@ -118,7 +135,13 @@ def scan_car(car: str, client: UDSClient) -> None:
             if getattr(client, "last_status", None) == "CAN_ERROR":
                 print("Vehicle CAN is asleep (CAN_ERROR). Exiting.")
                 return
-            print(f" {sid:>16} {name} -> {value}")
+            total += 1
+            if value is not None:
+                ok += 1
+                print(f" {sid:>16} {name} -> {value}")
+            elif not args.only_values:
+                print(f" {sid:>16} {name} -> {value}")
+    print(f"-- {ecu}: {ok}/{total} values")
 
 
 def main() -> None:
