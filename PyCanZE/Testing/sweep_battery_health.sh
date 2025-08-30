@@ -23,6 +23,7 @@ LBC_FIRST21_DELAY_MS_VALUES=(0 150)
 ATST_MS_VALUES=(0 40)
 ISOTP_COLLECT_S_VALUES=(0.5 1.0)
 CF_READ_TIMEOUT_S_VALUES=(0.1 0.3)
+WIDE_CF_FALLBACK_VALUES=(0 1)
 
 for caf in "${CAF_VALUES[@]}"; do
   for mask in "${MASK_VALUES[@]}"; do
@@ -33,12 +34,17 @@ for caf in "${CAF_VALUES[@]}"; do
             for atst in "${ATST_MS_VALUES[@]}"; do
               for collect in "${ISOTP_COLLECT_S_VALUES[@]}"; do
                 for cftime in "${CF_READ_TIMEOUT_S_VALUES[@]}"; do
-                  log_file="$OUT_DIR/caf${caf}_mask${mask}_stmin${stmin}_settle${settle}_first21${first21}_lbcfirst21${lbc_first21}_atst${atst}_collect${collect}_cftime${cftime}.log"
-                  cmd=(python3 "$ROOT_DIR/tools/battery_health.py" "$CAR" --host "$HOST" --port "$PORT" --caf "$caf" --stmin-ms "$stmin" --header-settle-ms "$settle" --first-21-delay-ms "$first21" --lbc-first-21-delay-ms "$lbc_first21" --atst-ms "$atst" --isotp-collect-s "$collect" --cf-read-timeout-s "$cftime")
-                  if [[ "$mask" -eq 1 ]]; then
-                    cmd+=(--use-mask-filter)
-                  fi
-                  "${cmd[@]}" >"$log_file" 2>&1 || true
+                  for wide in "${WIDE_CF_FALLBACK_VALUES[@]}"; do
+                    log_file="$OUT_DIR/caf${caf}_mask${mask}_stmin${stmin}_settle${settle}_first21${first21}_lbcfirst21${lbc_first21}_atst${atst}_collect${collect}_cftime${cftime}_wide${wide}.log"
+                    cmd=(python3 "$ROOT_DIR/tools/battery_health.py" "$CAR" --host "$HOST" --port "$PORT" --caf "$caf" --stmin-ms "$stmin" --header-settle-ms "$settle" --first-21-delay-ms "$first21" --lbc-first-21-delay-ms "$lbc_first21" --atst-ms "$atst" --isotp-collect-s "$collect" --cf-read-timeout-s "$cftime")
+                    if [[ "$mask" -eq 1 ]]; then
+                      cmd+=(--use-mask-filter)
+                    fi
+                    if [[ "$wide" -eq 1 ]]; then
+                      cmd+=(--wide-cf-fallback)
+                    fi
+                    "${cmd[@]}" >"$log_file" 2>&1 || true
+                  done
                 done
               done
             done
