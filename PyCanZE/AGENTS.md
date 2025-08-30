@@ -62,9 +62,12 @@ Reference notes
   `ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF0; ATFCSH77B; ATFCSD300000; ATFCSM1; ATSP6`
 - Free-frame polling sets a temporary receive filter with `ATCRA`, runs `ATMA`, then flushes and optionally clears the filter with `ATAR`.
 - ISO-TP requests clear any free-frame filter, select protocol (`ATSP7`/`ATSP6`), set header (`ATSH`), receive filter (`ATCRA`), and flow-control response (`ATFCSH`) before transmitting.
+- Flow control uses `ATFCSM1` with `ATFCSD300000`, yielding block size `00` and STmin `00` (0 ms); no `ATST` command is issued【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L181-L197】【5ce9be†L1-L2】, and the driver waits about 100 ms after cancelling `ATMA`【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L520-L525】.
+- Tester-present (`0x3E`) frames are scheduled every 1500 ms.
 - Multi-frame transmissions send a first frame (`1…`) followed by numbered continuation frames (`2n…`); the receiver reassembles them and checks sequence numbers.
 - Device reset levels map to `ATD` (soft) and `ATWS` (medium); `ATZ` is referenced conceptually for a hard reset but not issued.
 - No usage of `ATCF` or `ATCM` commands was found.
+- LBC request/response IDs vary by model: `0x7BB→0x79B` for legacy ZOE and Twingo 3 Ph2【F:app/src/main/assets/ZOE/_Ecus.csv†L5】【F:app/src/main/assets/Twingo_3_Ph2/_Ecus.csv†L7】, while ZOE Ph2 uses extended `0x18DAF1DB→0x18DADBF1`【F:app/src/main/assets/ZOE_Ph2/_Ecus.csv†L18】; LBC2 maps `0x7B6→0x796`【F:app/src/main/assets/ZOE/_Ecus.csv†L17】 or `0x18DAF1DC→0x18DADCF1`【F:app/src/main/assets/ZOE_Ph2/_Ecus.csv†L19】.
 
 ### Java source references for 1:1 porting
 
