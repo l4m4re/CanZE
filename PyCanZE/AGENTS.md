@@ -78,3 +78,9 @@ Reference notes
 - **Tester-present cadence** – charging tech scheduling sends `BcbTesterAwake` every 1500 ms【F:app/src/main/java/lu/fisch/canze/activities/ChargingTechActivity.java†L80-L105】
 - **LBC addressing variants** – assets show request/response IDs: `7BB→79B` for legacy models【F:app/src/main/assets/ZOE/_Ecus.csv†L5】, `7BB→79B` on Twingo Ph2【F:app/src/main/assets/Twingo_3_Ph2/_Ecus.csv†L7】, and extended `18DAF1DB→18DADBF1` for ZOE Ph2【F:app/src/main/assets/ZOE_Ph2/_Ecus.csv†L18】
 - **Unused commands** – searches found no `ATCFC1`, `ATCF`, `ATCM`, or `ATST` usage (`rg -i atcfc1`, `atcf`, `atcm`, `atst`)【049216†L1-L2】【a0b7bc†L1-L2】【dcb514†L1-L2】【b87152†L1-L2】
+
+## AT port report (2025-02-14)
+
+- **AT init sequence** – `ATZ; ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF{0|1}; ATFCSH77B; ATFCSD3000xx; ATFCSM1; ATSP6`
+- **Timing defaults** – header settle 0 ms; first‑0x21 delay 0 ms (configurable); TesterPresent every 1500 ms; ISO‑TP collect window 2.5 s with 1.2 s CF read timeout.
+- **Python differences** – optional wide‑CF fallback widens filters and enables `ATH1` when CFs are missing; flow control retry reasserts `ATCFC1`/`ATFCSD` before one retry; environment knobs (`PYCANZE_*`) expose the above timings.

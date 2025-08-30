@@ -7,6 +7,14 @@ socket helpers derived from ``Testing/zoe_arrival_poller.py`` is employed.
 The client can query diagnostic data identifiers (DIDs) defined in the CanZE
 database and decode the returned payload using the field's bit positions,
 resolution and offset.
+
+The default initialisation mirrors the Android driver's AT sequence::
+
+    ATZ; ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF{0|1};
+    ATFCSH77B; ATFCSD3000xx; ATFCSM1; ATSP6
+
+Optional behaviour such as a *wide CF fallback* for LBC CF loss can be
+enabled via environment variables or corresponding tool flags.
 """
 
 from __future__ import annotations
@@ -77,7 +85,9 @@ class UDSClient:
                 self._ecu_by_can[req] = (req, resp)
                 self._ecu_by_can[resp] = (req, resp)
                 self._net_by_req[req] = ecu.networks
-                self._session_required_by_req[req] = bool(getattr(ecu, "session_required", 0))
+                self._session_required_by_req[req] = bool(
+                    getattr(ecu, "session_required", 0)
+                )
             except Exception:
                 continue
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
@@ -85,17 +95,19 @@ class UDSClient:
         # Track currently selected CAN request id (11-bit)
         self._current_req_id = None
         # Tunables (can be overridden by tools)
-        self.caf = None                 # 0 or 1 for ATCAF
-        self.fc_stmin_ms = None         # STmin ms for ATFCSD 3000xx
-        self.header_settle_ms = 0.0     # sleep after ATSH/ATCRA
-        self.delay_before_21_ms = 0.0   # sleep before first 0x21 after switch
+        self.caf = None  # 0 or 1 for ATCAF
+        self.fc_stmin_ms = None  # STmin ms for ATFCSD 3000xx
+        self.header_settle_ms = 0.0  # sleep after ATSH/ATCRA
+        self.delay_before_21_ms = 0.0  # sleep before first 0x21 after switch
         self._just_switched = False
-        self.use_mask_filter = False    # use ATCF/ATCM instead of ATCRA
-        self.fc_retry_enabled = True    # allow FC reassert retry
-        self.wide_cf_fallback = False   # allow temporary ATH1/filter widening
+        self.use_mask_filter = False  # use ATCF/ATCM instead of ATCRA
+        self.fc_retry_enabled = True  # allow FC reassert retry
+        self.wide_cf_fallback = False  # allow temporary ATH1/filter widening
         # Additional timing controls
-        self.isotp_collect_timeout_s = 2.5  # total window to collect multi-frame payload
-        self.cf_read_timeout_s = 1.2        # per read timeout while collecting CFs
+        self.isotp_collect_timeout_s = (
+            2.5  # total window to collect multi-frame payload
+        )
+        self.cf_read_timeout_s = 1.2  # per read timeout while collecting CFs
         # Optional per-ECU first-0x21 delay (currently used for LBC 0x7BB)
         self.first_21_delay_by_req = {}
 
@@ -110,7 +122,7 @@ class UDSClient:
         if pair is not None:
             return pair
         # Search by response id match
-        for (_k, pr) in self._ecu_by_can.items():
+        for _k, pr in self._ecu_by_can.items():
             try:
                 if pr[1] == fid:
                     return pr
@@ -132,7 +144,12 @@ class UDSClient:
             if req_id in self._session_started:
                 return
             # Try common sessions: Extended (0xC0), Renault (0xF2), LGChem (0xF3), then Default (0x81)
-            for mode, expect in (("0210C0", "50C0"), ("0210F2", "50F2"), ("0210F3", "50F3"), ("021081", "5081")):
+            for mode, expect in (
+                ("0210C0", "50C0"),
+                ("0210F2", "50F2"),
+                ("0210F3", "50F3"),
+                ("021081", "5081"),
+            ):
                 self._send(mode)
                 lines = self._read_lines()
                 up = [ln.upper().replace(" ", "") for ln in lines]
@@ -176,7 +193,9 @@ class UDSClient:
             if b">" in buf:
                 break
         text = buf.decode(errors="ignore").replace("\r", "\n")
-        lines = [ln.strip() for ln in text.split("\n") if ln.strip() and ln.strip() != ">"]
+        lines = [
+            ln.strip() for ln in text.split("\n") if ln.strip() and ln.strip() != ">"
+        ]
         if self.debug:
             print(f"[PYCANZE DEBUG] RECV: {lines}")
         return lines
@@ -186,7 +205,10 @@ class UDSClient:
         out = []
         for ln in lines:
             up = ln.upper()
-            if any(k in up for k in ["NO DATA", "ERROR", "SEARCHING", "BUS INIT", "CAN ERROR"]):
+            if any(
+                k in up
+                for k in ["NO DATA", "ERROR", "SEARCHING", "BUS INIT", "CAN ERROR"]
+            ):
                 continue
             only_hex = "".join(ch for ch in ln if ch.upper() in "0123456789ABCDEF")
             out.extend(int(only_hex[i : i + 2], 16) for i in range(0, len(only_hex), 2))
@@ -203,7 +225,9 @@ class UDSClient:
             self.elm.connect()  # type: ignore[attr-defined]
             self.sock = getattr(self.elm, "sock", None)  # type: ignore[attr-defined]
         if self.sock is None:
-            self.sock = socket.create_connection((self.host, self.port), timeout=self.timeout)
+            self.sock = socket.create_connection(
+                (self.host, self.port), timeout=self.timeout
+            )
 
     def initialize(self) -> None:
         """Send a standard AT init sequence to the dongle."""
@@ -218,27 +242,39 @@ class UDSClient:
             self.caf = None
         try:
             if self.fc_stmin_ms is None and os.environ.get("PYCANZE_FC_STMIN_MS"):
-                self.fc_stmin_ms = int(os.environ.get("PYCANZE_FC_STMIN_MS", "0").strip())
+                self.fc_stmin_ms = int(
+                    os.environ.get("PYCANZE_FC_STMIN_MS", "0").strip()
+                )
         except Exception:
             self.fc_stmin_ms = None
         try:
             if not self.header_settle_ms and os.environ.get("PYCANZE_HEADER_SETTLE_MS"):
-                self.header_settle_ms = float(os.environ.get("PYCANZE_HEADER_SETTLE_MS", "0").strip())
+                self.header_settle_ms = float(
+                    os.environ.get("PYCANZE_HEADER_SETTLE_MS", "0").strip()
+                )
         except Exception:
             self.header_settle_ms = 0.0
         try:
-            if not self.delay_before_21_ms and os.environ.get("PYCANZE_DELAY_BEFORE_21_MS"):
-                self.delay_before_21_ms = float(os.environ.get("PYCANZE_DELAY_BEFORE_21_MS", "0").strip())
+            if not self.delay_before_21_ms and os.environ.get(
+                "PYCANZE_DELAY_BEFORE_21_MS"
+            ):
+                self.delay_before_21_ms = float(
+                    os.environ.get("PYCANZE_DELAY_BEFORE_21_MS", "0").strip()
+                )
         except Exception:
             self.delay_before_21_ms = 0.0
         try:
             if os.environ.get("PYCANZE_USE_MASK_FILTER"):
-                self.use_mask_filter = os.environ.get("PYCANZE_USE_MASK_FILTER", "").strip() not in ("0", "false", "False", "")
+                self.use_mask_filter = os.environ.get(
+                    "PYCANZE_USE_MASK_FILTER", ""
+                ).strip() not in ("0", "false", "False", "")
         except Exception:
             self.use_mask_filter = False
         try:
             if os.environ.get("PYCANZE_WIDE_CF_FALLBACK"):
-                self.wide_cf_fallback = os.environ.get("PYCANZE_WIDE_CF_FALLBACK", "").strip() not in (
+                self.wide_cf_fallback = os.environ.get(
+                    "PYCANZE_WIDE_CF_FALLBACK", ""
+                ).strip() not in (
                     "0",
                     "false",
                     "False",
@@ -283,7 +319,9 @@ class UDSClient:
         self._send("ATZ", wait=0.3)
         self._read_lines(3.0)
         caf_mode = 0 if self.caf is None else int(self.caf)
-        stmin = 0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
+        stmin = (
+            0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
+        )
         init_cmds = [
             "ATE0",
             "ATS0",
@@ -342,7 +380,9 @@ class UDSClient:
             self.sock = None
 
     # ------------------------------------------------------------------
-    def _read_by_id(self, service: int, ident: int, ident_len: int) -> Optional[Sequence[int]]:
+    def _read_by_id(
+        self, service: int, ident: int, ident_len: int
+    ) -> Optional[Sequence[int]]:
         """Send a generic read-by-identifier request and return raw response bytes.
 
         - For service 0x22 (ReadDataByIdentifier), ``ident_len`` is 2 (16-bit DID).
@@ -362,9 +402,16 @@ class UDSClient:
         if self.debug:
             print(f"[PYCANZE DEBUG] UDS READ: {cmd}")
         # Optional delay just before the first 0x21 after switching headers
-        if service == 0x21 and self._just_switched and self.delay_before_21_ms and self.delay_before_21_ms > 0:
+        if (
+            service == 0x21
+            and self._just_switched
+            and self.delay_before_21_ms
+            and self.delay_before_21_ms > 0
+        ):
             if self.debug:
-                print(f"[PYCANZE DEBUG] delay_before_21_ms={self.delay_before_21_ms} ms before first 0x21")
+                print(
+                    f"[PYCANZE DEBUG] delay_before_21_ms={self.delay_before_21_ms} ms before first 0x21"
+                )
             try:
                 time.sleep(self.delay_before_21_ms / 1000.0)
             except Exception:
@@ -393,20 +440,24 @@ class UDSClient:
         b = self._only_hex_bytes(lines)
         if self.debug:
             print(f"[PYCANZE DEBUG] PARSED HEX: {b}")
-    # Manual ISO-TP reassembly fallback (without sending our own Flow Control)
-    # Detect First Frame (0x10 ..) and then continue reading Consecutive Frames
-    # until the total length is satisfied. We rely on ATCFC1 so the ELM327 sends
-    # Flow Control frames automatically; sending a manual FC as a normal request
-    # (e.g. "03300000") is incorrect and can lead to "NO DATA" responses.
+        # Manual ISO-TP reassembly fallback (without sending our own Flow Control)
+        # Detect First Frame (0x10 ..) and then continue reading Consecutive Frames
+        # until the total length is satisfied. We rely on ATCFC1 so the ELM327 sends
+        # Flow Control frames automatically; sending a manual FC as a normal request
+        # (e.g. "03300000") is incorrect and can lead to "NO DATA" responses.
         if len(b) >= 3 and (b[0] >> 4) == 0x1:
             total_len = ((b[0] & 0x0F) << 8) | (b[1] & 0xFF)
             # Payload included in First Frame (starts at index 2)
             collected: list[int] = list(b[2:])
-            deadline = time.time() + float(getattr(self, "isotp_collect_timeout_s", 2.5) or 2.5)
+            deadline = time.time() + float(
+                getattr(self, "isotp_collect_timeout_s", 2.5) or 2.5
+            )
             expected_sn = 1
             while len(collected) < total_len and time.time() < deadline:
                 try:
-                    more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
+                    more = self._read_lines(
+                        float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2)
+                    )
                 except Exception:
                     # No more data arrived within timeout
                     break
@@ -428,7 +479,7 @@ class UDSClient:
                     else:
                         j += 1
             # Build response bytes starting at positive response SID
-            out = collected[: total_len]
+            out = collected[:total_len]
             if out and out[0] == resp_sid and len(out) >= total_len:
                 self.last_status = None
                 if self._current_req_id is not None and service == 0x21:
@@ -452,7 +503,9 @@ class UDSClient:
                         except Exception:
                             pass
                     if self.debug:
-                        print("[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once")
+                        print(
+                            "[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once"
+                        )
                     time.sleep(0.05)
                     # Retry the same request once
                     return self._read_by_id(service, ident, ident_len)
@@ -476,15 +529,24 @@ class UDSClient:
                         self._read_lines(1.0)
                     while len(collected) < total_len and time.time() < deadline:
                         try:
-                            more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
+                            more = self._read_lines(
+                                float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2)
+                            )
                         except Exception:
                             break
                         for ln in more:
                             up = ln.upper().replace(" ", "")
                             if not up.startswith(resp_hex):
                                 continue
-                            hex_part = "".join(ch for ch in up[len(resp_hex):] if ch in "0123456789ABCDEF")
-                            bb = [int(hex_part[i : i + 2], 16) for i in range(0, len(hex_part), 2)]
+                            hex_part = "".join(
+                                ch
+                                for ch in up[len(resp_hex) :]
+                                if ch in "0123456789ABCDEF"
+                            )
+                            bb = [
+                                int(hex_part[i : i + 2], 16)
+                                for i in range(0, len(hex_part), 2)
+                            ]
                             j = 0
                             while j < len(bb):
                                 pci = bb[j]
@@ -493,7 +555,9 @@ class UDSClient:
                                     if sn != (expected_sn & 0x0F):
                                         break
                                     expected_sn = (expected_sn + 1) & 0x0F
-                                    take = min(7, len(bb) - (j + 1), total_len - len(collected))
+                                    take = min(
+                                        7, len(bb) - (j + 1), total_len - len(collected)
+                                    )
                                     if take > 0:
                                         collected.extend(bb[j + 1 : j + 1 + take])
                                     j += 1 + take
@@ -517,7 +581,7 @@ class UDSClient:
                     except Exception:
                         pass
                 if len(collected) >= total_len:
-                    out = collected[: total_len]
+                    out = collected[:total_len]
                     if out and out[0] == resp_sid and len(out) >= total_len:
                         self.last_status = None
                         if self._current_req_id is not None and service == 0x21:
@@ -602,7 +666,9 @@ class UDSClient:
         # Give the ELM/adapter a short settle time after header switch if configured
         if self.header_settle_ms and self.header_settle_ms > 0:
             if self.debug:
-                print(f"[PYCANZE DEBUG] header_settle_ms={self.header_settle_ms} ms after ATSH/ATCRA")
+                print(
+                    f"[PYCANZE DEBUG] header_settle_ms={self.header_settle_ms} ms after ATSH/ATCRA"
+                )
             try:
                 time.sleep(self.header_settle_ms / 1000.0)
             except Exception:
@@ -683,4 +749,3 @@ class UDSClient:
             return None
         raw_value = self._extract_bits(bytes(resp), field.start_bit, field.end_bit)
         return field.offset + field.resolution * raw_value
-
