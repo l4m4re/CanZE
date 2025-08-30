@@ -62,7 +62,8 @@ class UDSClient:
         self._session_required_by_req = {}  # req_id -> bool
         self._session_started = set()  # req_ids with active session
         self._last_tp = 0.0
-        self._tp_interval = 2.0  # seconds between TesterPresent keep-alives
+        # Android schedules TesterPresent every 1500 ms
+        self._tp_interval = 1.5  # seconds between TesterPresent keep-alives
         # Short-lived cache for repeated 0x21 page reads: (req_id, service, ident) -> response bytes
         self._last_tuple = None  # type: Optional[tuple[int, int, int]]
         self._last_resp = None  # type: Optional[Sequence[int]]
@@ -90,6 +91,7 @@ class UDSClient:
         self.delay_before_21_ms = 0.0   # sleep before first 0x21 after switch
         self._just_switched = False
         self.use_mask_filter = False    # use ATCF/ATCM instead of ATCRA
+        self.fc_retry_enabled = True    # allow FC reassert retry
         # Additional timing controls
         self.isotp_collect_timeout_s = 2.5  # total window to collect multi-frame payload
         self.cf_read_timeout_s = 1.2        # per read timeout while collecting CFs
@@ -215,7 +217,7 @@ class UDSClient:
             self.caf = None
         try:
             if self.fc_stmin_ms is None and os.environ.get("PYCANZE_FC_STMIN_MS"):
-                self.fc_stmin_ms = int(os.environ.get("PYCANZE_FC_STMIN_MS", "5").strip())
+                self.fc_stmin_ms = int(os.environ.get("PYCANZE_FC_STMIN_MS", "0").strip())
         except Exception:
             self.fc_stmin_ms = None
         try:
@@ -246,6 +248,18 @@ class UDSClient:
                 self.cf_read_timeout_s = float(v)
         except Exception:
             pass
+        try:
+            v = os.environ.get("PYCANZE_TP_INTERVAL_MS")
+            if v:
+                self._tp_interval = float(v) / 1000.0
+        except Exception:
+            pass
+        try:
+            v = os.environ.get("PYCANZE_FC_RETRY")
+            if v is not None:
+                self.fc_retry_enabled = v.strip() not in ("0", "false", "False", "")
+        except Exception:
+            pass
         # Per-ECU first-0x21 delay: allow targeting LBC specifically
         try:
             v = os.environ.get("PYCANZE_FIRST_21_DELAY_LBC_MS")
@@ -254,11 +268,24 @@ class UDSClient:
                 self.first_21_delay_by_req[0x7BB] = float(v)
         except Exception:
             pass
-        # Reset and basic config
+        # Reset and basic config mirroring Android's sequence
         self._send("ATZ", wait=0.3)
         self._read_lines(3.0)
         caf_mode = 0 if self.caf is None else int(self.caf)
-        for cmd in ("ATE0", "ATH0", "ATS0", "ATSP6", "ATAT1", f"ATCAF{caf_mode}", "ATAL"):
+        stmin = 0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
+        init_cmds = [
+            "ATE0",
+            "ATS0",
+            "ATH0",
+            "ATL0",
+            "ATAL",
+            f"ATCAF{caf_mode}",
+            "ATFCSH77B",
+            f"ATFCSD 3000{stmin:02X}",
+            "ATFCSM1",
+            "ATSP6",
+        ]
+        for cmd in init_cmds:
             self._send(cmd)
             self._read_lines(3.0)
         # Optional: adjust ELM response timeout via ATST
@@ -284,19 +311,7 @@ class UDSClient:
                 self._read_lines(3.0)
             except Exception:
                 pass
-        # Ensure ISO-TP multi-frame is handled automatically by the ELM
-        # - ATCFC1 enables automatic CAN Flow Control
-        # - ATFCSD 300000 sets Flow Control data to 'CTS, BlockSize=0, STmin=0'
-        #   which is suitable for most ECUs including LBC when reading 0x21 pages
-        try:
-            self._send("ATCFC1")
-            self._read_lines(3.0)
-            stmin = 5 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
-            self._send(f"ATFCSD 3000{stmin:02X}")
-            self._read_lines(3.0)
-        except Exception:
-            # Non-fatal on clones that do not support these commands
-            pass
+        # Flow control retry is handled later if needed; no ATCFC1/ATST issued
         self.last_status = None
         # Default header (ZE/EVC): request 0x7E4, response 0x7EC
         self._send("ATSH7E4")
@@ -377,6 +392,7 @@ class UDSClient:
             # Payload included in First Frame (starts at index 2)
             collected: list[int] = list(b[2:])
             deadline = time.time() + float(getattr(self, "isotp_collect_timeout_s", 2.5) or 2.5)
+            expected_sn = 1
             while len(collected) < total_len and time.time() < deadline:
                 try:
                     more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
@@ -390,6 +406,10 @@ class UDSClient:
                 while j < len(bb):
                     pci = bb[j]
                     if (pci >> 4) == 0x2:  # Consecutive Frame
+                        sn = pci & 0x0F
+                        if sn != (expected_sn & 0x0F):
+                            return None  # sequence error
+                        expected_sn = (expected_sn + 1) & 0x0F
                         take = min(7, len(bb) - (j + 1), total_len - len(collected))
                         if take > 0:
                             collected.extend(bb[j + 1 : j + 1 + take])
@@ -406,7 +426,11 @@ class UDSClient:
                     self._last_resp_ts = time.time()
                 return out
             # If we only received a First Frame and no CFs, try reasserting ATCFC1/ATFCSD once
-            if len(collected) < total_len and not getattr(self, "_fc_retry_active", False):
+            if (
+                len(collected) < total_len
+                and self.fc_retry_enabled
+                and not getattr(self, "_fc_retry_active", False)
+            ):
                 try:
                     setattr(self, "_fc_retry_active", True)
                     # Reassert flow control settings and allow long messages
