@@ -11,10 +11,19 @@ DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def _read_csv(path: Path) -> Iterator[List[str]]:
-    """Yield rows from *path* with comments stripped."""
+    """Yield rows from *path*.
+
+    Treat lines that start with '#' (after optional whitespace) as comments.
+    Do not strip inline '#' characters, as they are part of some field names.
+    """
     with path.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.split("#", 1)[0].strip()
+        for raw in f:
+            if not raw:
+                continue
+            # Skip pure comment lines
+            if raw.lstrip().startswith("#"):
+                continue
+            line = raw.strip()
             if not line:
                 continue
             yield [col.strip() for col in line.split(",")]
@@ -51,7 +60,11 @@ def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
             ] if len(row) > 7 else []
             start_diag = _auto_int(row[8]) if len(row) > 8 and row[8] else None
             session_required = int(row[9]) if len(row) > 9 and row[9] else 0
-            ecus[sid] = Ecu(
+            # Avoid overwriting when multiple ECUs share the same SID (e.g., LBC/LBC2)
+            key = sid
+            while key in ecus:
+                key += 1
+            ecus[key] = Ecu(
                 name=name,
                 sid=sid,
                 networks=networks,

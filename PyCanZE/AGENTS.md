@@ -16,3 +16,42 @@ values over MQTT. A GUI similar to the original app may be built later.
 
 Contributions are welcome as this module is under active development.
 
+
+## Agent playbook: Codex analysis and porting plan
+
+This repository includes both the original Android app sources and a Python UDS client. When running in a Codex (isolated) environment without live hardware, follow this plan to extract the app’s exact ELM/ISO‑TP behavior for LBC and port it to Python.
+
+1) Locate Android ELM/ISO‑TP code paths
+- Goal: find the init sequence (AT commands), header/filter handling, and multi‑frame (ISO‑TP) logic used for LBC 0x21 pages.
+- Run these searches from repo root:
+  - rg -n "AT(Z|E0|H0|S0|SP|AL|CAF|CFC1|FCSD|ST|SH|CRA|CF|CM)" app/src/main/java
+  - rg -n "(7bb|79b|6103|6104|6107|\\b21_[0-9]{2}\\b|\"21[0-9A-Fa-f]{2}\")" app/src/main/java
+  - rg -n "(IsoTp|FlowControl|filter|mask|ELM327|Dongle|Serial|Bluetooth|Wifi)" app/src/main/java
+- Files of interest may include classes named like ELM327, Dongle, Transport, Protocol, and any LBC‑specific readers.
+
+2) Document the app’s sequence
+- Capture: order of AT commands; whether ATCAF is 0/1; use of ATCFC1/ATFCSD; use of ATCRA vs ATCF/ATCM; any ATST timeout; header settle delays; tester present cadence.
+- Note per‑ECU handling for LBC (request 0x7BB, response 0x7B3/0x7C3/0x7F? and/or 0x7B? → 0x7C? depending on vehicle variant).
+
+3) Port 1:1 to Python
+- Update `pycanze/uds.py` to mirror the app’s flow exactly (bounded by ELM AT support):
+  - Adopt same AT init and header/filter steps.
+  - Match ISO‑TP timing (STmin, block size, collect windows) and session policy.
+  - Keep non‑intrusive fallbacks toggleable via env flags.
+- Validate basic EVC reads (SOC/SOH/HV) still pass.
+
+4) Add a controlled fallback for LBC FF‑only cases
+- Implement an optional “wide CF fallback”: temporarily enable ATH1 and open filter/mask to accept CFs, reassemble, then restore filters; guard with env `PYCANZE_WIDE_CF_FALLBACK=1` and a CLI flag in `battery_health.py`.
+- Do not send manual flow control frames (ELM `ATCFC1` should handle FC); only widen reception.
+
+5) Provide a sweep harness
+- Use `PyCanZE/Testing/sweep_battery_health.sh` to run across CAF, mask, STmin, header settle, per‑ECU first‑0x21 delays, ATST, and ISO‑TP windows; logs go to `Testing/logs/battery_sweep_<ts>/`.
+
+6) Deliverables in Codex PR
+- Patch `uds.py` and `tools/battery_health.py` with the extracted behavior and the optional fallback flag.
+- Include a short report in this file with: AT sequence, timing values, and any differences from current Python implementation.
+
+Reference notes
+- Python UDS currently supports: sessions (0x10 C0/F2/F3/81 best‑effort), tester present (0x3E), DID (0x22), local id (0x21), ATCFC1 and ATFCSD, ATSH/ATFCSH, ATCRA or ATCF/ATCM, header settle delay, per‑ECU first‑0x21 delay, and iso‑tp reassembly with retry.
+- Known issue: some WiFi ELM327 clones drop CFs on LBC 0x21; timing/filtering is sensitive.
+

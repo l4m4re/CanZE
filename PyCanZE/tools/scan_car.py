@@ -101,16 +101,16 @@ def scan_car(car: str, client: UDSClient) -> None:
         if filters and not any(tok in ecu.lower() for tok in filters):
             continue
         print(f"\nECU: {ecu}")
-    ok = 0
-    total = 0
-    for row in _read_csv(field_file):
+        ok = 0
+        total = 0
+        for row in _read_csv(field_file):
             # Build SID compatible with the in-memory database
             sid = _sid_for_row(row)
             if not sid:
                 continue
-            # Only attempt UDS ReadDataByIdentifier (0x22) queries
+            # Only attempt UDS read queries: 0x22 (DID) and 0x21 (local id)
             req = (row + [""] * 13)[8]
-            if not req or not req.startswith("22") or len(req) != 6:
+            if not req or not (req.startswith("22") or req.startswith("21")):
                 continue
             name = (row + [""] * 12)[11]
             # If the exact SID is unknown, try the generated fallback form
@@ -141,7 +141,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                 print(f" {sid:>16} {name} -> {value}")
             elif not args.only_values:
                 print(f" {sid:>16} {name} -> {value}")
-    print(f"-- {ecu}: {ok}/{total} values")
+        print(f"-- {ecu}: {ok}/{total} values")
 
 
 def main() -> None:
