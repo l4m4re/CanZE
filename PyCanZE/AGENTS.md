@@ -55,6 +55,46 @@ Reference notes
 - Python UDS currently supports: sessions (0x10 C0/F2/F3/81 best‑effort), tester present (0x3E), DID (0x22), local id (0x21), ATCFC1 and ATFCSD, ATSH/ATFCSH, ATCRA or ATCF/ATCM, header settle delay, per‑ECU first‑0x21 delay, and iso‑tp reassembly with retry.
 - Known issue: some WiFi ELM327 clones drop CFs on LBC 0x21; timing/filtering is sensitive.
 
+## Roadmap and next goals
+
+Primary goal: simple, reliable Home Assistant integration for monitoring and charging planning, keeping SoC between roughly 20–30% and 70–80%.
+
+Near‑term deliverables
+- MQTT poller (every ~5 minutes): publish a compact snapshot with metrics we already read reliably via EVC.
+  - Suggested baseline fields (proven today):
+    - SoC (%) — EVC 0x22/0x2002
+    - SOH (%) — EVC 0x22/0x3206
+    - HV voltage (V) — EVC 0x22/0x2004 or 0x3008
+    - Odometer (km) — EVC 0x22/0x2006
+  - Optional as we confirm: charging status/plug state (EVC/UCH), charge power (kW), AC voltage/current (PEB), etc.
+- Home Assistant wiring:
+  - Option A (manual): subscribe HA to a single state topic (e.g., `canze/zoe/state`) and template sensors in HA YAML.
+  - Option B (MQTT Discovery): publish discovery configs under `homeassistant/sensor/zoe_*` so sensors appear automatically.
+- Battery detail snapshot (less frequent, e.g., every 30–60 minutes or on‑demand):
+  - LBC 21_03: min/max cell voltage, OCV
+  - LBC 21_04: min/avg/max battery temperature
+  - LBC 21_07: balancing flags summary
+  - Publish to a separate topic (e.g., `canze/zoe/diag`) to avoid flooding HA history; optionally disabled by default.
+
+Suggested MQTT schema
+- State topic: `canze/zoe/state`
+  - Payload:
+    - `{ "ts":"ISO8601", "soc_pct":float, "soh_pct":float, "hv_v":float, "odometer_km":float }`
+- Diagnostic topic (optional): `canze/zoe/diag`
+  - Payload:
+    - `{ "ts":"ISO8601", "lbc": { "v_min":float, "v_max":float, "ocv":float, "t_min":float, "t_avg":float, "t_max":float, "bal_1":int, "bal_2":int, "bal_3":int } }`
+
+Update cadence
+- Frequent snapshot (state): every 5 minutes (configurable), with a one‑shot fast capture when the dongle first comes online.
+- Diagnostic snapshot: 30–60 minutes when the car is awake, or on command.
+
+Implementation notes
+- Reuse `Testing/zoe_arrival_poller.py` structure for connectivity/pacing; extract the read logic into a shared helper.
+- Add `tools/mqtt_poller.py`:
+  - CLI: `--host`, `--port`, `--interval`, `--mqtt-url`, `--mqtt-user`, `--mqtt-pass`, `--ha-discovery`, `--topic-prefix`.
+  - Publishes JSON as above; optional HA discovery configs.
+- LBC detail reads remain behind a flag until the ISO‑TP reliability work (Codex alignment + optional wide‑CF fallback) is merged.
+
 
 ## ELM/ISO-TP findings (2025-08-30)
 
@@ -84,3 +124,42 @@ Reference notes
 - **AT init sequence** – `ATZ; ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF{0|1}; ATFCSH77B; ATFCSD3000xx; ATFCSM1; ATSP6`
 - **Timing defaults** – header settle 0 ms; first‑0x21 delay 0 ms (configurable); TesterPresent every 1500 ms; ISO‑TP collect window 2.5 s with 1.2 s CF read timeout.
 - **Python differences** – optional wide‑CF fallback widens filters and enables `ATH1` when CFs are missing; flow control retry reasserts `ATCFC1`/`ATFCSD` before one retry; environment knobs (`PYCANZE_*`) expose the above timings.
+
+
+## Java vs Python parity report (2025-08-30)
+
+Summary: We’re very close for UDS over ISO‑TP on 11‑bit CAN. AT init, header/filter handling, and ISO‑TP RX logic align with the app. We intentionally added extra robustness (sessions, TesterPresent, FC reassert, optional wide‑CF fallback). Missing by design: free‑frame capture and 29‑bit addressing.
+
+- AT initialization
+  - Java: `ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF0; ATFCSH77B; ATFCSD300000; ATFCSM1; ATSP6`
+  - Python: same order; CAF and STmin are tunable; optional `ATST` supported.
+- Header/filter management (ISO‑TP)
+  - Java: per‑request `ATSH <to>`, `ATCRA <from>`, `ATFCSH <to>`; caches last ID; switches 11/29‑bit via `ATSP6/7` and `ATCP`.
+  - Python: per‑field `ATSH <req>`, `ATCRA <resp>` or `ATCF/ATCM` (toggle); `ATFCSH <req>`; caches current req; 11‑bit only.
+- ISO‑TP transmit
+  - Java: builds FRST/NEXT for long payloads.
+  - Python: only short requests (sufficient for 0x21/0x22). No long‑TX yet.
+- ISO‑TP receive
+  - Java: parses Single/First; reads expected CF count; checks SN; flushes to `>`.
+  - Python: parses FF; collects CFs with sequence checks; adds FC reassert retry and optional wide‑CF fallback; configurable timeouts.
+- Free‑frame capture
+  - Java: `ATCRA` + `ATMA`, then cancel with `x` and flush; optional `ATAR`.
+  - Python: not implemented (UDS focus).
+- Recovery/flush
+  - Java: `killCurrentOperation()` uses `x`, flush, `x\r` to provoke `?` and clear state.
+  - Python: simple read‑until‑`>`; no explicit kill routine yet.
+- 29‑bit addressing
+  - Java: `ATSP7` + `ATCP` when needed.
+  - Python: 11‑bit only for now.
+- Sessions/keep‑alive
+  - Java ELM driver: sessions handled elsewhere in app.
+  - Python: best‑effort `0x10` sessions and periodic `0x3E` TesterPresent built‑in.
+
+Gaps to close (optional, low‑risk):
+- Add an `atma` helper (free‑frame capture) mirroring Java’s `ATCRA` → `ATMA` → cancel/flush sequence; restore filters before ISO‑TP.
+- Add a `kill()` utility that mimics `killCurrentOperation()` (`x`, timed flush, `x\r`, flush until `?` then `>`), gated behind a retry policy.
+- Guarded 29‑bit mode: detect 29‑bit ECUs in the DB and switch via `ATSP7` + `ATCP` (feature‑flagged, default off).
+
+What we intentionally keep as enhancements vs app:
+- Flow‑control reassert retry and wide‑CF fallback for LBC FF‑only clones.
+- Exposed tunables (`PYCANZE_*`) for CAF, STmin, header settle, first‑0x21 delay, ISO‑TP windows, and mask filtering.

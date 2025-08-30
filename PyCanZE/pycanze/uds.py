@@ -487,7 +487,7 @@ class UDSClient:
                     self._last_resp = list(out)
                     self._last_resp_ts = time.time()
                 return out
-            # If we only received a First Frame and no CFs, try reasserting ATCFC1/ATFCSD once
+            # If we only received a First Frame and no CFs, try reasserting FC once
             if (
                 len(collected) < total_len
                 and self.fc_retry_enabled
@@ -496,22 +496,29 @@ class UDSClient:
                 try:
                     setattr(self, "_fc_retry_active", True)
                     # Reassert flow control settings and allow long messages
-                    for cmd in ("ATCFC1", "ATFCSD 300005", "ATAL"):
+                    stmin = 0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
+                    for cmd_fc in (
+                        "ATFCSM1",                      # match Android app
+                        f"ATFCSD 3000{stmin:02X}",     # CTS, BS=0, STmin
+                        "ATCFC1",                      # compatibility with clones
+                        "ATAL",
+                    ):
                         try:
-                            self._send(cmd)
+                            self._send(cmd_fc)
                             self._read_lines(1.0)
                         except Exception:
                             pass
                     if self.debug:
-                        print(
-                            "[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once"
-                        )
+                        print("[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once")
                     time.sleep(0.05)
                     # Retry the same request once
                     return self._read_by_id(service, ident, ident_len)
                 finally:
                     setattr(self, "_fc_retry_active", False)
+            # Wide CF fallback: widen filters, enable ATH1, and resend the request
             if len(collected) < total_len and getattr(self, "wide_cf_fallback", False):
+                if self.debug:
+                    print("[PYCANZE DEBUG] WIDE-CF fallback: ATH1 + ATCM/ATCF=000, resending request")
                 resp_id = 0
                 if self._current_req_id is not None:
                     resp_id = self._pair_for_frame(self._current_req_id)[1]
@@ -519,34 +526,27 @@ class UDSClient:
                 try:
                     self._send("ATH1")
                     self._read_lines(1.0)
-                    if self.use_mask_filter:
-                        self._send("ATCF 000")
-                        self._read_lines(1.0)
-                        self._send("ATCM 000")
-                        self._read_lines(1.0)
-                    else:
-                        self._send("ATCRA 000")
-                        self._read_lines(1.0)
+                    # Always use mask filtering for a true wildcard
+                    self._send("ATCM 000")
+                    self._read_lines(1.0)
+                    self._send("ATCF 000")
+                    self._read_lines(1.0)
+                    time.sleep(0.02)
+                    # Resend the original request under widened filters
+                    self._send(cmd)
+                    self._read_lines(self.timeout)
+                    # Collect any CFs that follow
                     while len(collected) < total_len and time.time() < deadline:
                         try:
-                            more = self._read_lines(
-                                float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2)
-                            )
+                            more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
                         except Exception:
                             break
                         for ln in more:
                             up = ln.upper().replace(" ", "")
                             if not up.startswith(resp_hex):
                                 continue
-                            hex_part = "".join(
-                                ch
-                                for ch in up[len(resp_hex) :]
-                                if ch in "0123456789ABCDEF"
-                            )
-                            bb = [
-                                int(hex_part[i : i + 2], 16)
-                                for i in range(0, len(hex_part), 2)
-                            ]
+                            hex_part = "".join(ch for ch in up[len(resp_hex):] if ch in "0123456789ABCDEF")
+                            bb = [int(hex_part[i:i+2], 16) for i in range(0, len(hex_part), 2)]
                             j = 0
                             while j < len(bb):
                                 pci = bb[j]
@@ -555,24 +555,19 @@ class UDSClient:
                                     if sn != (expected_sn & 0x0F):
                                         break
                                     expected_sn = (expected_sn + 1) & 0x0F
-                                    take = min(
-                                        7, len(bb) - (j + 1), total_len - len(collected)
-                                    )
+                                    take = min(7, len(bb) - (j + 1), total_len - len(collected))
                                     if take > 0:
                                         collected.extend(bb[j + 1 : j + 1 + take])
                                     j += 1 + take
                                 else:
                                     j += 1
                 finally:
+                    # Restore exact filter and headers
                     try:
-                        if self.use_mask_filter:
-                            self._send(f"ATCF {resp_hex}")
-                            self._read_lines(1.0)
-                            self._send("ATCM 7FF")
-                            self._read_lines(1.0)
-                        else:
-                            self._send(f"ATCRA {resp_hex}")
-                            self._read_lines(1.0)
+                        self._send("ATCM 7FF")
+                        self._read_lines(1.0)
+                        self._send(f"ATCF {resp_hex}")
+                        self._read_lines(1.0)
                     except Exception:
                         pass
                     try:

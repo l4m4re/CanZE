@@ -32,3 +32,16 @@ SHALL THE AUTHORS BE LIABLE FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQ
 USE, MISUSE, OR INABILITY TO USE THE SOFTWARE, EVEN IF THE AUTHOR HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGES. THESE EXCLUSIONS AND LIMITATIONS MAY NOT APPLY IN ALL JURISDICTIONS. YOU MAY HAVE ADDITIONAL RIGHTS AND
 SOME OF THESE LIMITATIONS MAY NOT APPLY TO YOU. THIS SOFTWARE IS ONLY INTENDED FOR SCIENTIFIC USAGE.
+
+## PyCanZE (Python tools) roadmap
+
+This repository also contains a Python toolkit under `PyCanZE/` used for command‑line polling and experiments (MQTT, HA integration, etc.). See `PyCanZE/AGENTS.md` for a living roadmap, Codex analysis plan, and next goals including a 5‑minute MQTT poller (SoC/SOH/HV/odometer) and optional battery diagnostics snapshots.
+
+### Known limitations (PyCanZE tools)
+
+These apply to the Python command‑line tools under `PyCanZE/` and do not affect the Android app:
+
+- No free‑frame capture yet: the tools do not use `ATMA` to sniff broadcast frames. They focus on on‑demand UDS reads (0x21/0x22). This mainly impacts “live dashboard” use cases that rely on high‑rate broadcast messages. It does not affect the planned Home Assistant integration or periodic snapshots (EVC‑based SoC/SOH/HV/odometer are supported).
+- 11‑bit CAN only: extended (29‑bit) ISO‑TP addressing (`ATSP7` + `ATCP`) isn’t implemented yet. Legacy ZOE and Twingo 3 Ph2 battery ECUs use 11‑bit and are supported. ZOE Ph2 battery ECUs (e.g., LBC/LBC2 with 29‑bit IDs) are not yet reachable from the Python tools.
+
+These gaps are intentional for now. Primary goal is HA integration and basic diagnostics; there’s no intent to build a live driving dashboard. If needed later, both features can be added behind flags with per‑ECU selection from the CSV database.
