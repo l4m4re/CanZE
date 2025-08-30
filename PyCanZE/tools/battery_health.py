@@ -42,6 +42,11 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--header-settle-ms", type=float, help="Delay after ATSH/ATCRA before first request")
     p.add_argument("--first-21-delay-ms", type=float, help="Delay before first 0x21 after header switch")
     p.add_argument("--use-mask-filter", action="store_true", help="Use ATCF/ATCM instead of ATCRA")
+    p.add_argument(
+        "--wide-cf-fallback",
+        action="store_true",
+        help="Temporarily widen filters and enable ATH1 if CFs are missing",
+    )
     p.add_argument("--atst-ms", type=float, help="ELM ATST timeout in ms (rounded to 4ms units)")
     p.add_argument("--atst-hex", type=str, help="ELM ATST raw hex byte (overrides --atst-ms)")
     p.add_argument("--isotp-collect-s", type=float, help="ISO-TP total collect window in seconds")
@@ -73,6 +78,8 @@ def main() -> None:
                 os.environ["PYCANZE_DELAY_BEFORE_21_MS"] = str(args.first_21_delay_ms)
             if args.use_mask_filter:
                 os.environ["PYCANZE_USE_MASK_FILTER"] = "1"
+            if args.wide_cf_fallback:
+                os.environ["PYCANZE_WIDE_CF_FALLBACK"] = "1"
             if args.atst_hex:
                 os.environ["PYCANZE_ATST"] = str(args.atst_hex)
             elif args.atst_ms is not None:

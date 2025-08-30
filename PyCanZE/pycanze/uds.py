@@ -92,6 +92,7 @@ class UDSClient:
         self._just_switched = False
         self.use_mask_filter = False    # use ATCF/ATCM instead of ATCRA
         self.fc_retry_enabled = True    # allow FC reassert retry
+        self.wide_cf_fallback = False   # allow temporary ATH1/filter widening
         # Additional timing controls
         self.isotp_collect_timeout_s = 2.5  # total window to collect multi-frame payload
         self.cf_read_timeout_s = 1.2        # per read timeout while collecting CFs
@@ -235,6 +236,16 @@ class UDSClient:
                 self.use_mask_filter = os.environ.get("PYCANZE_USE_MASK_FILTER", "").strip() not in ("0", "false", "False", "")
         except Exception:
             self.use_mask_filter = False
+        try:
+            if os.environ.get("PYCANZE_WIDE_CF_FALLBACK"):
+                self.wide_cf_fallback = os.environ.get("PYCANZE_WIDE_CF_FALLBACK", "").strip() not in (
+                    "0",
+                    "false",
+                    "False",
+                    "",
+                )
+        except Exception:
+            self.wide_cf_fallback = False
         # Optional ELM timeouts and ISO-TP windows
         try:
             v = os.environ.get("PYCANZE_ISOTP_COLLECT_S")
@@ -447,6 +458,73 @@ class UDSClient:
                     return self._read_by_id(service, ident, ident_len)
                 finally:
                     setattr(self, "_fc_retry_active", False)
+            if len(collected) < total_len and getattr(self, "wide_cf_fallback", False):
+                resp_id = 0
+                if self._current_req_id is not None:
+                    resp_id = self._pair_for_frame(self._current_req_id)[1]
+                resp_hex = f"{resp_id & 0x7FF:03X}"
+                try:
+                    self._send("ATH1")
+                    self._read_lines(1.0)
+                    if self.use_mask_filter:
+                        self._send("ATCF 000")
+                        self._read_lines(1.0)
+                        self._send("ATCM 000")
+                        self._read_lines(1.0)
+                    else:
+                        self._send("ATCRA 000")
+                        self._read_lines(1.0)
+                    while len(collected) < total_len and time.time() < deadline:
+                        try:
+                            more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
+                        except Exception:
+                            break
+                        for ln in more:
+                            up = ln.upper().replace(" ", "")
+                            if not up.startswith(resp_hex):
+                                continue
+                            hex_part = "".join(ch for ch in up[len(resp_hex):] if ch in "0123456789ABCDEF")
+                            bb = [int(hex_part[i : i + 2], 16) for i in range(0, len(hex_part), 2)]
+                            j = 0
+                            while j < len(bb):
+                                pci = bb[j]
+                                if (pci >> 4) == 0x2:
+                                    sn = pci & 0x0F
+                                    if sn != (expected_sn & 0x0F):
+                                        break
+                                    expected_sn = (expected_sn + 1) & 0x0F
+                                    take = min(7, len(bb) - (j + 1), total_len - len(collected))
+                                    if take > 0:
+                                        collected.extend(bb[j + 1 : j + 1 + take])
+                                    j += 1 + take
+                                else:
+                                    j += 1
+                finally:
+                    try:
+                        if self.use_mask_filter:
+                            self._send(f"ATCF {resp_hex}")
+                            self._read_lines(1.0)
+                            self._send("ATCM 7FF")
+                            self._read_lines(1.0)
+                        else:
+                            self._send(f"ATCRA {resp_hex}")
+                            self._read_lines(1.0)
+                    except Exception:
+                        pass
+                    try:
+                        self._send("ATH0")
+                        self._read_lines(1.0)
+                    except Exception:
+                        pass
+                if len(collected) >= total_len:
+                    out = collected[: total_len]
+                    if out and out[0] == resp_sid and len(out) >= total_len:
+                        self.last_status = None
+                        if self._current_req_id is not None and service == 0x21:
+                            self._last_tuple = (self._current_req_id, service, ident)
+                            self._last_resp = list(out)
+                            self._last_resp_ts = time.time()
+                        return out
             # Do not fall back to segment concatenation for First Frame cases
             # to avoid returning partial payloads.
             return None
