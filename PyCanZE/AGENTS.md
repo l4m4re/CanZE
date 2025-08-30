@@ -55,3 +55,23 @@ Reference notes
 - Python UDS currently supports: sessions (0x10 C0/F2/F3/81 best‑effort), tester present (0x3E), DID (0x22), local id (0x21), ATCFC1 and ATFCSD, ATSH/ATFCSH, ATCRA or ATCF/ATCM, header settle delay, per‑ECU first‑0x21 delay, and iso‑tp reassembly with retry.
 - Known issue: some WiFi ELM327 clones drop CFs on LBC 0x21; timing/filtering is sensitive.
 
+
+## ELM/ISO-TP findings (2025-08-30)
+
+- Init sequence for the internal ELM327 driver:
+  `ATE0; ATS0; ATH0; ATL0; ATAL; ATCAF0; ATFCSH77B; ATFCSD300000; ATFCSM1; ATSP6`
+- Free-frame polling sets a temporary receive filter with `ATCRA`, runs `ATMA`, then flushes and optionally clears the filter with `ATAR`.
+- ISO-TP requests clear any free-frame filter, select protocol (`ATSP7`/`ATSP6`), set header (`ATSH`), receive filter (`ATCRA`), and flow-control response (`ATFCSH`) before transmitting.
+- Multi-frame transmissions send a first frame (`1…`) followed by numbered continuation frames (`2n…`); the receiver reassembles them and checks sequence numbers.
+- Device reset levels map to `ATD` (soft) and `ATWS` (medium); `ATZ` is referenced conceptually for a hard reset but not issued.
+- No usage of `ATCF` or `ATCM` commands was found.
+
+### Java source references for 1:1 porting
+
+- **AT command order and flow-control setup** – the init array lists `ate0; ats0; ath0; atl0; atal; atcaf0; atfcsh77b; atfcsd300000; atfcsm1; atsp6`【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L160-L202】
+- **Free-frame filtering** – free-frame polls set `ATCRA` with the ECU’s response ID【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L499-L508】
+- **ISO‑TP per-request setup** – each request refreshes `ATSH`, `ATCRA`, and `ATFCSH`; protocol switches use `ATSP7/ATSP6`【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L561-L595】
+- **Header settle delay** – after cancelling `ATMA`, the driver flushes and waits before proceeding【F:app/src/main/java/lu/fisch/canze/devices/ELM327.java†L520-L526】
+- **Tester-present cadence** – charging tech scheduling sends `BcbTesterAwake` every 1500 ms【F:app/src/main/java/lu/fisch/canze/activities/ChargingTechActivity.java†L80-L105】
+- **LBC addressing variants** – assets show request/response IDs: `7BB→79B` for legacy models【F:app/src/main/assets/ZOE/_Ecus.csv†L5】, `7BB→79B` on Twingo Ph2【F:app/src/main/assets/Twingo_3_Ph2/_Ecus.csv†L7】, and extended `18DAF1DB→18DADBF1` for ZOE Ph2【F:app/src/main/assets/ZOE_Ph2/_Ecus.csv†L18】
+- **Unused commands** – searches found no `ATCFC1`, `ATCF`, `ATCM`, or `ATST` usage (`rg -i atcfc1`, `atcf`, `atcm`, `atst`)【049216†L1-L2】【a0b7bc†L1-L2】【dcb514†L1-L2】【b87152†L1-L2】
