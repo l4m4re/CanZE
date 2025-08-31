@@ -9,6 +9,7 @@ CSV files in :mod:`pycanze.data`.
 from .models import Ecu, Frame, Field
 from .parser import load_ecus, load_frames, load_fields, load_database
 from .uds import UDSClient
+from .replay_client import ReplayClient
 
 __all__ = [
     "Ecu",
@@ -19,4 +20,5 @@ __all__ = [
     "load_fields",
     "load_database",
     "UDSClient",
+    "ReplayClient",
 ]
