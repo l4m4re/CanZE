@@ -16,14 +16,14 @@
 ,42e,0,12,0.02,0,2,%,,,e3,State of Charge
 ,42e,20,24,5,0,0,%,,,ff,Engine Fan Speed
 ,42e,38,43,1,0,1,A,,,e3,Charging Pilot Current
-,42e,44,50,1,40,0,°C,,,e3,HV Battery Temp
+,42e,44,50,0.5,40,1,°C,,,e3,HV Battery Temp
 ,42e,56,63,0.3,0,1,kW,,,ff,Charging Power
 ,430,24,33,0.5,30,1,°C,,,ff,Comp Temperature Discharge
 ,430,38,39,1,0,0,,,,ff,HV Battery Cooling State
 ,430,40,49,0.1,400,1,°C,,,ff,HV Battery Evaporator Temp
 ,432,36,37,1,0,0,,,,ff,HV Bat Conditionning Mode
 ,4f8,4,5,-1,-2,0,,,,ff,Parking Brake
-,534,32,40,1,40,0,°C,,,e5,Temp out
+,534,32,40,0.5,40,1,°C,,,e5,Temp out
 ,5d7,0,15,0.01,0,2,km/h,,,ff,Speed
 ,5da,0,7,1,40,0,ºC,,,e7,Water temperature
 ,62d,0,9,0.1,0,1,kWh/100km,,,ff,Worst Average Consumption
@@ -33,7 +33,7 @@
 ,654,32,41,1,0,0,min,,,ff,Time to Full
 ,654,42,51,1,0,0,km,,,ff,Available Distance
 ,654,52,61,0.1,0,1,kWh/100km,,,ff,Average Consumption
-,656,48,55,1,40,0,°C,,,ff,External Temp
+,656,48,55,0.5,40,1,°C,,,ff,External Temp
 ,658,33,39,1,0,0,%,,,ff,Battery Health
 ,673,0,0,1,0,0,,,,ff,Speed pressure misadaptation
 ,673,2,4,1,0,0,,,,ff,Rear right wheel state

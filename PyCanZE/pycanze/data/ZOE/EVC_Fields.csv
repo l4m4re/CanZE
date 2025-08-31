@@ -101,7 +101,7 @@
 ,7EC,184,191,1,0,0,,21FF,61FF,ff,SaveMarking
 ,7EC,192,207,1,0,0,,21FF,61FF,4ff,CrcOfLogSave
 ,7EC,24,31,1,0,0,,222000,622000,4ff,DIDs supported in range [$2001 - $2020]
-,7EC,24,31,1,40,0,°C,222001,622001,ff,($2001) Battery Rack temperature
+,7EC,24,31,0.5,40,1,°C,222001,622001,ff,($2001) Battery Rack temperature
 ,7EC,24,39,.02,0,2,%,222002,622002,ff,($2002) State Of Charge (SOC) HV battery
 ,7EC,24,39,.01,0,2,km/h,222003,622003,ff,($2003) Vehicle speed
 ,7EC,24,39,.5,0,1,V,222004,622004,ff,($2004) consolidated HV voltage

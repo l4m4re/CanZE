@@ -138,7 +138,7 @@
 ,42e,20,24,5,0,0,%,,,e2,Engine Fan Speed
 ,42e,25,34,0.5,0,0,V,,,ff,HV Network Voltage
 ,42e,38,43,1,0,1,A,,,e3,Charging Pilot Current
-,42e,44,50,1,40,0,°C,,,e3,HV Battery Temp
+,42e,44,50,0.5,40,1,°C,,,e3,HV Battery Temp
 ,42e,56,63,0.3,0,1,kW,,,ff,Charging Power
 ,430,0,9,10,0,0,rpm,,,e2,Clim Compressor Speed RPM Request 
 ,430,16,22,1,0,0,%,,,e2,High Voltage PTC Request PWM
@@ -172,7 +172,7 @@
 ,4f8,12,12,1,0,0,,,,ff,Cluster Driven Lamps Auto Check
 ,4f8,13,13,1,0,0,,,,ff,Displayed Speed Unit
 ,4f8,24,39,0.01,0,2,,,,ff,Speed on Display
-,534,32,40,1,40,0,°C,,,5,Temp out
+,534,32,40,0.5,40,1,°C,,,5,Temp out
 ,5d7,0,15,0.01,0,2,km/h,,,ff,Speed
 ,5d7,16,43,0.01,0,2,km,,,ff,Odometer
 ,5d7,50,54,0.04,0,2,cm,,,ff,Fine distance
@@ -293,7 +293,7 @@
 ,656,3,3,1,0,0,,,,ff,Trip Data Reset
 ,656,21,31,1,0,0,min,,,ff,Cluster Scheduled Time
 ,656,32,42,1,0,0,min,,,ff,Cluster Scheduled Time 2
-,656,48,55,1,40,0,°C,,,e2,External Temp
+,656,48,55,0.5,40,1,°C,,,e2,External Temp
 ,656,56,57,1,0,0,,,,e2,Clim PC Customer Activation
 ,657,0,1,1,0,0,,,,ff,PreHeatingActivationRequest
 ,657,8,9,1,0,0,,,,ff,PreHeatingActivationRequestedByKey
