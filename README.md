@@ -45,3 +45,26 @@ These apply to the Python command‑line tools under `PyCanZE/` and do not affec
 - 11‑bit CAN only: extended (29‑bit) ISO‑TP addressing (`ATSP7` + `ATCP`) isn’t implemented yet. Legacy ZOE and Twingo 3 Ph2 battery ECUs use 11‑bit and are supported. ZOE Ph2 battery ECUs (e.g., LBC/LBC2 with 29‑bit IDs) are not yet reachable from the Python tools.
 
 These gaps are intentional for now. Primary goal is HA integration and basic diagnostics; there’s no intent to build a live driving dashboard. If needed later, both features can be added behind flags with per‑ECU selection from the CSV database.
+
+## Java log replayer
+
+A minimal standalone Java utility can convert raw ELM327 dumps into a JSON
+array of decoded field values. Each entry contains the field SID, human
+readable name, numeric value and unit. The source lives at
+`app/src/main/java/lu/fisch/canze/tools/LogReplayer.java`.
+
+Compile and run on Linux with a JDK installed:
+
+```bash
+# compile the tool
+javac app/src/main/java/lu/fisch/canze/tools/LogReplayer.java
+
+# replay a raw log and create a JSON reference of decoded values
+java -cp app/src/main/java lu.fisch.canze.tools.LogReplayer \
+    PyCanZE/Testing/logs/zoe-ready-fullscan-20250831-160724.raw \
+    PyCanZE/Testing/logs/zoe-ready-fullscan-20250831-160724.json
+```
+
+The resulting JSON is committed under `PyCanZE/Testing/logs/` and can be
+used by Python unit tests as a canonical baseline for comparison with the
+Python decoder.
