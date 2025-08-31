@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-secs-per-ecu",
         type=float,
-        default=90.0,
+        default=600.0,
         help="Stop scanning an ECU after this many seconds (0 = no limit)",
     )
     parser.add_argument(
@@ -126,6 +126,8 @@ def scan_car(car: str, client: UDSClient) -> None:
 
     args = parse_args()  # reuse same args for filters when invoked as module
     filters = [t.lower() for t in (args.ecu or [])]
+    # Full-scan mode when explicitly requested: skip-nodata=0 and/or raw logging enabled
+    full_scan = (getattr(args, "skip_nodata", 50) == 0) or bool(getattr(args, "raw_log", None))
 
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
@@ -136,12 +138,14 @@ def scan_car(car: str, client: UDSClient) -> None:
         total = 0
         nodata_streak = 0
         start_ecu_ts = time.time()
+        # Cache request IDs that already returned NO_DATA for this ECU
+        nodata_reqs: set[str] = set()
         for row in _read_csv(field_file):
             # ECU-level guards: time budget and max items
-            if getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
+            if (not full_scan) and getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
                 print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu}")
                 break
-            if getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
+            if (not full_scan) and getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
                 print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu}")
                 break
             # Build SID compatible with the in-memory database
@@ -164,17 +168,24 @@ def scan_car(car: str, client: UDSClient) -> None:
                             sid = alt
                 except Exception:
                     pass
-            try:
-                value = client.read_field(sid)
-            except BrokenPipeError:
-                # Allow graceful exit when piped to head
-                return
-            except Exception:
+            # Avoid re-sending the same request when we already saw NO_DATA for it
+            if req and req in nodata_reqs:
                 value = None
+                client.last_status = "NO_DATA"  # mimic last status to drive streak logic
+            else:
+                try:
+                    value = client.read_field(sid)
+                except BrokenPipeError:
+                    # Allow graceful exit when piped to head
+                    return
+                except Exception:
+                    value = None
             # Detect sleeping bus / CAN error and skip to next ECU instead of exiting
             if getattr(client, "last_status", None) == "CAN_ERROR":
-                print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
-                break
+                if not full_scan:
+                    print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
+                    break
+                # In full-scan mode, do not skip the ECU; proceed to next field
             # Skip ECU after repeated NO_DATA to avoid long stalls
             if getattr(client, "last_status", None) == "NO_DATA":
                 nodata_streak += 1
@@ -182,6 +193,9 @@ def scan_car(car: str, client: UDSClient) -> None:
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
+                # Remember this request id had NO_DATA so we won't retry for subsequent fields
+                if req:
+                    nodata_reqs.add(req)
             else:
                 nodata_streak = 0
             total += 1

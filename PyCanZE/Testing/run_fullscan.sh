@@ -38,13 +38,24 @@ pushd "$TOOLS_DIR" >/dev/null
 PYBIN="${PYCANZE_PYTHON:-python}"
 
 set -x
+START_TS="$(date +%s)"
 "$PYBIN" scan_car.py ZOE \
   --only-values \
   --skip-nodata 0 \
+  --per-ecu-limit 0 \
+  --max-secs-per-ecu 0 \
   --raw-log "$RAW_OUT" | tee "$LOG_OUT"
+END_TS="$(date +%s)"
 set +x
 
 popd >/dev/null
+
+DUR_SEC=$((END_TS - START_TS))
+H=$((DUR_SEC/3600))
+M=$(((DUR_SEC%3600)/60))
+S=$((DUR_SEC%60))
+FMT=$(printf "%02d:%02d:%02d" "$H" "$M" "$S")
+echo "Scan duration: ${FMT} (${DUR_SEC}s)" | tee -a "$LOG_OUT"
 
 echo "Raw capture: $RAW_OUT"
 echo "Pretty log : $LOG_OUT"
