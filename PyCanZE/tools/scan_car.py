@@ -19,6 +19,7 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 from pycanze import UDSClient  # type: ignore
 from pycanze.parser import _read_csv  # type: ignore
+from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
 
 # Directory containing copied asset CSV files
 DATA_DIR = Path(__file__).resolve().parent.parent / "pycanze" / "data"
@@ -71,6 +72,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=90.0,
         help="Stop scanning an ECU after this many seconds (0 = no limit)",
+    )
+    parser.add_argument(
+        "--raw-log",
+        type=Path,
+        help="File to store raw ELM327 traffic for offline tests",
     )
     return parser.parse_args()
 
@@ -190,6 +196,26 @@ def main() -> None:
     args = parse_args()
     car = args.car or prompt_for_car()
     client = UDSClient(args.host, port=args.port, timeout=args.elm_timeout)
+    log_fh = None
+    if getattr(args, "raw_log", None):
+        log_fh = open(args.raw_log, "w", encoding="utf-8")
+        orig_send = client._send
+        orig_read = client._read_lines
+
+        def logged_send(line: str, wait: float = ELM_CMD_SLEEP) -> None:
+            log_fh.write(f"> {line}\n")
+            log_fh.flush()
+            orig_send(line, wait)
+
+        def logged_read_lines(timeout: float | None = None):
+            lines = orig_read(timeout)
+            for l in lines:
+                log_fh.write(f"< {l}\n")
+            log_fh.flush()
+            return lines
+
+        client._send = logged_send  # type: ignore[assignment]
+        client._read_lines = logged_read_lines  # type: ignore[assignment]
     try:
         try:
             client.connect()
@@ -203,6 +229,8 @@ def main() -> None:
             sys.exit(3)
         scan_car(car, client)
     finally:
+        if log_fh:
+            log_fh.close()
         client.close()
 
     print(f"Finished scanning {car}")
