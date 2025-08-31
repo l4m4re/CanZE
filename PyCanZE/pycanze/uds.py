@@ -449,12 +449,29 @@ class UDSClient:
         # (e.g. "03300000") is incorrect and can lead to "NO DATA" responses.
         if len(b) >= 3 and (b[0] >> 4) == 0x1:
             total_len = ((b[0] & 0x0F) << 8) | (b[1] & 0xFF)
+            collected: list[int] = []
             # Payload included in First Frame (starts at index 2)
-            collected: list[int] = list(b[2:])
+            take = min(6, len(b) - 2)
+            if take > 0:
+                collected.extend(b[2 : 2 + take])
+            j = 2 + take
+            expected_sn = 1
+            # Consume any Consecutive Frames already present in ``b``
+            while len(collected) < total_len and j < len(b):
+                pci = b[j]
+                if (pci >> 4) != 0x2:
+                    break
+                sn = pci & 0x0F
+                if sn != (expected_sn & 0x0F):
+                    return None
+                expected_sn = (expected_sn + 1) & 0x0F
+                take = min(7, len(b) - (j + 1), total_len - len(collected))
+                if take > 0:
+                    collected.extend(b[j + 1 : j + 1 + take])
+                j += 1 + take
             deadline = time.time() + float(
                 getattr(self, "isotp_collect_timeout_s", 2.5) or 2.5
             )
-            expected_sn = 1
             while len(collected) < total_len and time.time() < deadline:
                 try:
                     more = self._read_lines(
