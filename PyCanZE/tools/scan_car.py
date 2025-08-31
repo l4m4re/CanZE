@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 import socket
 from pathlib import Path
 
@@ -46,6 +47,30 @@ def parse_args() -> argparse.Namespace:
         "--only-values",
         action="store_true",
         help="Only print fields that returned a value",
+    )
+    parser.add_argument(
+        "--elm-timeout",
+        type=float,
+        default=3.0,
+        help="Socket timeout when waiting for the ELM prompt (seconds)",
+    )
+    parser.add_argument(
+        "--skip-nodata",
+        type=int,
+        default=20,
+        help="Skip the rest of an ECU after this many consecutive NO_DATA responses",
+    )
+    parser.add_argument(
+        "--per-ecu-limit",
+        type=int,
+        default=0,
+        help="Maximum number of fields to try per ECU (0 = no limit)",
+    )
+    parser.add_argument(
+        "--max-secs-per-ecu",
+        type=float,
+        default=90.0,
+        help="Stop scanning an ECU after this many seconds (0 = no limit)",
     )
     return parser.parse_args()
 
@@ -103,7 +128,16 @@ def scan_car(car: str, client: UDSClient) -> None:
         print(f"\nECU: {ecu}")
         ok = 0
         total = 0
+        nodata_streak = 0
+        start_ecu_ts = time.time()
         for row in _read_csv(field_file):
+            # ECU-level guards: time budget and max items
+            if getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
+                print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu}")
+                break
+            if getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
+                print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu}")
+                break
             # Build SID compatible with the in-memory database
             sid = _sid_for_row(row)
             if not sid:
@@ -135,6 +169,14 @@ def scan_car(car: str, client: UDSClient) -> None:
             if getattr(client, "last_status", None) == "CAN_ERROR":
                 print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
                 break
+            # Skip ECU after repeated NO_DATA to avoid long stalls
+            if getattr(client, "last_status", None) == "NO_DATA":
+                nodata_streak += 1
+                if nodata_streak >= getattr(args, "skip_nodata", 20):
+                    print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
+                    break
+            else:
+                nodata_streak = 0
             total += 1
             if value is not None:
                 ok += 1
@@ -147,7 +189,7 @@ def scan_car(car: str, client: UDSClient) -> None:
 def main() -> None:
     args = parse_args()
     car = args.car or prompt_for_car()
-    client = UDSClient(args.host, port=args.port)
+    client = UDSClient(args.host, port=args.port, timeout=args.elm_timeout)
     try:
         try:
             client.connect()
@@ -163,6 +205,7 @@ def main() -> None:
     finally:
         client.close()
 
+    print(f"Finished scanning {car}")
 
 if __name__ == "__main__":
     main()

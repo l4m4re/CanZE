@@ -181,9 +181,11 @@ class UDSClient:
         self.sock.sendall((line + "\r").encode("ascii", errors="ignore"))
         time.sleep(wait)
 
-    def _read_lines(self, timeout: float = ELM_TIMEOUT_S) -> Sequence[str]:
+    def _read_lines(self, timeout: float | None = None) -> Sequence[str]:
         assert self.sock is not None
-        self.sock.settimeout(timeout)
+        # Use provided timeout or fall back to the client's configured timeout
+        t = self.timeout if timeout is None else timeout
+        self.sock.settimeout(t)
         buf = b""
         while True:
             chunk = self.sock.recv(4096)
@@ -610,6 +612,11 @@ class UDSClient:
                     if b[i + 1] != did_hi or b[i + 2] != did_lo:
                         i += 1
                         continue
+                # For 0x21, ensure LID matches when available
+                if ident_len == 1 and (i + 1) < len(b):
+                    if b[i + 1] != (ident & 0xFF):
+                        i += 1
+                        continue
                 # Capture this segment until the next marker (0x7F or resp_sid) or end
                 j = i + 1
                 while j < len(b) and b[j] not in (0x7F, resp_sid):
@@ -619,10 +626,16 @@ class UDSClient:
             else:
                 i += 1
         if segments:
-            # Flatten segments
+            # Flatten segments, removing repeated headers after the first
             out: list[int] = []
-            for seg in segments:
-                out.extend(seg)
+            for idx, seg in enumerate(segments):
+                if idx == 0:
+                    out.extend(seg)
+                else:
+                    # Drop header bytes: resp_sid + ident (2 for 0x22, 1 for 0x21)
+                    drop = 1 + (2 if ident_len == 2 else 1)
+                    payload = seg[drop:] if len(seg) > drop else []
+                    out.extend(payload)
             # Normalize: strip trailing pad bytes (AA/FF/00) that some adapters append
             # while ensuring we keep at least SID + ident + 1 data byte
             min_len = 1 + (2 if ident_len == 2 else 1) + 1
@@ -759,4 +772,19 @@ class UDSClient:
         if total_bits <= field.end_bit:
             return None
         raw_value = self._extract_bits(bytes(resp), field.start_bit, field.end_bit)
-        return field.offset + field.resolution * raw_value
+        # Treat all-ones patterns as N/A when indicated (CSV often marks with 'ff')
+        width = max(1, int(field.end_bit) - int(field.start_bit) + 1)
+        try:
+            opts = [o.lower() for o in (field.options or [])]
+        except Exception:
+            opts = []
+        all_ones = (1 << width) - 1 if width < 32 else 0xFFFFFFFF
+        # Consider 'ff' anywhere in the options string or use width-based heuristic
+        optstr = "".join(opts)
+        if raw_value == all_ones and ("ff" in optstr or width in (8, 16, 32)):
+            return None
+        # Apply Android semantics: value = (raw - offset) * resolution
+        try:
+            return (raw_value - float(field.offset)) * float(field.resolution)
+        except Exception:
+            return (raw_value - (field.offset or 0.0)) * (field.resolution or 1.0)
