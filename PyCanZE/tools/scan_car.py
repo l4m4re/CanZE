@@ -58,8 +58,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--skip-nodata",
         type=int,
-        default=20,
-        help="Skip the rest of an ECU after this many consecutive NO_DATA responses",
+        default=50,
+        help="Skip the rest of an ECU after this many consecutive NO_DATA responses (0 = disable)",
     )
     parser.add_argument(
         "--per-ecu-limit",
@@ -178,7 +178,8 @@ def scan_car(car: str, client: UDSClient) -> None:
             # Skip ECU after repeated NO_DATA to avoid long stalls
             if getattr(client, "last_status", None) == "NO_DATA":
                 nodata_streak += 1
-                if nodata_streak >= getattr(args, "skip_nodata", 20):
+                threshold = getattr(args, "skip_nodata", 50)
+                if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
             else:
