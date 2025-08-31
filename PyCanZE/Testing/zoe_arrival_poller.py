@@ -44,6 +44,8 @@ REQ_ID = "7E4"
 RSP_ID = "7EC"
 DID_SOC = (0x20, 0x02)
 DID_ODO = (0x20, 0x06)
+# SOH from EVC (0x3206)
+DID_SOH = (0x32, 0x06)
 
 HEX2 = re.compile(r"[0-9A-Fa-f]{2}")
 DIGIT_HEX = set("0123456789abcdefABCDEF")
@@ -196,6 +198,37 @@ def decode_odo(payload):
         return float((payload[0] << 16) | (payload[1] << 8) | payload[2])
     return None
 
+def decode_soh(payload):
+    """Return SOH in %.
+
+    Handles common variants:
+    - 1 byte: 0..100 (%).
+    - 2 bytes: big-endian tenths (e.g., 900 -> 90.0%). If high byte is 0 and low<=100, treat as 1-byte.
+    """
+    if not payload:
+        return None
+    try:
+        # Strip trailing pad bytes often emitted by some ELMs (AA/FF/00)
+        j = len(payload)
+        while j > 1 and payload[j - 1] in (0xAA, 0xFF, 0x00):
+            j -= 1
+        data = payload[:j]
+        if not data:
+            return None
+        # Prefer single-byte percent when sane
+        if data[0] <= 100:
+            return float(data[0])
+        # Otherwise, attempt tenths from first two bytes if available
+        if len(data) >= 2:
+            hi, lo = data[0], data[1]
+            val = ((hi << 8) | lo) / 10.0
+            # Clamp to realistic range
+            if 0.0 <= val <= 100.0:
+                return val
+        return None
+    except Exception:
+        return None
+
 # ----------------- Poll cycles -----------------
 def try_poll_once():
     """Connects to ELM, tries to read SoC and Odo once. Returns tuple (soc, km). Each request uses a fresh connection, matching selftest."""
@@ -207,9 +240,14 @@ def try_poll_once():
     with socket.create_connection((ELM_HOST, ELM_PORT), timeout=ELM_TIMEOUT_S) as s:
         elm_init(s)
         odo_p = uds_rdbi(s, *DID_ODO)
+    # Poll SOH (best-effort)
+    with socket.create_connection((ELM_HOST, ELM_PORT), timeout=ELM_TIMEOUT_S) as s:
+        elm_init(s)
+        soh_p = uds_rdbi(s, *DID_SOH)
 
     soc = decode_soc(soc_p) if soc_p is not None else None
     km  = decode_odo(odo_p) if odo_p is not None else None
+    soh = decode_soh(soh_p) if soh_p is not None else None
 
     if soc is not None:
         raw = " ".join(f"{b:02X}" for b in (soc_p or []))
@@ -221,6 +259,13 @@ def try_poll_once():
         log(f"Odo  = {km:.0f} km (raw {raw})")
     else:
         log("Odo  = (no data)")
+    if soh is not None:
+        raw = " ".join(f"{b:02X}" for b in (soh_p or []))
+        # Keep one decimal if we decoded tenths
+        fmt = f"{soh:.1f}" if abs(soh - round(soh)) > 1e-6 else f"{soh:.0f}"
+        log(f"SOH  = {fmt}%   (raw {raw})")
+    else:
+        log("SOH  = (no data)")
 
     return soc, km
 
@@ -350,6 +395,7 @@ def main():
     parser.add_argument("--target-soc", type=float, default=TARGET_SOC_PERCENT, help="Doel SoC in % (default uit code)")
     parser.add_argument("--target-time", type=str, default=TARGET_TIME_HH_MM, help="Dagelijks doel tijd HH:MM (default uit code)")
     parser.add_argument("--rate", type=float, default=CHARGE_RATE_PCT_PER_HOUR, help="Laadsnelheid in %/uur voor planning")
+    parser.add_argument("--always-fast", action="store_true", help="Altijd snelle polling: blijf FAST_CAPTURE gebruiken en ga niet naar 5-min modus")
     args, _ = parser.parse_known_args()
     VERBOSE = bool(args.verbose)
     state_file = args.state_file
@@ -357,10 +403,13 @@ def main():
     target_soc_cfg = float(args.target_soc)
     target_time_cfg = str(args.target_time)
     rate_cfg = float(args.rate)
+    always_fast = bool(args.always_fast)
 
     log("ZOE arrival poller gestart. Ctrl+C om te stoppen.")
     if VERBOSE:
         log("VERBOSE mode enabled.")
+    if always_fast:
+        log("Altijd snelle polling ingeschakeld (--always-fast).")
 
     # Load persisted snapshot
     persisted = load_state(state_file)
@@ -508,14 +557,14 @@ def main():
                         "last_state": state,
                     })
 
-                if got_soc and got_km:
+                if (not always_fast) and got_soc and got_km:
                     log("Eerste SoC + km binnen. Overschakelen naar langzame 5-minuten polling...")
                     state = STATE_SLOW_MONITOR
                     time.sleep(SLOW_POLL_INTERVAL)
                     continue
 
                 # Handle fast window timeout
-                if time.time() - t_fast_start >= FAST_POLL_MAX_WINDOW:
+                if (not always_fast) and (time.time() - t_fast_start >= FAST_POLL_MAX_WINDOW):
                     log("Snel-poll venster verlopen. Ga langzamer pollen zolang de dongle online is.")
                     state = STATE_SLOW_MONITOR
                     time.sleep(SLOW_POLL_INTERVAL)
@@ -526,6 +575,10 @@ def main():
                 continue
 
             elif state == STATE_SLOW_MONITOR:
+                # If forced fast mode, jump back immediately
+                if always_fast:
+                    state = STATE_FAST_CAPTURE
+                    continue
                 # Check reachability
                 if not ping_host(ELM_HOST, timeout_s=1.0):
                     log("Ping FAIL — dongle niet bereikbaar. Terug naar 30s ping.")

@@ -21,6 +21,7 @@ from pycanze import UDSClient  # type: ignore
 # Diagnostic field SIDs
 SID_SOC = "7ec.24.622002"
 SID_ODO = "7ec.24.622006"
+SID_SOH = "7ec.24.623206"
 
 
 def main() -> None:
@@ -44,11 +45,13 @@ def main() -> None:
             sys.exit(3)
         while True:
             soc = client.read_field(SID_SOC)
+            soh = client.read_field(SID_SOH)
             odo = client.read_field(SID_ODO)
-            if soc is None or odo is None:
-                print(f"SoC: {soc}  Odo: {odo}")
+            # Fallback formatting when any value missing
+            if soc is None or soh is None or odo is None:
+                print(f"SoC: {soc}  SOH: {soh}  Odo: {odo}")
             else:
-                print(f"SoC: {soc:.2f}%  Odo: {odo:.0f} km")
+                print(f"SoC: {soc:.2f}%  SOH: {soh:.2f}%  Odo: {odo:.0f} km")
             time.sleep(args.interval)
     except KeyboardInterrupt:
         pass

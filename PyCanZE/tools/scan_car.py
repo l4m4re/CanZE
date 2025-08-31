@@ -131,10 +131,10 @@ def scan_car(car: str, client: UDSClient) -> None:
                 return
             except Exception:
                 value = None
-            # Detect sleeping bus / CAN error and exit cleanly
+            # Detect sleeping bus / CAN error and skip to next ECU instead of exiting
             if getattr(client, "last_status", None) == "CAN_ERROR":
-                print("Vehicle CAN is asleep (CAN_ERROR). Exiting.")
-                return
+                print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
+                break
             total += 1
             if value is not None:
                 ok += 1
