@@ -16,6 +16,15 @@ values over MQTT. A GUI similar to the original app may be built later.
 
 Contributions are welcome as this module is under active development.
 
+## Java log replayer
+
+The `Testing/LogReplayer` directory provides a small Java utility to turn raw ELM327 dumps into decoded JSON. No compiled classes are checked in; rebuild as needed:
+
+```bash
+javac -d PyCanZE/Testing/LogReplayer PyCanZE/Testing/LogReplayer/LogReplayer.java
+java -cp PyCanZE/Testing/LogReplayer lu.fisch.canze.tools.LogReplayer <input.raw> <output.json>
+```
+
 
 ## Agent playbook: Codex analysis and porting plan
 
