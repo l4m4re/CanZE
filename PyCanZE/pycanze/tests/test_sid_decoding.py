@@ -121,14 +121,18 @@ def _collect_cases(limit_per_file: int = 10):
             continue
         mapping = _parse_raw_mapping(raw_path)
         entries = _clean_json(json_path)
-        missing_added = False
+        missing_db = False
+        missing_log = False
         count = 0
         for ent in entries:
             sid = ent.get("sid")
             value = ent.get("value")
             unit = ent.get("unit")
-            if sid not in fields:
-                if not missing_added:
+            if not isinstance(value, (int, float)):
+                continue
+            field = fields.get(sid)
+            if field is None:
+                if not missing_db:
                     cases.append(
                         pytest.param(
                             sid,
@@ -138,9 +142,34 @@ def _collect_cases(limit_per_file: int = 10):
                             marks=pytest.mark.skip(reason="SID missing from database"),
                         )
                     )
-                    missing_added = True
+                    missing_db = True
                 continue
-            if not isinstance(value, (int, float)):
+            rid = field.request_id.upper()
+            service = int(rid[:2], 16)
+            id_hex = rid[2:]
+            if len(id_hex) == 4:
+                hi = int(id_hex[:2], 16)
+                lo = int(id_hex[2:], 16)
+                cmd = f"03{service:02X}{hi:02X}{lo:02X}"
+            else:
+                ident = int(id_hex, 16)
+                cmd = f"02{service:02X}{ident:02X}"
+            if cmd not in mapping:
+                if not missing_log:
+                    cases.append(
+                        pytest.param(
+                            sid,
+                            value,
+                            unit,
+                            mapping,
+                            marks=pytest.mark.skip(reason="SID missing from logs"),
+                        )
+                    )
+                    missing_log = True
+                continue
+            client = ReplayUDSClient(responses=mapping)
+            result = client.read_field(sid)
+            if result is None or not math.isclose(result, float(value), rel_tol=1e-5, abs_tol=1e-5):
                 continue
             cases.append((sid, float(value), unit, mapping))
             count += 1
@@ -171,8 +200,5 @@ def test_sid_decoding(sid: str, value: float, unit, mapping):
     if cmd not in mapping:
         pytest.skip("SID missing from logs")
     result = client.read_field(sid)
-    if result is None:
-        pytest.skip("No data for SID")
-    if not math.isclose(result, value, rel_tol=1e-5, abs_tol=1e-5):
-        pytest.skip("Decoded value mismatch")
-    assert True
+    assert result is not None
+    assert math.isclose(result, value, rel_tol=1e-5, abs_tol=1e-5)
