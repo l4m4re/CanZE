@@ -12,6 +12,11 @@ from pycanze.uds import UDSClient, ELM_CMD_SLEEP
 from pycanze.replay_client import ReplayClient as ReplayUDSClient
 
 
+# Lists used for summary reporting after the SID decoding tests run
+MISSING_DB_SIDS: set[str] = set()
+MISMATCHES: dict[str, tuple[float, float | None, str | None]] = {}
+
+
 # ---------------------------------------------------------------------------
 # Frame reassembly
 # ---------------------------------------------------------------------------
@@ -132,6 +137,7 @@ def _collect_cases(limit_per_file: int = 10):
                 continue
             field = fields.get(sid)
             if field is None:
+                MISSING_DB_SIDS.add(sid)
                 if not missing_db:
                     cases.append(
                         pytest.param(
@@ -170,6 +176,8 @@ def _collect_cases(limit_per_file: int = 10):
             client = ReplayUDSClient(responses=mapping)
             result = client.read_field(sid)
             if result is None or not math.isclose(result, float(value), rel_tol=1e-5, abs_tol=1e-5):
+                if sid not in MISMATCHES:
+                    MISMATCHES[sid] = (float(value), float(result) if result is not None else None, unit)
                 continue
             cases.append((sid, float(value), unit, mapping))
             count += 1
