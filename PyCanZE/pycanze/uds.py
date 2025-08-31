@@ -594,17 +594,23 @@ class UDSClient:
         # assemble frames, but some clones leak multiple lines.
         segments: list[Sequence[int]] = []
         i = 0
-        while i <= max(0, len(b) - 2):
-            if b[i] == 0x7F and (i + 2) < len(b):
-                return None
+        # Robust iteration that tolerates empty buffers and short lines
+        while i < len(b):
+            # Negative response guard (0x7F <SID> <code>) when enough bytes remain
+            if b[i] == 0x7F:
+                if (i + 2) < len(b):
+                    return None
+                # Incomplete 0x7F at end -> stop parsing
+                break
             if b[i] == resp_sid:
+                # For 0x22, ensure DID matches when available
                 if ident_len == 2 and (i + 2) < len(b):
                     did_hi = (ident >> 8) & 0xFF
                     did_lo = ident & 0xFF
                     if b[i + 1] != did_hi or b[i + 2] != did_lo:
                         i += 1
                         continue
-                # Capture this segment until the next header marker or end
+                # Capture this segment until the next marker (0x7F or resp_sid) or end
                 j = i + 1
                 while j < len(b) and b[j] not in (0x7F, resp_sid):
                     j += 1
@@ -617,6 +623,16 @@ class UDSClient:
             out: list[int] = []
             for seg in segments:
                 out.extend(seg)
+            # Normalize: strip trailing pad bytes (AA/FF/00) that some adapters append
+            # while ensuring we keep at least SID + ident + 1 data byte
+            min_len = 1 + (2 if ident_len == 2 else 1) + 1
+            j = len(out)
+            while j > min_len and out[j - 1] in (0xAA, 0xFF, 0x00):
+                j -= 1
+            out = out[:j]
+            # Sanity: ensure header still present
+            if not out or out[0] != resp_sid or len(out) < min_len:
+                return None
             self.last_status = None
             if self._current_req_id is not None and service == 0x21:
                 self._last_tuple = (self._current_req_id, service, ident)
