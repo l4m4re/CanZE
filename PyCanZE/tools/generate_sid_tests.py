@@ -102,8 +102,11 @@ def main() -> None:
 
     logs_root = Path(__file__).resolve().parents[1] / "Testing" / "logs"
     fields = ReplayUDSClient().fields
-    seen: set[str] = set()
-    skipped: set[str] = set()
+
+    # Collect the first successful response for each SID across all logs. If a
+    # SID never yields a valid response it will be written to ``skipped``.
+    sid_info: dict[str, tuple[float, str, list[str], str]] = {}
+    skipped_candidates: set[str] = set()
 
     for json_path in sorted(logs_root.glob("*.json")):
         raw_path = json_path.with_suffix(".raw")
@@ -116,12 +119,11 @@ def main() -> None:
             value = ent.get("value")
             if not isinstance(sid, str) or not isinstance(value, (int, float)):
                 continue
-            if sid in seen:
+            if sid in sid_info:
                 continue
-            seen.add(sid)
             field = fields.get(sid)
             if field is None:
-                skipped.add(sid)
+                skipped_candidates.add(sid)
                 continue
             rid = field.request_id.upper()
             service = int(rid[:2], 16)
@@ -137,31 +139,39 @@ def main() -> None:
                 sid_key = f"{service:02X}{ident:02X}"
             responses = mapping.get(cmd)
             if not responses:
-                skipped.add(sid)
+                skipped_candidates.add(sid)
                 continue
-            client = ReplayUDSClient(sid_responses={sid_key: responses})
+            client = ReplayUDSClient(sid_responses={sid_key: responses}, fields=fields)
             result = client.read_field(sid)
             if result is None or not (
                 abs(result - float(value)) <= 1e-5
                 or (abs(result) > 0 and abs(result - float(value)) <= abs(result) * 1e-5)
             ):
                 continue
-            test_name = f"test_sid_{sid.replace('.', '_')}.py"
-            test_path = out_dir / test_name
-            if test_path.exists() and not args.overwrite:
-                continue
-            content = (
-                "from pycanze.replay_client import ReplayClient as ReplayUDSClient\n"
-                "import pytest\n\n"
-                f"def test_{sid.replace('.', '_')}():\n"
-                f"    client = ReplayUDSClient(sid_responses={{\"{sid_key}\": {responses!r}}})\n"
-                f"    assert client.read_field(\"{sid}\") == pytest.approx({float(value)})\n"
-            )
-            test_path.write_text(content)
+            sid_info[sid] = (float(value), sid_key, responses, field.name)
 
-    if skipped:
-        skip_path = out_dir / "skipped_sids.txt"
-        skip_path.write_text("\n".join(sorted(skipped)) + "\n")
+    for sid, (value, sid_key, responses, _name) in sid_info.items():
+        test_name = f"test_sid_{sid.replace('.', '_')}.py"
+        test_path = out_dir / test_name
+        if test_path.exists() and not args.overwrite:
+            continue
+        content = (
+            "from pycanze.replay_client import ReplayClient as ReplayUDSClient\n"
+            "import pytest\n\n"
+            f"def test_{sid.replace('.', '_')}():\n"
+            f"    client = ReplayUDSClient(sid_responses={{\"{sid_key}\": {responses!r}}})\n"
+            f"    assert client.read_field(\"{sid}\") == pytest.approx({value})\n"
+        )
+        test_path.write_text(content)
+
+    skipped = sorted(s for s in skipped_candidates if s not in sid_info)
+    skip_path = out_dir / "skipped_sids.txt"
+    lines = []
+    for sid in skipped:
+        field = fields.get(sid)
+        name = field.name if field else "Unknown"
+        lines.append(f"{sid}\t{name}")
+    skip_path.write_text("\n".join(lines) + ("\n" if lines else ""))
 
 
 if __name__ == "__main__":
