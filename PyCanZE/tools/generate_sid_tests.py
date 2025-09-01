@@ -105,7 +105,11 @@ def main() -> None:
 
     # Collect the first successful response for each SID across all logs. If a
     # SID never yields a valid response it will be written to ``skipped``.
-    sid_info: dict[str, tuple[float, str, list[str], str]] = {}
+    #
+    # ``sid_info`` maps a SID to a tuple containing:
+    #   (expected value, sid_key, responses, field name, case type, is_signed)
+    # ``case type`` is one of ``numeric``, ``string`` or ``na`` (not available).
+    sid_info: dict[str, tuple[object, str, list[str], str, str, bool]] = {}
     skipped_candidates: set[str] = set()
 
     for json_path in sorted(logs_root.glob("*.json")):
@@ -116,14 +120,29 @@ def main() -> None:
         entries = _clean_json(json_path)
         for ent in entries:
             sid = ent.get("sid")
-            value = ent.get("value")
-            if not isinstance(sid, str) or not isinstance(value, (int, float)):
+            raw_val = ent.get("value")
+            if not isinstance(sid, str):
                 continue
             if sid in sid_info:
                 continue
             field = fields.get(sid)
             if field is None:
                 skipped_candidates.add(sid)
+                continue
+            # Determine how to handle the captured value
+            if raw_val is None or (isinstance(raw_val, str) and raw_val.upper() in {"N/A", "NA"}):
+                case_type = "na"
+                expected_val: object = None
+            elif field.is_string() or field.is_hex_string():
+                case_type = "string"
+                expected_val = raw_val if isinstance(raw_val, str) else None
+            elif isinstance(raw_val, str):
+                case_type = "string"
+                expected_val = raw_val
+            elif isinstance(raw_val, (int, float)):
+                case_type = "numeric"
+                expected_val = float(raw_val)
+            else:
                 continue
             rid = field.request_id.upper()
             service = int(rid[:2], 16)
@@ -143,26 +162,67 @@ def main() -> None:
                 continue
             client = ReplayUDSClient(sid_responses={sid_key: responses}, fields=fields)
             result = client.read_field(sid)
-            if result is None or not (
-                abs(result - float(value)) <= 1e-5
-                or (abs(result) > 0 and abs(result - float(value)) <= abs(result) * 1e-5)
-            ):
-                continue
-            sid_info[sid] = (float(value), sid_key, responses, field.name)
 
-    for sid, (value, sid_key, responses, _name) in sid_info.items():
+            if case_type == "numeric":
+                if result is None or not isinstance(result, (int, float)):
+                    continue
+                if not (
+                    abs(result - expected_val) <= 1e-5
+                    or (
+                        abs(result) > 0
+                        and abs(result - expected_val) <= abs(result) * 1e-5
+                    )
+                ):
+                    continue
+                value = float(expected_val)
+            elif case_type == "string":
+                if result is None or not isinstance(result, str):
+                    continue
+                # If log provided a numeric value, prefer the decoded string
+                value = result if not isinstance(raw_val, str) else expected_val
+            else:  # "na"
+                if result is not None:
+                    continue
+                value = None
+
+            sid_info[sid] = (
+                value,
+                sid_key,
+                responses,
+                field.name,
+                case_type,
+                field.is_signed(),
+            )
+
+    for sid, (value, sid_key, responses, _name, case_type, is_signed) in sid_info.items():
         test_name = f"test_sid_{sid.replace('.', '_')}.py"
         test_path = out_dir / test_name
         if test_path.exists() and not args.overwrite:
             continue
-        content = (
-            "from pycanze.replay_client import ReplayClient as ReplayUDSClient\n"
-            "import pytest\n\n"
-            f"def test_{sid.replace('.', '_')}():\n"
-            f"    client = ReplayUDSClient(sid_responses={{\"{sid_key}\": {responses!r}}})\n"
-            f"    assert client.read_field(\"{sid}\") == pytest.approx({value})\n"
+        lines = [
+            "from pycanze.replay_client import ReplayClient as ReplayUDSClient",
+            "import pytest",
+            "",
+        ]
+        if is_signed and case_type == "numeric":
+            lines.insert(0, "# signed")
+        elif case_type == "string":
+            lines.insert(0, "# string")
+        elif case_type == "na":
+            lines.insert(0, "# N/A")
+        lines.append(f"def test_{sid.replace('.', '_')}():")
+        lines.append(
+            f"    client = ReplayUDSClient(sid_responses={{\"{sid_key}\": {responses!r}}})"
         )
-        test_path.write_text(content)
+        if case_type == "numeric":
+            lines.append(
+                f"    assert client.read_field(\"{sid}\") == pytest.approx({value})"
+            )
+        elif case_type == "string":
+            lines.append(f"    assert client.read_field(\"{sid}\") == {value!r}")
+        else:  # "na"
+            lines.append(f"    assert client.read_field(\"{sid}\") is None")
+        test_path.write_text("\n".join(lines) + "\n")
 
     skipped = sorted(s for s in skipped_candidates if s not in sid_info)
     skip_path = out_dir / "skipped_sids.txt"
