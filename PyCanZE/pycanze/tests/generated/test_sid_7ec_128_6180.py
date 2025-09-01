@@ -1,6 +1,7 @@
+# string
 from pycanze.replay_client import ReplayClient as ReplayUDSClient
 import pytest
 
 def test_7ec_128_6180():
     client = ReplayUDSClient(sid_responses={"2180": ['101A618030323735', '2152263030313030', '2235345202040AB0', '23139101010188AA']})
-    assert client.read_field("7ec.128.6180") == pytest.approx(516.0)
+    assert client.read_field("7ec.128.6180") == '0204'

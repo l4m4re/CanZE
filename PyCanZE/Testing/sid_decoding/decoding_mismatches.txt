@@ -1,1 +1,313 @@
-No mismatches.
+76d.104.6122	2.0	12.8		E_Pct_SOCAuthorizedESM_hyst
+76d.104.6182	255.0	None		CAN_HEVC_missing
+76d.112.6182	255.0	None		CAN_EBA_missing
+76d.121.6121	10200.0	None	W/s	AllowedPowerGradient
+76d.133.6121	10200.0	None	watts	AlternatorMaximumPower
+76d.136.6106	1.0	0.71		ACCompValveCurrent
+76d.144.6102	0.0	0.003		I_HEIGHT_REAR
+76d.144.6106	0.0	5177.0		USM_WakeUp_Signal
+76d.152.6181	65491.0	None		S1d_K_VINCRC 0
+76d.160.6102	0.0	0.042		I_TEMP_SENSOR
+76d.160.6106	1.0	2.0		StarterStatus
+76d.168.6106	991.0	83.0		BatteryTemperature
+76d.168.6121	3.0	49159.0		E_Ki_CurrentLowS
+76d.17.6106	1.0	2.0		BatterySOFS_Alert
+76d.176.6102	4.0	1.255		AI_5V_SUPPLY_ADIAG
+76d.18.6121	3.0	1.0		E_B_NeutralContact_Inhibition
+76d.184.6121	0.0	16384.0		E_Ki_CurrentNorm
+76d.19.6106	1.0	2.0		EEM_RegulationLoopActivationReq
+76d.192.6180	0.0	00		ApprovalNumber.BasicPartList
+76d.200.6121	11.5	4.0	V	E_Kp_CurrentLowS
+76d.224.6102	1.0	0.456		AC_VALVE_ADIAG
+76d.24.6121	3.0	1.0		E_B_ACClutchDirectActivation
+76d.24.620704	0.1	0.0		V_K_MAN_SWITCH_INDEX_int
+76d.24.620707	0.1	None		V_Pct_FT_SSR_FIL_FOR_STA_int
+76d.24.620708	0.16	None	s	V_Pct_RR_SSR_FIL_FOR_STA_int
+76d.24.62070b	60.0	59.0		V_K_FAILURE_STATE_int
+76d.24.62070c	1.0	0.4		V_K_LVL_ANALOG_CMD_CALC
+76d.24.62070f	0.0	None		V_Pct_VEH_ATT_PCT_int
+76d.24.620721	47.0	0.0	%	E_B_AutoStart_HV
+76d.24.620733	10.0	None	A	E_U_MinimumVoltageByLight
+76d.24.620737	50.0	1350.0	%	E_TM_NoLightLimitation
+76d.24.62073a	0.0	-39.0		E_Temp_EngineMin_Lights
+76d.24.62073b	0.0	0.1		E_U_ESM_step
+76d.24.620748	25.5	None	cm	C_D_DistStopAuto_min
+76d.24.620756	0.0	0.01		E_Pct_HBeam_DRL
+76d.24.620762	0.0	None		E_TM_Offset_time
+76d.24.620765	0.0	0.03		E_U_Prod_Req_Offset_3
+76d.24.620775	0.0	1.0		E_E_PrimStorDisco_LevelAlert
+76d.24.620776	0.0	1.0		E_E_Ref_VoltageMes_LevelAlert
+76d.24.620777	0.0	1.0		E_E_Sys_Com_Fault_LevelAlert
+76d.24.620778	0.0	1.0		E_E_Undervoltage_LevelAlert
+76d.24.620779	0.0	1.0		E_Pct_VT_Gauge_MMI_threshold
+76d.24.620781	0.0	None		E_U_MedStickDiag_threshold
+76d.24.620782	0.0	None		E_U_BattSens_low_func_limit
+76d.24.620783	0.0	None		E_U_BattSens_high_func_limit
+76d.24.620784	0.0	None		E_TM_MedStickDiag_conf_long
+76d.24.620785	0.0	None		E_TM_MedStickDiag_conf_short
+76d.24.620786	0.0	None		E_U_BattSens_low_limit
+76d.24.620789	0.5	None		E_TM_HighOutputDiag_conf
+76d.24.620790	0.11	None		E_K_BCS_current_slope_coef
+76d.24.620791	0.5	None		E_I_BCS_current_offset
+76d.24.620792	0.5	0.0		E_B_BattTempSensor_present
+76d.24.620793	0.5	None		E_U_TempSens_low_limit
+76d.24.620794	0.5	None		E_U_TempSens_high_limit
+76d.24.620798	2.0	-38.0		E_Temp_StorageIBS_ini
+76d.24.620799	60.0	None		E_R_StorageIBS_ini
+76d.24.6207a1	200.0	50.0		E_E_StarterConfig
+76d.24.6207a2	0.005	0.0		E_B_Vehicle_with_IBS
+76d.24.6207a4	2.0	None	s	E_Tau_NoTempSens_high
+76d.24.6207a5	20.0	None		E_Tau_NoTempSens_low
+76d.24.6207a6	20.0	None	s	E_Tau_NoTempSens_mid
+76d.24.6207a7	0.5	None		E_Tau_TempSens_high
+76d.24.6207a9	14.4	None	V	E_Tau_TempSens_mid
+76d.24.6207aa	14.4	-2.0		E_Temp_StorageIBS_ivld
+76d.24.6207ab	12.9	2.3		E_K_CoefSupplyUocv
+76d.24.6207ac	0.0	0.1		E_K_CoefSupplyVoltage
+76d.24.6207ad	11.9	0.001		E_R_Harness_1
+76d.24.6207b0	0.0	None		E_Tau_Prim_Storage_volt_1
+76d.24.6207ba	0.62	31.0		E_Pct_SOCmin_SailingIdle
+76d.24.6207bc	14.2	-4.0		E_Temp_Prim_Stor_StopStart
+76d.24.6207bd	0.0	-39.0		E_Temp_Prim_Storage_min
+76d.24.6207be	90.0	140.0		E_TM_MaxProdLoad_SailingIdle
+76d.24.6207bf	0.0	None		E1d_Pct_DOD_ESM_X 0
+76d.24.6207c5	0.0	10.0		E_I_PrimStor_NominalCCA
+76d.24.6207c6	0.0	None		E_I_PrimStorage_DarkCurrent
+76d.24.6207c7	11.5	None	V	E_I_PrimStorageFilt_init
+76d.24.6207c8	10.6	None	V	E_K_CoeffC
+76d.24.6207cb	13.0	None	°C	E_K_MaxAhForRebalancing
+76d.24.6207ce	0.0	1.0		E_K_TechnicalWUChargerDetect
+76d.24.6207d1	3916695.0	1529.9	mn	E_Pct_OverEstAlertPct
+76d.24.6207d3	13.56	108.5	V	E_Pct_SOCCurrent_limp
+76d.24.6207d5	0.0	-40.0		E_Temp_PrimStorage_Alert
+76d.24.6207d6	0.0	-40.0		E_Temp_RebalancingTempMax
+76d.24.6207d7	0.0	-40.0	tr/min	E_Temp_RebalancingTempMin
+76d.24.6207da	0.0	None		E_TM_RebalancingCurrentCond
+76d.24.6207dc	0.0	None		E_TM_RebalancingTime
+76d.24.6207de	0.0	None		E_TM_SOCInitTime_OldPrimStor
+76d.24.6207df	0.0	20.0		E_TM_SOCInitTime_YoungPrimStor
+76d.24.6207e1	0.0	0.7		E_U_PrimStorageFilt_init
+76d.24.6207e2	0.0	None		E_U_PrimStorStartingThreshold
+76d.24.6207e3	0.0	None		E_U_RebalancingVoltageMax
+76d.24.6207e4	0.0	None		E_U_RebalancingVoltageMin
+76d.24.6207e7	0.0	None		E1d_Pct_PctCCAAlert 0
+76d.24.6207e9	0.0	3.0		E_K_SOFC_Counter_Decrement_max
+76d.24.6207ef	0.0	0.15		E_U_SOFC_AutoStartOffset
+76d.24.6207f0	0.0	0.03		E_TM_HornDurationLock
+76d.24.6207f7	0.0	None		E_PWM_Goodbye_front_activation
+76d.24.6207f8	0.0	None		E_PWM_Welcome_front_activation
+76d.24.6207fc	0.0	0.01		E_R_coef_G_4
+76d.24.6207fd	0.0	0.01		E_R_coef_W_1
+76d.24.620804	70000.0	None		E_R_DC_G_4
+76d.24.620805	0.0	None		E_R_DC_G_initial
+76d.24.620808	9600000.0	None		E_R_DC_W_3
+76d.24.620809	100000.0	None		E_R_DC_W_4
+76d.24.6208a7	10.7	None	V	E1d_Pct_AFS_LVL_OFFSET_TAB_2_Y 0
+76d.24.6208a8	0.0	None		E1d_Pct_AFS_LVL_OFFSET_TAB_3_X 0
+76d.24.6208a9	80.0	None	%	E1d_Pct_AFS_LVL_OFFSET_TAB_3_Y 0
+76d.26.6121	46924.52	0.0	km	E_B_WiperProtectionInhibition
+76d.26.6122	13.56	1.0	V	E_B_SOCforDOD_ESM_init
+76d.34.6106	2.0	1760.0		ElecPowerConsumedByAux_v2
+76d.34.6122	1.0	0.0		E_B_PrimStorDisconnect_inhibit
+76d.36.6122	99.2	1.0	%	E_B_RebalCurrentCond_Inhibit
+76d.40.6106	255.0	None		BatteryVoltage
+76d.44.6122	3.0	1.0		E_B_SOCforDOD_SS_init
+76d.46.6122	3.0	1.0		E_B_SensSupplyCor_Inhibit
+76d.48.6106	3.0	2.0		BattWarnReq_Level_Hi_USM_v2
+76d.48.6122	3.0	192.0		E_E_Overvoltage_LevelAlert
+76d.48.6182	255.0	None		CAN_AT_missing
+76d.56.6182	255.0	None		CAN_EPS_missing
+76d.72.6122	1.0	67.0		E_E_Ref_VoltageMes_LevelAlert
+76d.78.6122	10200.0	None	W	ElecPowerConsumedByAux
+76d.80.6102	0.0	0.003		FL_BAT2
+76d.80.6182	255.0	None		CAN_IDM_missing
+76d.96.6102	0.0	0.038		I_AUTO_STOP_WIPER
+76d.96.6122	1.0	108.0		E_Pct_MaxProdLoad_SailingIdle
+76e.24.622013	5.0	0.5		cfg.TempoWhenRearGearIsEngaged
+76e.24.622014	14.0	1.4		cgf.TempoForDisplayCarAfterObstacleDisappearing
+76e.24.622015	10.0	1.0		cfg.TempoForTransitionBetweenDifferentTypesOfDisplayCars
+76e.24.622019	11.0	0b0b0d101212121412100d0d08		cfg.RearInnerSensorThreshold
+76e.24.62201a	11.0	0b0b0d101212121412100d0d08		cfg.RearOuterSensorThreshold
+76e.24.62201b	0.0	00000000000000000000000000		cfg.FrontInnerSensorThreshold
+76e.24.62201c	0.0	00000000000000000000000000		cfg.FrontOuterSensorThreshold
+76e.24.622035	255.0	None	cm	RearCalculatedDistance
+76e.24.622036	255.0	None	cm	FrontCalculatedDistance
+76e.24.622037	255.0	None	cm	RearDistancesMeasurement.RearSideLeft
+76e.24.622038	255.0	None	cm	FrontDistancesMeasurement.FrontSideLeft
+76e.24.622039	0.99	0.001	ms	cfg.RearAttenuationTIme.RearSideLeft
+76e.24.62203b	255.0	None		Tracabilite_EOLT.date
+76e.27.622006	1.0	0.0		cfg.SoundConfigurationFlags.RogerBeep
+76e.28.622006	1.0	0.0		cfg.SoundConfigurationFlags.ErrorBeep
+76e.29.622006	1.0	0.0		cfg.SoundConfigurationFlags.DetectionBeep
+76e.31.622002	1.0	0.0		cfg.RearDetectionState
+76e.31.622005	0.0	1.0		cfg.LEDMode.lightState
+76e.32.622037	255.0	None	cm	RearDistancesMeasurement.RearSideLeftToRearOuterLeft
+76e.32.622038	255.0	None	cm	FrontDistancesMeasurement.FrontSideLeftToFrontOuterLeft
+76e.32.622039	0.99	0.001	ms	cfg.RearAttenuationTIme.RearSideRight
+76e.40.622037	255.0	None	cm	RearDistancesMeasurement.RearOuterLeftToRearSideLeft
+76e.40.622038	255.0	None	cm	FrontDistancesMeasurement.FrontOuterLeftToFrontSideLeft
+76e.40.622039	0.96	0.001	ms	cfg.RearAttenuationTIme.RearOuterLeft
+76e.48.622037	255.0	None	cm	RearDistancesMeasurement.RearOuterLeft
+76e.48.622038	255.0	None	cm	FrontDistancesMeasurement.FrontOuterLeft
+76e.48.622039	1.02	0.001	ms	cfg.RearAttenuationTIme.RearOuterRight
+76e.56.622037	255.0	None	cm	RearDistancesMeasurement.RearOuterLeftToRearInnerLeft
+76e.56.622038	255.0	None	cm	FrontDistancesMeasurement.FrontOuterLeftToFrontInnerLeft
+76e.64.62202f	0.0	28.0		gcfg1.DetectionRangeOfSideSensors.DiscontinuousFar
+76e.64.622037	255.0	None	cm	RearDistancesMeasurement.RearInnerLeftToRearOuterLeft
+76e.64.622038	255.0	None	cm	FrontDistancesMeasurement.FrontInnerLeftToFrontOuterLeft
+76e.72.622037	255.0	None	cm	RearDistancesMeasurement.RearInnerLeft
+76e.72.622038	255.0	None	cm	FrontDistancesMeasurement.FrontInnerLeft
+76e.80.622037	255.0	None	cm	RearDistancesMeasurement.RearInnerLeftToRearInnerRight
+76e.80.622038	255.0	None	cm	FrontDistancesMeasurement.FrontInnerLeftToFrontInnerRight
+76e.88.622037	255.0	None	cm	RearDistancesMeasurement.RearInnerRightToRearInnerLeft
+76e.88.622038	255.0	None	cm	FrontDistancesMeasurement.FrontInnerRightToFrontInnerLeft
+76e.96.622037	255.0	None	cm	RearDistancesMeasurement.RearInnerRight
+76e.96.622038	255.0	None	cm	FrontDistancesMeasurement.FrontInnerRight
+77e.128.6180	544.0	c700		SoftwareNumber
+77e.144.6180	29440.0	2460		EditionNumber
+77e.184.6180	1.0	0.0		HardwareNumber.BasicPartList
+77e.192.6180	1.0	0.0		ApprovalNumber.BasicPartList
+77e.56.6180	6.0	3a		DiagnosticIdentificationCode
+7bb.104.6165	15.94	None		65_14 Latest dSOHE/SOHE [#02] Segment 0->3
+7bb.1088.6169	6.13	6.12	%	69_137 dSOHE/SOHE [#00] Segment [Buffer #18]
+7bb.112.6106	0.0	33751183.0		21_06_#15_Vehicle ID 02
+7bb.128.6180	25866.0	c700		SoftwareNumber
+7bb.136.6165	15.94	None		65_18 Latest dSOHE/SOHE [#03] Segment 0->4
+7bb.144.6106	0.0	339328759.0		21_06_#19_Vehicle ID 03
+7bb.144.6180	0.0	2460		EditionNumber
+7bb.152.6103	65281.0	None	Nm	21_03_#20_MG_Torque
+7bb.152.6161	127.5	None		21_61_#20 SOHP_value_of_group4
+7bb.160.6163	255.0	None		63_21 Final Method [Segment 1]
+7bb.168.6163	215.0	None	°C	63_22 Final Min Temp [Segment 1]
+7bb.176.6106	0.0	None		21_06_#23_Vehicle ID 04
+7bb.176.6163	-1.0	None	Minutes	63_23 Final Driving Time [Segment 1]
+7bb.176.6180	2.0	1.0		PartNumber.BasicPartList
+7bb.184.6180	1.0	0.0		HardwareNumber.BasicPartList
+7bb.200.6165	15.94	None		65_26 Latest dSOHE/SOHE [#05] Segment 1->2
+7bb.208.6106	0.0	None		21_06_#27_Vehicle ID 05
+7bb.208.6143	65.535	None	V	21_43_#27 BusBar Voltage13
+7bb.208.6163	-1.0	None	Minutes	63_27 Final Parking Time [Segment 1]
+7bb.224.6143	65.535	None	V	21_43_#29 BusBar Voltage14
+7bb.232.6165	15.94	None		65_30 Latest dSOHE/SOHE [#06] Segment 1->3
+7bb.24.6184	76.0	48.0		21_84#04_Battery Supplier
+7bb.240.6106	0.0	None		21_06_#31_Vehicle ID 06
+7bb.240.6143	65.535	None	V	21_43_#31 BusBar Voltage15
+7bb.256.6143	65.535	None	V	21_43_#33 BusBar Voltage16
+7bb.264.6165	15.94	None		65_34 Latest dSOHE/SOHE [#07] Segment 1->4
+7bb.272.6106	0.0	None		21_06_#35_Vehicle ID 07
+7bb.272.6143	65.535	None	V	21_43_#35 BusBar Voltage17
+7bb.288.6143	65.535	None	V	21_43_#37 BusBar Voltage18
+7bb.288.6163	255.0	None		63_37 Final Method [Segment 2]
+7bb.296.6163	215.0	None	°C	63_38 Final Min Temp [Segment 2]
+7bb.304.6104	65535.0	None	mV	21_04_#39_Thermo_Sensor_13_AD_value
+7bb.304.6106	0.0	None		21_06_#39_Vehicle ID 08
+7bb.304.6143	65.535	None	V	21_43_#39 BusBar Voltage19
+7bb.304.6163	-1.0	None	Minutes	63_39 Final Driving Time [Segment 2]
+7bb.320.6104	-41.0	None	degC	21_04_#41_Battery_Temperature_13
+7bb.320.6143	65.535	None	V	21_43_#41 BusBar Voltage20
+7bb.328.6104	65535.0	None	mV	21_04_#42_Thermo_Sensor_14_AD_value
+7bb.328.6165	15.94	None		65_42 Latest dSOHE/SOHE [#09] Segment 2->3
+7bb.336.6106	0.0	None		21_06_#43_Vehicle ID 09
+7bb.336.6143	65.535	None	V	21_43_#41 BusBar Voltage21
+7bb.336.6163	-1.0	None	Minutes	63_43 Final Parking Time [Segment 2]
+7bb.344.6104	-41.0	None	degC	21_04_#44_Battery_Temperature_14
+7bb.352.6104	65535.0	None	mV	21_04_#45_Thermo_Sensor_15_AD_value
+7bb.352.6143	65.535	None	V	21_43_#45 BusBar Voltage22
+7bb.360.6165	15.94	None		65_46 Latest dSOHE/SOHE [#10] Segment 2->4
+7bb.368.6104	-41.0	None	degC	21_04_#47_Battery_Temperature_15
+7bb.368.6106	0.0	None		21_06_#47_Vehicle ID 10
+7bb.368.6143	65.535	None	V	21_43_#47 BusBar Voltage23
+7bb.376.6104	65535.0	None	mV	21_04_#48_Thermo_Sensor_16_AD_value
+7bb.392.6104	-41.0	None	degC	21_04_#50_Battery_Temperature_16
+7bb.40.6165	15.94	None		65_06 Latest dSOHE/SOHE [#00] Segment 0->1
+7bb.40.6184	70.0	66.0		21_84#06_Battery factory
+7bb.400.6104	65535.0	None	mV	21_04_#51_Thermo_Sensor_17_AD_value
+7bb.400.6106	0.0	None		21_06_#51_Vehicle ID 11
+7bb.416.6104	-41.0	None	degC	21_04_#53_Battery_Temperature_17
+7bb.416.6163	255.0	None		63_53 Final Method [Segment 3]
+7bb.424.6104	65535.0	None	mV	21_04_#54_Thermo_Sensor_18_AD_value
+7bb.424.6163	215.0	None	°C	63_54 Final Min Temp [Segment 3]
+7bb.424.6164	215.0	None	°C	64_54 Latest Final Min Temp [Segment 3]
+7bb.424.6165	15.94	None		65_54 Latest dSOHE/SOHE [#12] Segment 3->4
+7bb.432.6106	0.0	None		21_06_#55_Vehicle ID 12
+7bb.432.6163	-1.0	None	Minutes	63_55 Final Driving Time [Segment 3]
+7bb.440.6104	-41.0	None	degC	21_04_#56_Battery_Temperature_18
+7bb.448.6104	65535.0	None	mV	21_04_#57_Thermo_Sensor_19_AD_value
+7bb.456.6165	15.94	None		65_58 Latest dSOHE/SOHE [#13] Segment 3->5
+7bb.464.6104	-41.0	None	degC	21_04_#59_Battery_Temperature_19
+7bb.464.6106	0.0	None		21_06_#59_Vehicle ID 13
+7bb.464.6163	-1.0	None	Minutes	63_59 Final Parking Time [Segment 3]
+7bb.472.6104	65535.0	None	mV	21_04_#60_Thermo_Sensor_20_AD_value
+7bb.48.6106	0.0	-1770112917.0		21_06_#07_Vehicle ID 00
+7bb.488.6104	-41.0	None	degC	21_04_#62_Battery_Temperature_20
+7bb.488.6165	15.94	None		65_62 Latest dSOHE/SOHE [#14] Segment 4->5
+7bb.496.6104	65535.0	None	mV	21_04_#63_Thermo_Sensor_21_AD_value
+7bb.496.6106	0.0	None		21_06_#63_Vehicle ID 14
+7bb.512.6104	-41.0	None	degC	21_04_#65_Battery_Temperature_21
+7bb.520.6104	65535.0	None	mV	21_04_#66_Thermo_Sensor_22_AD_value
+7bb.528.6106	-1.0	None		21_06_#67_Vehicle ID 15
+7bb.536.6104	-41.0	None	degC	21_04_#68_Battery_Temperature_22
+7bb.544.6104	65535.0	None	mV	21_04_#69_Thermo_Sensor_23_AD_value
+7bb.544.6163	255.0	None		63_69 Final Method [Segment 4]
+7bb.552.6163	215.0	None	°C	63_70 Final Min Temp [Segment 4]
+7bb.56.6160	255.0	None		21_60_#008_SOHE(module)_Update_command_applied
+7bb.56.6180	53.0	3a		DiagnosticIdentificationCode
+7bb.56.6184	74.0	50.0		21_84#08_Production year
+7bb.560.6104	-41.0	None	degC	21_04_#71_Battery_Temperature_23
+7bb.560.6106	1.0	None		21_06_#71_Quick_Drop_Counter 00
+7bb.560.6163	-1.0	None	Minutes	63_71 Final Driving Time [Segment 4]
+7bb.568.6104	65535.0	None	mV	21_04_#72_Thermo_Sensor_24_AD_value
+7bb.568.6106	1.0	None		21_06_#72_Quick_Drop_Counter 01
+7bb.576.6106	0.0	None		21_06_#73_Quick_Drop_Counter 02
+7bb.584.6104	-41.0	None	degC	21_04_#74_Battery_Temperature_24
+7bb.584.6106	0.0	None		21_06_#74_Quick_Drop_Counter 03
+7bb.592.6106	0.0	None		21_06_#75_Quick_Drop_Counter 04
+7bb.592.6163	-1.0	None	Minutes	63_75 Final Parking Time [Segment 4]
+7bb.600.6106	0.0	None		21_06_#76_Quick_Drop_Counter 05
+7bb.608.6106	0.0	None		21_06_#77_Quick_Drop_Counter 06
+7bb.616.6106	0.0	None		21_06_#78_Quick_Drop_Counter 07
+7bb.624.6106	0.0	None		21_06_#79_Quick_Drop_Counter 08
+7bb.632.6106	0.0	None		21_06_#80_Quick_Drop_Counter 09
+7bb.64.6160	255.0	None		21_60_#009_BMS_Update_command_applied
+7bb.64.6184	52.0	69.0		21_84#09_Production month
+7bb.640.6106	0.0	None		21_06_#81_Quick_Drop_Counter 10
+7bb.648.6106	0.0	None		21_06_#82_Quick_Drop_Counter 11
+7bb.656.6106	0.0	None		21_06_#83_Quick_Drop_Counter 12
+7bb.664.6106	0.0	None		21_06_#84_Quick_Drop_Counter 13
+7bb.672.6106	0.0	None		21_06_#85_Quick_Drop_Counter 14
+7bb.672.6163	255.0	None		63_85 Final Method [Segment 5]
+7bb.680.6106	255.0	None		21_06_#86_Quick_Drop_Counter 15
+7bb.680.6163	215.0	None	°C	63_86 Final Min Temp [Segment 5]
+7bb.688.6163	-1.0	None	Minutes	63_87 Final Driving Time [Segment 5]
+7bb.72.6160	0.0	None		21_60_#010_Storage_Update_Command_Applied
+7bb.720.6163	-1.0	None	Minutes	63_91 Final Parking Time [Segment 5]
+7bb.80.6106	51484736.0	-1338887930.0		21_06_#11_Vehicle ID 01
+7bb.968.6169	6.63	6.62	%	69_122 dSOHE/SOHE [#00] Segment [Buffer #17]
+7bc.176.6180	2.0	1.0		PartNumber.BasicPartList
+7bc.184.6180	1.0	0.0		HardwareNumber.BasicPartList
+7bc.24.624b42	-2.0	None	°/s	Steering wheel speed
+7bc.24.624b7f	0.0	None		HBA function inhibition state
+7bc.24.624b93	65535.0	None	min	Running Pump Cumulated
+7bc.35.6184	3.0	1.0		ECU traceability.line
+7bc.38.6184	1.0	2.0		ECU traceability.shift
+7bc.40.6184	1.0	2.0		ECU traceability.day
+7bc.43.6184	4408.0	560.0		ECU traceability.counter
+7ec.128.6180	516.0	0204		SoftwareNumber
+7ec.144.6180	2736.0	0ab0		EditionNumber
+7ec.176.61f0	1.0	2.0		PartNumber.BasicPartList
+7ec.24.623204	0.0	-6143.88	A	($3204) HV LBC current measure
+7ec.24.62320a	127.5	None	Kw	($320A) Available discharge power
+7ec.24.623318	19.0	20.0		($3318) Driving pump Feedback
+7ec.24.623319	-1.0	0.0		($3319) Charge pump Feedback
+7ec.24.62331a	-1.0	0.0		($331A) Heat pump Feedback
+7ec.24.623362	139781.0	None	-	($3362) Time Counter for the BCB temperature in driving mode between 50 degrees celcius and 60 degrees celcius
+7ec.24.62336d	16777215.0	None	s	($336D) Data store memory use to store the activation time of the pump
+7ec.24.62337f	0.0	None		($337F) Context safety datas memorised in main microcontroller
+7ec.24.623455	0.498	0.005	kW	($3455) Mean eco electrical consumption (if driver has economical driving behavior)
+7ec.24.623457	0.498	0.005	kW	($3457) Mean pessimistic electrical consumption (worst possible consumption)
+7ec.24.623484	151.0	150.0	A	($3484) Current measurement given by BCS Battery Current Sensor
+7ec.24.6234bd	127.0	None	min	($34BD) Left time calculated before the customer hour programmation
+7ec.30.62302a	2.0	None		($302A) General DCDC state
+7ec.31.623462	1.0	None		($3462) Vehicle configured with UBP (1) or VPM (0)
+7ec.31.62347f	0.0	None		($347F) Reinitialisation of memorization of next 4 years alert value in time
+7ec.56.6180	38.0	26		DiagnosticIdentificationCode
