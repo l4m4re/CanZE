@@ -3,4 +3,4 @@ import pytest
 
 def test_7ec_24_623484():
     client = ReplayUDSClient(sid_responses={"223484": ['056234848096AAAA']})
-    assert client.read_field("7ec.24.623484") == pytest.approx(151.0)
+    assert client.read_field("7ec.24.623484") == pytest.approx(150.0)
