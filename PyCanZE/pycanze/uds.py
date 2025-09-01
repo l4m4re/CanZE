@@ -440,6 +440,7 @@ class UDSClient:
         elif any("ERROR" in ln for ln in up):
             self.last_status = "ELM_ERROR"
         b = self._only_hex_bytes(lines)
+        expected_len = b[0] if b and b[0] < 0x10 else 0
         if self.debug:
             print(f"[PYCANZE DEBUG] PARSED HEX: {b}")
         # Manual ISO-TP reassembly fallback (without sending our own Flow Control)
@@ -656,6 +657,8 @@ class UDSClient:
             # Normalize: strip trailing pad bytes (AA/FF/00) that some adapters append
             # while ensuring we keep at least SID + ident + 1 data byte
             min_len = 1 + (2 if ident_len == 2 else 1) + 1
+            if expected_len:
+                min_len = max(min_len, expected_len)
             j = len(out)
             while j > min_len and out[j - 1] in (0xAA, 0xFF, 0x00):
                 j -= 1
@@ -791,14 +794,10 @@ class UDSClient:
         raw_value = self._extract_bits(bytes(resp), field.start_bit, field.end_bit)
         # Treat all-ones patterns as N/A when indicated (CSV often marks with 'ff')
         width = max(1, int(field.end_bit) - int(field.start_bit) + 1)
-        try:
-            opts = [o.lower() for o in (field.options or [])]
-        except Exception:
-            opts = []
         all_ones = (1 << width) - 1 if width < 32 else 0xFFFFFFFF
-        # Consider 'ff' anywhere in the options string or use width-based heuristic
-        optstr = "".join(opts)
-        if raw_value == all_ones and ("ff" in optstr or width in (8, 16, 32)):
+        optmask = field.options or 0
+        # Consider car mask 0xFF as the original 'ff' sentinel or use width-based heuristic
+        if raw_value == all_ones and ((optmask & 0xFF) == 0xFF or width in (8, 16, 32)):
             return None
         # Apply Android semantics: value = (raw - offset) * resolution
         try:

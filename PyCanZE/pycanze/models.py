@@ -1,6 +1,6 @@
 """Dataclasses representing CanZE metadata."""
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 
@@ -44,6 +44,24 @@ class Field:
     unit: str
     request_id: Optional[str]
     response_id: Optional[str]
-    options: List[str] = field(default_factory=list)
+    options: int = 0
     name: Optional[str] = None
     raw_values: Optional[str] = None
+
+    FIELD_TYPE_MASK = 0x700
+    FIELD_TYPE_SIGNED = 0x100
+    FIELD_TYPE_STRING = 0x200
+    FIELD_TYPE_HEXSTRING = 0x400
+    FIELD_SELFPROPELLED = 0x800
+
+    def is_signed(self) -> bool:
+        return (self.options & self.FIELD_TYPE_MASK) == self.FIELD_TYPE_SIGNED
+
+    def is_string(self) -> bool:
+        return (self.options & self.FIELD_TYPE_MASK) == self.FIELD_TYPE_STRING
+
+    def is_hex_string(self) -> bool:
+        return (self.options & self.FIELD_TYPE_MASK) == self.FIELD_TYPE_HEXSTRING
+
+    def is_self_propelled(self) -> bool:
+        return (self.options & self.FIELD_SELFPROPELLED) == self.FIELD_SELFPROPELLED
