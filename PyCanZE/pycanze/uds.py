@@ -814,6 +814,9 @@ class UDSClient:
             value = (raw_value - float(field.offset)) * float(field.resolution)
         except Exception:
             value = (raw_value - (field.offset or 0.0)) * (field.resolution or 1.0)
+    # Note: state-dependent sentinels/invalids are intentionally not handled
+    # here. Applications (pollers/agents) should decide when to discard
+    # values based on vehicle state.
         # Mirror Android's formatted output by rounding to the defined number
         # of decimals. Java's ``String.format`` rounds half away from zero which
         # matches Python's :func:`round` for positive numbers used here.

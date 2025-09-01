@@ -38,7 +38,7 @@
 ,761,46,46,1,0,0,,2105,6105,ff,Data monitor value request.PeriodicReverseBuzzerTrigger,0:No request;1:Reverse alert trigger
 ,761,47,47,1,0,0,,2105,6105,ff,Data monitor value request.DiagMuxOn_BCM,0:counting and storage of CAN mute/absent failures  masked;1:counting and storage of CAN mute/absent failures not masked
 ,761,48,63,.01,0,2,km/h,2105,6105,ff,Data monitor value request.VehicleSpeed
-,761,64,67,1,0,0,,2105,6105,ff,Data monitor value request.VehicleStateExtented,0:Sleeping;1:Technical Wakeup;2:CutOffPending;3:BatTempoLevel;4:AccessoryLevel;5:IgnitionLevel;6:StartingInProgress;7:EngineRunning;8:AutoStart;9:EngineSystemStop;10:UnvailableValue
+,761,64,67,1,0,0,,2105,6105,ff,Data monitor value request.VehicleStateExtended,0:Sleeping;1:Technical Wakeup;2:CutOffPending;3:BatTempoLevel;4:AccessoryLevel;5:IgnitionLevel;6:StartingInProgress;7:EngineRunning;8:AutoStart;9:EngineSystemStop;10:Unavailable Value
 ,761,68,95,.01,0,2,km,2105,6105,ff,Data monitor value request.DistanceTotalizer
 ,761,96,98,1,0,0,,2105,6105,ff,Data monitor value request.BrakeInfoStatus,0:Not used;1:Brake pedal not pressed;2:Brake pedal pressed;4:Brake pedal confirmed pressed;7:unavailable
 ,761,16,23,1,0,0,,2106,6106,4ff,Parameter VSP_Sound_A
@@ -51,7 +51,7 @@
 ,761,21,21,1,0,0,,2109,6109,ff,VSP Configuration Parameters.CHARGING sound,0:absent;1:present
 ,761,22,22,1,0,0,,2109,6109,ff,VSP Configuration Parameters.D_R_Identical_sound,0:absent;1:present
 ,761,23,23,1,0,0,,2109,6109,ff,VSP Configuration Parameters. SWITCH_DTC_ENABLE,0:Absent;1:Present
-,761,28,31,1,0,0,,2109,6109,ff,VSP Configuration Parameters. Engine Speed Treshold,0:300rpm;1:400rpm;2:500rpm;3:600rpm;4:700rpm;5:800rpm;6:900rpm;7:1000rpm;8:1100rpm;9:1200rpm;10:1300rpm;11:1400rpm;12:1500rpm;13:1600rpm;14:1700rpm;15:1800rpm
+,761,28,31,1,0,0,,2109,6109,ff,VSP Configuration Parameters. Engine Speed Threshold,0:300rpm;1:400rpm;2:500rpm;3:600rpm;4:700rpm;5:800rpm;6:900rpm;7:1000rpm;8:1100rpm;9:1200rpm;10:1300rpm;11:1400rpm;12:1500rpm;13:1600rpm;14:1700rpm;15:1800rpm
 ,761,16,55,1,0,0,,2180,6180,2ff,PartNumber.LowerPart
 ,761,56,63,1,0,0,,2180,6180,4ff,DiagnosticIdentificationCode
 ,761,64,87,1,0,0,,2180,6180,2ff,SupplierNumber.ITG

@@ -106,7 +106,7 @@
 ,18DAF1DA,31,31,1,0,0,,222043,622043,ff,Configuration - Freon pressure sensor,0:without;1:with
 ,18DAF1DA,24,39,.00125,0,3,,222044,622044,ff,Powertrain setpoint
 ,18DAF1DA,30,31,1,0,0,,222045,622045,ff,Clutch pedal - maximum travel switch state,0:not pressed;1:pressed;2:invalid
-,18DAF1DA,29,31,1,0,0,,222048,622048,ff,Cranking autorisation status,0:not allowed;1:allowed;2:stop request;3:norequest;4:forbidden
+,18DAF1DA,29,31,1,0,0,,222048,622048,ff,Cranking authorisation status,0:not allowed;1:allowed;2:stop request;3:no request;4:forbidden
 ,18DAF1DA,24,24,1,0,0,,22204A,62204A,ff,Motor-fans requests.7,0:no fan 2 final CAN request;1:fan 2 final CAN request
 ,18DAF1DA,25,25,1,0,0,,22204A,62204A,ff,Motor-fans requests.6,0:no fan 1 final CAN request;1:fan 1 final CAN request
 ,18DAF1DA,26,26,1,0,0,,22204A,62204A,ff,Motor-fans requests.5,0:no fan 2 request from automatic gearbox;1:fan 2 request from automatic gearbox
@@ -115,8 +115,8 @@
 ,18DAF1DA,29,29,1,0,0,,22204A,62204A,ff,Motor-fans requests.2,0:no fan 1 request from air conditioning;1:fan 1 request from air conditioning
 ,18DAF1DA,30,30,1,0,0,,22204A,62204A,ff,Motor-fans requests.1,0:no fan 2 request from ECM;1:fan 2 request from ECM
 ,18DAF1DA,31,31,1,0,0,,22204A,62204A,ff,Motor-fans requests.0,0:no fan 1 request from ECM;1:fan 1 request from ECM
-,18DAF1DA,29,31,1,0,0,,22204B,62204B,ff,CCSL - Steering wheel push buttons state,0:unpressed;1:invalid voltage;2:open circuit;3:suspend boutton pressed;4:set - button pressed;5:set + button pressed;6:resume button pressed;7:distance button pressed
-,18DAF1DA,29,31,1,0,0,,22204C,62204C,ff,CCSL - Status,0:CC and SL off;1:SL on (active or over-speed);2:SL on (awaiting or supsended);3:SL requested and in failure;4:CC on (active);5:CC on (awaiting or supsended);6:CC requested and in failure;7:CC and SL not present
+,18DAF1DA,29,31,1,0,0,,22204B,62204B,ff,CCSL - Steering wheel push buttons state,0:unpressed;1:invalid voltage;2:open circuit;3:suspend button pressed;4:set - button pressed;5:set + button pressed;6:resume button pressed;7:distance button pressed
+,18DAF1DA,29,31,1,0,0,,22204C,62204C,ff,CCSL - Status,0:CC and SL off;1:SL on (active or over-speed);2:SL on (awaiting or suspended);3:SL requested and in failure;4:CC on (active);5:CC on (awaiting or suspended);6:CC requested and in failure;7:CC and SL not present
 ,18DAF1DA,24,24,1,0,0,,22204E,62204E,ff,CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.7,0:Not activated;1:AT in limp-home mode or absent (in case of SL)
 ,18DAF1DA,25,25,1,0,0,,22204E,62204E,ff,CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.6,0:Not activated;1:Invalid check of vehicle speed
 ,18DAF1DA,26,26,1,0,0,,22204E,62204E,ff,CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.5,0:Not activated;1:SL engine inhibition
@@ -231,9 +231,9 @@
 ,18DAF1DA,24,39,.0000030518,32768,3,,2220D1,6220D1,ff,Adaptation raw offset on injection time with proportionnal upstream O2 sensor (Bosch calculation value)
 ,18DAF1DA,24,39,.001,0,3,,2220D3,6220D3,ff,Factor to correct UEGO signal aging shifting
 ,18DAF1DA,31,31,1,0,0,,2220D4,6220D4,ff,Indicator of UEGO sensor signal first gain correction achieved when sensor is changed,0:UEGO upstream sensor is changed - first gain correction calculation is requested;1:UEGO upstream sensor - first gain correction has been processed
-,18DAF1DA,31,31,1,0,0,,2220D9,6220D9,ff,Boolean for Tank Shut Off Valve Cycles Counter Reset,0:desactivated;1:activated
-,18DAF1DA,31,31,1,0,0,,2220DA,6220DA,ff,Boolean for Vaporizer Shut Off Valve Cycles Counter Reset,0:desactivated;1:activated
-,18DAF1DA,31,31,1,0,0,,2220DB,6220DB,ff,Boolean Reset LPG Adaptivity,0:desactivated;1:activated
+,18DAF1DA,31,31,1,0,0,,2220D9,6220D9,ff,Boolean for Tank Shut Off Valve Cycles Counter Reset,0:deactivated;1:activated
+,18DAF1DA,31,31,1,0,0,,2220DA,6220DA,ff,Boolean for Vaporizer Shut Off Valve Cycles Counter Reset,0:deactivated;1:activated
+,18DAF1DA,31,31,1,0,0,,2220DB,6220DB,ff,Boolean Reset LPG Adaptivity,0:deactivated;1:activated
 ,18DAF1DA,31,31,1,0,0,,2220DC,6220DC,ff,Air flap configuration boolean,0:air flap absent;1:air flap present
 ,18DAF1DA,31,31,1,0,0,,2220DD,6220DD,ff,Variable for presence of oil heater vapours conf choice,0:absent;1:present
 ,18DAF1DA,24,39,.1,2730,1,,2220DE,6220DE,ff,Ambient temperature
@@ -306,7 +306,7 @@
 ,18DAF1DA,31,31,1,0,0,,22217C,62217C,ff,Detect ACC option with security on configuration detection. Stored in EEPROM.,0:not present;1:present
 ,18DAF1DA,24,31,1,0,0,s,22217D,62217D,ff,Maximum duration of DISTANCE button press
 ,18DAF1DA,24,31,1,0,0,,22217E,62217E,ff,CCSL - State of the failures which cause irreversible CC safety failure (level 2)
-,18DAF1DA,24,31,1,0,0,,22217F,62217F,ff,Carrier for safety failure dignostic for safety monitoring
+,18DAF1DA,24,31,1,0,0,,22217F,62217F,ff,Carrier for safety failure diagnostic for safety monitoring
 ,18DAF1DA,24,55,1,0,0,,222180,622180,4ff,DIDs supported in range 2181 - 21A0
 ,18DAF1DA,24,55,.1,-2147483648,1,km,222181,622181,1ff,Mileage recording
 ,18DAF1DA,24,39,.01,0,2,km/h,222184,622184,ff,Requested speed setpoint for FSL function
@@ -327,7 +327,7 @@
 ,18DAF1DA,24,47,1,0,0,km,2221C7,6221C7,ff,Vehicle distance at last succesfull detection test (Fuel level or Vehicle distance)
 ,18DAF1DA,31,31,1,0,0,,2221C9,6221C9,ff,Feedback main (p1) relay status from BMS by CAN,0:0- Relay Opened;1:1- Relay Closed
 ,18DAF1DA,31,31,1,0,0,,2221CA,6221CA,ff,Feedback auxiliary relay status from BMS by CAN,0:0- Relay Opened;1:1- Relay Closed
-,18DAF1DA,31,31,1,0,0,,2221CB,6221CB,ff,DCDC Activation,0:0- DCDC desactived;1:1- DCDC Activated
+,18DAF1DA,31,31,1,0,0,,2221CB,6221CB,ff,DCDC Activation,0:0- DCDC deactivated;1:1- DCDC Activated
 ,18DAF1DA,24,39,.25,2000,1,A,2221CC,6221CC,ff,High voltage battery Current measured consolidated
 ,18DAF1DA,24,39,1,0,0,%,2221CD,6221CD,ff,User SOC
 ,18DAF1DA,30,31,1,0,0,,2221CE,6221CE,ff,Electrical Energy Management DCDC status,0:0- DCDC init state;1:1- DCDC standby state;2:2- DCDC run state;3:3- DCDC fail state
@@ -1009,27 +1009,27 @@
 ,18DAF1DA,29,31,1,0,0,,222B8B,622B8B,ff,Consolidated CHGFault_Type,0:Invalid data;1:Valid data;2:Limp home data (1);3:Limp home data (2);4:Limp home data (3);5:Limp home data (4);6:Limp home data (5);7:Limp home data (6)
 ,18DAF1DA,31,31,1,0,0,,222B8C,622B8C,ff,Charge Prohibition By Rental_HFM,0:NOK;1:OK
 ,18DAF1DA,31,31,1,0,0,,222B8D,622B8D,ff,Charge Prohibition By Rental BCM,0:NOK;1:OK
-,18DAF1DA,30,30,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.09,0:not applied;1:applied
-,18DAF1DA,31,31,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.08,0:not applied;1:applied
-,18DAF1DA,32,32,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.07,0:not applied;1:applied
-,18DAF1DA,33,33,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.06,0:not applied;1:applied
-,18DAF1DA,34,34,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.05,0:not applied;1:applied
-,18DAF1DA,35,35,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.04,0:not applied;1:applied
-,18DAF1DA,36,36,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.03,0:not applied;1:applied
-,18DAF1DA,37,37,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.02,0:not applied;1:applied
-,18DAF1DA,38,38,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.01,0:not applied;1:applied
-,18DAF1DA,39,39,1,0,0,,222B8E,622B8E,ff,The 10 lastest values of the flag which indicates that a charge profile is applied.00,0:not applied;1:applied
+,18DAF1DA,30,30,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.09,0:not applied;1:applied
+,18DAF1DA,31,31,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.08,0:not applied;1:applied
+,18DAF1DA,32,32,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.07,0:not applied;1:applied
+,18DAF1DA,33,33,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.06,0:not applied;1:applied
+,18DAF1DA,34,34,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.05,0:not applied;1:applied
+,18DAF1DA,35,35,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.04,0:not applied;1:applied
+,18DAF1DA,36,36,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.03,0:not applied;1:applied
+,18DAF1DA,37,37,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.02,0:not applied;1:applied
+,18DAF1DA,38,38,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.01,0:not applied;1:applied
+,18DAF1DA,39,39,1,0,0,,222B8E,622B8E,ff,The 10 latest values of the flag which indicates that a charge profile is applied.00,0:not applied;1:applied
 ,18DAF1DA,28,31,1,0,0,,222B8F,622B8F,ff,CPLC_FaultType,0:NoFault;1:Contract NOK;2:Energy Transfer mode type not supported;3:PLC comm failure state;4:EVSE comm Failure;5:EVSE Not Ready;6:EVSE Utility Interrupt Event-;7:EVSE Utility Interrupt Event;8:EVSE Isolation Monitoring Active;9:EVSE Emergency Shutdown;10:EVSE Malfunction Protocol with EVSE (Station charging);11:EVSE_Renegociate of profil charge
-,18DAF1DA,24,47,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.09
-,18DAF1DA,48,71,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.08
-,18DAF1DA,72,95,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.07
-,18DAF1DA,96,119,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.06
-,18DAF1DA,120,143,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.05
-,18DAF1DA,144,167,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.04
-,18DAF1DA,168,191,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.03
-,18DAF1DA,192,215,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.02
-,18DAF1DA,216,239,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.01
-,18DAF1DA,240,263,1,0,0,min,222B90,622B90,ff,The 10 lastest absolute times memorized at the end/interruption of battery charge.00
+,18DAF1DA,24,47,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.09
+,18DAF1DA,48,71,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.08
+,18DAF1DA,72,95,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.07
+,18DAF1DA,96,119,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.06
+,18DAF1DA,120,143,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.05
+,18DAF1DA,144,167,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.04
+,18DAF1DA,168,191,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.03
+,18DAF1DA,192,215,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.02
+,18DAF1DA,216,239,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.01
+,18DAF1DA,240,263,1,0,0,min,222B90,622B90,ff,The 10 latest absolute times memorized at the end/interruption of battery charge.00
 ,18DAF1DA,28,31,1,0,0,,222B91,622B91,ff,Combo_EVchargeHLCRequest CAN consolidated,0:No HLC Request  state;1:Communicationservice setting request sattet;2:ChargeparameterDiscovery requeststate;3:CableCheck request state;4:Precharge request state;5:Power delivery request state;6:Current demand request state;7:Metering receipt request;8:Welding detection request state;9:Session stop request  state;10:Reset matching process counter at unplug
 ,18DAF1DA,24,39,.1,0,1,A,222B92,622B92,ff,ComboEVTargetCurrent
 ,18DAF1DA,28,31,1,0,0,,222B93,622B93,ff,Combo_EVSEchargeHLCState,0:No HLC communication is established;1:Communication  Service setting is established ;2:ChargeparameterDiscovery res state ;3:CableCheck res state ;4:Precharge res state  ;5:Power delivery res state ;6:Current demande res state ;7:Metering receipt response  ;8:Welding detection res state ;9:Session stop res 
@@ -1043,7 +1043,7 @@
 ,18DAF1DA,31,31,1,0,0,,222B9B,622B9B,ff,Battery HVAC EV 2 command2
 ,18DAF1DA,31,31,1,0,0,,222B9C,622B9C,ff,S2 relay command,0:Open Request;1:Close Request
 ,18DAF1DA,31,31,1,0,0,,222B9D,622B9D,ff,HV available request for charge,0:Open Request;1:Close Request
-,18DAF1DA,30,31,1,0,0,,222B9E,622B9E,ff,toggle test states,0:Toggle test is on going;1:Toggle test is done;2:Toggle test is failed;3:Toggle test is unvailable
+,18DAF1DA,30,31,1,0,0,,222B9E,622B9E,ff,toggle test states,0:Toggle test is on going;1:Toggle test is done;2:Toggle test is failed;3:Toggle test is unavailable
 ,18DAF1DA,24,39,.0001,0,3,,222B9F,622B9F,ff,GearShift Lever pwm ratio measured in plant
 ,18DAF1DA,24,55,1,0,0,,222BA0,622BA0,4ff,DIDs supported in range [$2BA1 - $2BC0]
 ,18DAF1DA,28,28,1,0,0,,222BB1,622BB1,ff,Journaling Vbx_driv_cho_urb_zev_mod in case of Optimization Failure.04
@@ -1148,13 +1148,13 @@
 ,18DAF1DA,29,31,1,0,0,,223002,623002,ff,ChargingPlugs_Status,0:Plug Abscent;2:Plug Present;4:Plug Locked;6:2plugs present
 ,18DAF1DA,31,31,1,0,0,,223003,623003,ff,Consolidated FastChargeRelayStatus,0:No Failure;1:Failure detected
 ,18DAF1DA,24,39,.1,400,1,,223004,623004,ff,Temperature monitoring of DC combo inlet
-,18DAF1DA,24,39,.1,400,1,,223005,623005,ff,Temperature monitoring of DCbox inlet consolidated
+,18DAF1DA,24,39,.1,400,1,,223005,623005,ff,Temperature monitoring of DC box inlet consolidated
 ,18DAF1DA,24,39,50,0,0,W,223006,623006,ff,ComboEVSEMaximumPowerLimit
 ,18DAF1DA,30,31,1,0,0,,223007,623007,ff,Combo_DCExtendedConnectStatus parameter,1:DC extended not detected;2:DC extended detected state
 ,18DAF1DA,24,39,.1,0,1,V,223008,623008,ff,ComboEVSEMaximumVoltageLimit
 ,18DAF1DA,24,39,.1,0,1,A,223009,623009,ff,ComboEVSEMinimumCurrentLimit
 ,18DAF1DA,24,39,.1,0,1,A,22300A,62300A,ff,ComboEVSEMaximumCurrentLimit
-,18DAF1DA,30,31,1,0,0,,22300B,62300B,ff,Consolidated with validity status of NumberOfPhasesUsed,0:one phase;1:two phases;2:three Phases;3:Unvailable Value
+,18DAF1DA,30,31,1,0,0,,22300B,62300B,ff,Consolidated with validity status of NumberOfPhasesUsed,0:one phase;1:two phases;2:three Phases;3:Unavailable Value
 ,18DAF1DA,31,31,1,0,0,,22300C,62300C,ff,Delivery mode information for Stop And Start - adapted for the S&S system,0:no inhibition;1:Inhibition of stop auto
 ,18DAF1DA,24,39,.1,0,1,A,22300D,62300D,ff,ConsolidatedMainsRMSCurrent
 ,18DAF1DA,24,39,.015625,0,2,kW,22300E,62300E,ff,Available power of charge AC
@@ -1195,9 +1195,9 @@
 ,18DAF1DA,31,31,1,0,0,,223031,623031,ff,Engine drying request,0:no time out;1:time out
 ,18DAF1DA,31,31,1,0,0,,223032,623032,ff,HV ready request for traction consolidated with AfterSales signals,0:no request;1:request
 ,18DAF1DA,24,39,.1,0,1,N·m,223033,623033,1ff,Max charge limitation of torque of E-motor2 according to the E-motor2 temperature
-,18DAF1DA,24,39,.03125,32768,2,N·m,223034,623034,ff,EMotor 2 available torque charge theshold limitation
+,18DAF1DA,24,39,.03125,32768,2,N·m,223034,623034,ff,EMotor 2 available torque charge threshold limitation
 ,18DAF1DA,24,39,.1,0,1,N·m,223035,623035,1ff,Max charge limitation of torque of E-motor according to the E-motor temperature
-,18DAF1DA,24,39,.03125,0,2,N·m,223036,623036,ff,EMotor 1 available torque charge theshold limitation
+,18DAF1DA,24,39,.03125,0,2,N·m,223036,623036,ff,EMotor 1 available torque charge threshold limitation
 ,18DAF1DA,31,31,1,0,0,,22303C,62303C,ff,Inverter refuse to sleep flag,0:Inverter ready to sleep.;1:Inventor refuse to sleep
 ,18DAF1DA,24,39,100,0,0,Ohm,22303D,62303D,ff,Measured insulation resistance of the HVB (High Voltage Battery)
 ,18DAF1DA,24,39,.00005,0,3,,22303E,62303E,ff,Equivalent energy of 1% SOC(state of charge)
@@ -1247,120 +1247,120 @@
 ,18DAF1DA,24,31,1,40,0,,22306C,62306C,ff,inverter water temperature
 ,18DAF1DA,24,39,.5,0,1,N·m,22306D,62306D,1ff,HSGElectrical Machine Maximum Motor Torque.v2
 ,18DAF1DA,24,39,.03125,32768,2,N·m,22306E,62306E,ff,Limitation of max discharge torque of EMachine 2
-,18DAF1DA,24,39,.03125,32768,2,N·m,22306F,62306F,ff,E-motor 2 available torque discharge theshold limitation
+,18DAF1DA,24,39,.03125,32768,2,N·m,22306F,62306F,ff,E-motor 2 available torque discharge threshold limitation
 ,18DAF1DA,24,39,.03125,32768,2,N·m,223070,623070,ff,Max discharge limitation of torque of E-motor according to the E-motor temperature
-,18DAF1DA,24,39,.03125,0,2,N·m,223071,623071,ff,E-Motor 1 available torque discharge theshold limitation
-,18DAF1DA,24,39,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.09
-,18DAF1DA,40,55,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.08
-,18DAF1DA,56,71,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.07
-,18DAF1DA,72,87,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.06
-,18DAF1DA,88,103,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.05
-,18DAF1DA,104,119,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.04
-,18DAF1DA,120,135,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.03
-,18DAF1DA,136,151,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.02
-,18DAF1DA,152,167,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.01
-,18DAF1DA,168,183,.1,400,1,,22307B,62307B,ff,The 10 lastest temperatures monitoring of Dcbox inletmemorized at end/interruption of battery charge.00
-,18DAF1DA,24,39,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.09,0:not requested;1:requested
-,18DAF1DA,40,55,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.08,0:not requested;1:requested
-,18DAF1DA,56,71,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.07,0:not requested;1:requested
-,18DAF1DA,72,87,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.06,0:not requested;1:requested
-,18DAF1DA,88,103,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.05,0:not requested;1:requested
-,18DAF1DA,104,119,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.04,0:not requested;1:requested
-,18DAF1DA,120,135,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.03,0:not requested;1:requested
-,18DAF1DA,136,151,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.02,0:not requested;1:requested
-,18DAF1DA,152,167,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.01,0:not requested;1:requested
-,18DAF1DA,168,183,1,0,0,,22307C,62307C,ff,The 10 lastest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.00,0:not requested;1:requested
-,18DAF1DA,24,27,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.09,0:not requested;1:requested
-,18DAF1DA,28,31,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.08,0:not requested;1:requested
-,18DAF1DA,32,35,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.07,0:not requested;1:requested
-,18DAF1DA,36,39,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.06,0:not requested;1:requested
-,18DAF1DA,40,43,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.05,0:not requested;1:requested
-,18DAF1DA,44,47,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.04,0:not requested;1:requested
-,18DAF1DA,48,51,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.03,0:not requested;1:requested
-,18DAF1DA,52,55,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.02,0:not requested;1:requested
-,18DAF1DA,56,59,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.01,0:not requested;1:requested
-,18DAF1DA,60,63,1,0,0,,22307D,62307D,ff,10 lastest charge interruption reason.00,0:not requested;1:requested
-,18DAF1DA,24,39,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.09,0:not requested;1:requested
-,18DAF1DA,40,55,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.08,0:not requested;1:requested
-,18DAF1DA,56,71,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.07,0:not requested;1:requested
-,18DAF1DA,72,87,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.06,0:not requested;1:requested
-,18DAF1DA,88,103,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.05,0:not requested;1:requested
-,18DAF1DA,104,119,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.04,0:not requested;1:requested
-,18DAF1DA,120,135,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.03,0:not requested;1:requested
-,18DAF1DA,136,151,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.02,0:not requested;1:requested
-,18DAF1DA,152,167,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.01,0:not requested;1:requested
-,18DAF1DA,168,183,1,0,0,,22307E,62307E,ff,The 10 lastest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.00,0:not requested;1:requested
-,18DAF1DA,24,39,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.09
-,18DAF1DA,40,55,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.08
-,18DAF1DA,56,71,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.07
-,18DAF1DA,72,87,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.06
-,18DAF1DA,88,103,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.05
-,18DAF1DA,104,119,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.04
-,18DAF1DA,120,135,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.03
-,18DAF1DA,136,151,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.02
-,18DAF1DA,152,167,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.01
-,18DAF1DA,168,183,.1,400,1,,22307F,62307F,ff,The 10 lastest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.00
+,18DAF1DA,24,39,.03125,0,2,N·m,223071,623071,ff,E-Motor 1 available torque discharge threshold limitation
+,18DAF1DA,24,39,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.09
+,18DAF1DA,40,55,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.08
+,18DAF1DA,56,71,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.07
+,18DAF1DA,72,87,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.06
+,18DAF1DA,88,103,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.05
+,18DAF1DA,104,119,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.04
+,18DAF1DA,120,135,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.03
+,18DAF1DA,136,151,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.02
+,18DAF1DA,152,167,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.01
+,18DAF1DA,168,183,.1,400,1,,22307B,62307B,ff,The 10 latest temperatures monitoring of DC box inlet memorized at end/interruption of battery charge.00
+,18DAF1DA,24,39,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.09,0:not requested;1:requested
+,18DAF1DA,40,55,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.08,0:not requested;1:requested
+,18DAF1DA,56,71,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.07,0:not requested;1:requested
+,18DAF1DA,72,87,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.06,0:not requested;1:requested
+,18DAF1DA,88,103,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.05,0:not requested;1:requested
+,18DAF1DA,104,119,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.04,0:not requested;1:requested
+,18DAF1DA,120,135,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.03,0:not requested;1:requested
+,18DAF1DA,136,151,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.02,0:not requested;1:requested
+,18DAF1DA,152,167,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.01,0:not requested;1:requested
+,18DAF1DA,168,183,1,0,0,,22307C,62307C,ff,The 10 latest mean values of available chg spot power during the chg AC OR chg DC memorized at end of battery chg.00,0:not requested;1:requested
+,18DAF1DA,24,27,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.09,0:not requested;1:requested
+,18DAF1DA,28,31,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.08,0:not requested;1:requested
+,18DAF1DA,32,35,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.07,0:not requested;1:requested
+,18DAF1DA,36,39,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.06,0:not requested;1:requested
+,18DAF1DA,40,43,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.05,0:not requested;1:requested
+,18DAF1DA,44,47,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.04,0:not requested;1:requested
+,18DAF1DA,48,51,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.03,0:not requested;1:requested
+,18DAF1DA,52,55,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.02,0:not requested;1:requested
+,18DAF1DA,56,59,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.01,0:not requested;1:requested
+,18DAF1DA,60,63,1,0,0,,22307D,62307D,ff,10 latest charge interruption reason.00,0:not requested;1:requested
+,18DAF1DA,24,39,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.09,0:not requested;1:requested
+,18DAF1DA,40,55,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.08,0:not requested;1:requested
+,18DAF1DA,56,71,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.07,0:not requested;1:requested
+,18DAF1DA,72,87,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.06,0:not requested;1:requested
+,18DAF1DA,88,103,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.05,0:not requested;1:requested
+,18DAF1DA,104,119,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.04,0:not requested;1:requested
+,18DAF1DA,120,135,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.03,0:not requested;1:requested
+,18DAF1DA,136,151,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.02,0:not requested;1:requested
+,18DAF1DA,152,167,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.01,0:not requested;1:requested
+,18DAF1DA,168,183,1,0,0,,22307E,62307E,ff,The 10 latest max values of the available chg spot power during the chg AC OR chg DC at end of battery chg.00,0:not requested;1:requested
+,18DAF1DA,24,39,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.09
+,18DAF1DA,40,55,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.08
+,18DAF1DA,56,71,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.07
+,18DAF1DA,72,87,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.06
+,18DAF1DA,88,103,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.05
+,18DAF1DA,104,119,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.04
+,18DAF1DA,120,135,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.03
+,18DAF1DA,136,151,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.02
+,18DAF1DA,152,167,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.01
+,18DAF1DA,168,183,.1,400,1,,22307F,62307F,ff,The 10 latest chg inlet temp_AC during the chg AC OR inlet temp_DC during the chg DC memorized at the end of batt chg.00
 ,18DAF1DA,24,55,1,0,0,,223080,623080,4ff,DIDs supported in range [$3081 - $30A0]
-,18DAF1DA,24,47,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.09
-,18DAF1DA,48,71,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.08
-,18DAF1DA,72,95,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.07
-,18DAF1DA,96,119,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.06
-,18DAF1DA,120,143,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.05
-,18DAF1DA,144,167,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.04
-,18DAF1DA,168,191,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.03
-,18DAF1DA,192,215,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.02
-,18DAF1DA,216,239,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.01
-,18DAF1DA,240,263,1,0,0,min,223081,623081,ff,The 10 lastest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.00
-,18DAF1DA,24,31,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.09
-,18DAF1DA,32,39,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.08
-,18DAF1DA,40,47,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.07
-,18DAF1DA,48,55,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.06
-,18DAF1DA,56,63,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.05
-,18DAF1DA,64,71,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.04
-,18DAF1DA,72,79,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.03
-,18DAF1DA,80,87,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.02
-,18DAF1DA,88,95,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.01
-,18DAF1DA,96,103,1,40,0,,223082,623082,ff,The 10 lastest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.00
-,18DAF1DA,24,39,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.09
-,18DAF1DA,40,55,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.08
-,18DAF1DA,56,71,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.07
-,18DAF1DA,72,87,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.06
-,18DAF1DA,88,103,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.05
-,18DAF1DA,104,119,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.04
-,18DAF1DA,120,135,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.03
-,18DAF1DA,136,151,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.02
-,18DAF1DA,152,167,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.01
-,18DAF1DA,168,183,.02,0,2,%,223083,623083,ff,The 10 lastest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.00
-,18DAF1DA,28,29,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.09
-,18DAF1DA,30,31,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.08
-,18DAF1DA,32,33,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.07
-,18DAF1DA,34,35,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.06
-,18DAF1DA,36,37,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.05
-,18DAF1DA,38,39,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.04
-,18DAF1DA,40,41,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.03
-,18DAF1DA,42,43,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.02
-,18DAF1DA,44,45,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.01
-,18DAF1DA,46,47,1,0,0,,223084,623084,ff,The 10 lastest type of charge memorized at end/interruption of battery charge.00
-,18DAF1DA,24,47,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.09
-,18DAF1DA,48,71,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.08
-,18DAF1DA,72,95,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.07
-,18DAF1DA,96,119,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.06
-,18DAF1DA,120,143,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.05
-,18DAF1DA,144,167,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.04
-,18DAF1DA,168,191,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.03
-,18DAF1DA,192,215,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.02
-,18DAF1DA,216,239,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.01
-,18DAF1DA,240,263,1,0,0,km,223085,623085,ff,The 10 lastest total vehicle distances memorized at the end/interruption of battery charge.00
-,18DAF1DA,24,39,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.09
-,18DAF1DA,40,55,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.08
-,18DAF1DA,56,71,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.07
-,18DAF1DA,72,87,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.06
-,18DAF1DA,88,103,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.05
-,18DAF1DA,104,119,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.04
-,18DAF1DA,120,135,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.03
-,18DAF1DA,136,151,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.02
-,18DAF1DA,152,167,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.01
-,18DAF1DA,168,183,1,0,0,min,223086,623086,ff,The 10 lastest values of the charge duration memorized at end/interruption of battery charge.00
+,18DAF1DA,24,47,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.09
+,18DAF1DA,48,71,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.08
+,18DAF1DA,72,95,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.07
+,18DAF1DA,96,119,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.06
+,18DAF1DA,120,143,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.05
+,18DAF1DA,144,167,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.04
+,18DAF1DA,168,191,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.03
+,18DAF1DA,192,215,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.02
+,18DAF1DA,216,239,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.01
+,18DAF1DA,240,263,1,0,0,min,223081,623081,ff,The 10 latest Absolute times at the start of battery charge memorized at the end/interruption of battery charge.00
+,18DAF1DA,24,31,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.09
+,18DAF1DA,32,39,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.08
+,18DAF1DA,40,47,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.07
+,18DAF1DA,48,55,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.06
+,18DAF1DA,56,63,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.05
+,18DAF1DA,64,71,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.04
+,18DAF1DA,72,79,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.03
+,18DAF1DA,80,87,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.02
+,18DAF1DA,88,95,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.01
+,18DAF1DA,96,103,1,40,0,,223082,623082,ff,The 10 latest maximum temperatures of the HVB at start of charge memorized at the end/interruption of battery charge.00
+,18DAF1DA,24,39,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.09
+,18DAF1DA,40,55,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.08
+,18DAF1DA,56,71,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.07
+,18DAF1DA,72,87,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.06
+,18DAF1DA,88,103,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.05
+,18DAF1DA,104,119,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.04
+,18DAF1DA,120,135,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.03
+,18DAF1DA,136,151,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.02
+,18DAF1DA,152,167,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.01
+,18DAF1DA,168,183,.02,0,2,%,223083,623083,ff,The 10 latest estimated percentages of SOC at start of charge memorized at the end/interruption of battery charge.00
+,18DAF1DA,28,29,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.09
+,18DAF1DA,30,31,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.08
+,18DAF1DA,32,33,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.07
+,18DAF1DA,34,35,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.06
+,18DAF1DA,36,37,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.05
+,18DAF1DA,38,39,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.04
+,18DAF1DA,40,41,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.03
+,18DAF1DA,42,43,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.02
+,18DAF1DA,44,45,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.01
+,18DAF1DA,46,47,1,0,0,,223084,623084,ff,The 10 latest type of charge memorized at end/interruption of battery charge.00
+,18DAF1DA,24,47,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.09
+,18DAF1DA,48,71,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.08
+,18DAF1DA,72,95,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.07
+,18DAF1DA,96,119,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.06
+,18DAF1DA,120,143,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.05
+,18DAF1DA,144,167,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.04
+,18DAF1DA,168,191,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.03
+,18DAF1DA,192,215,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.02
+,18DAF1DA,216,239,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.01
+,18DAF1DA,240,263,1,0,0,km,223085,623085,ff,The 10 latest total vehicle distances memorized at the end/interruption of battery charge.00
+,18DAF1DA,24,39,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.09
+,18DAF1DA,40,55,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.08
+,18DAF1DA,56,71,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.07
+,18DAF1DA,72,87,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.06
+,18DAF1DA,88,103,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.05
+,18DAF1DA,104,119,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.04
+,18DAF1DA,120,135,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.03
+,18DAF1DA,136,151,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.02
+,18DAF1DA,152,167,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.01
+,18DAF1DA,168,183,1,0,0,min,223086,623086,ff,The 10 latest values of the charge duration memorized at end/interruption of battery charge.00
 ,18DAF1DA,24,39,.5,0,1,Hz,223087,623087,ff,J1772 control pilot raw frequency
 ,18DAF1DA,24,31,.5,0,1,%,223088,623088,ff,J1772 control pilot raw duty cycle
 ,18DAF1DA,24,31,.25,0,1,V,223089,623089,1ff,J1772 control pilot voltage
@@ -1461,16 +1461,16 @@
 ,18DAF1DA,248,279,.1,-2147483648,1,km,223113,623113,1ff,Vector of the consumption data (driven distance in ZEV mode) stored in EEPROM.07
 ,18DAF1DA,280,311,.1,-2147483648,1,km,223113,623113,1ff,Vector of the consumption data (driven distance in ZEV mode) stored in EEPROM.08
 ,18DAF1DA,312,343,.1,-2147483648,1,km,223113,623113,1ff,Vector of the consumption data (driven distance in ZEV mode) stored in EEPROM.09
-,18DAF1DA,24,31,1,40,0,,223115,623115,ff,Battery HVAC Temperature senzor value
+,18DAF1DA,24,31,1,40,0,,223115,623115,ff,Battery HVAC Temperature sensor value
 ,18DAF1DA,24,31,2,0,0,%,223116,623116,ff,Battery HVAC Fan In value
 ,18DAF1DA,31,31,1,0,0,,223117,623117,ff,Relay request of battery HVAC fan,0:request open;1:request close
 ,18DAF1DA,24,39,1,0,0,,22311B,62311B,ff,CCSL - State of the failures which cause irreversible CC safety failure (level 2) (a)
-,18DAF1DA,24,39,1,0,0,,22311C,62311C,ff,Carrier for safety failure dignostic for safety monitoring (a)
+,18DAF1DA,24,39,1,0,0,,22311C,62311C,ff,Carrier for safety failure diagnostic for safety monitoring (a)
 ,18DAF1DA,24,55,1,0,0,,223120,623120,4ff,DIDs supported in range [$3121 - $3140]
 ,18DAF1DA,24,31,1,0,0,,22312F,62312F,ff,BSG temperature diagnosis,0:BSG overheat;1:BSG nominal temperature;2:BSG temperature high
 ,18DAF1DA,31,31,1,0,0,,223137,623137,ff,Water pumps and DCDC plants/ ASD activation Stored value,0:pumps deactivation for before factory plant / ASD in case off coolant circuit is empty;1:pumps activation for after factory plant / ASD after the filling of the coolant circuit
 ,18DAF1DA,31,31,1,0,0,,22313A,62313A,ff,Wire frame accessories accelerated idle speed request presence configuration boolean (1 = wire frame present),0:wire frame not present;1:wire frame present
-,18DAF1DA,31,31,1,0,0,,22313C,62313C,ff,EEM activation request in function of the vehicle state for HV ready request,0:EEM desactivation request for HV ready request;1:EEM activation request for HV ready request
+,18DAF1DA,31,31,1,0,0,,22313C,62313C,ff,EEM activation request in function of the vehicle state for HV ready request,0:EEM deactivation request for HV ready request;1:EEM activation request for HV ready request
 ,18DAF1DA,24,39,1,0,0,kg,22313D,62313D,ff,Engine oil mass
 ,18DAF1DA,24,55,1,0,0,,223140,623140,4ff,DIDs supported in range [$3141 - $3160]
 ,18DAF1DA,31,31,1,0,0,,223149,623149,ff,HMI guidance enable
@@ -1480,17 +1480,17 @@
 ,18DAF1DA,24,39,1,0,0,,22314D,62314D,ff,Default interlock type detection 1 ( interlock defaults values sum )
 ,18DAF1DA,24,39,1,0,0,,22314E,62314E,ff,Default interlock type detection 2 ( interlock defaults values sum )
 ,18DAF1DA,24,31,250,0,0,W,22314F,62314F,ff,High voltage PTC power consumption
-,18DAF1DA,24,39,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.09
-,18DAF1DA,40,55,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.08
-,18DAF1DA,56,71,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.07
-,18DAF1DA,72,87,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.06
-,18DAF1DA,88,103,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.05
-,18DAF1DA,104,119,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.04
-,18DAF1DA,120,135,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.03
-,18DAF1DA,136,151,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.02
-,18DAF1DA,152,167,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.01
-,18DAF1DA,168,183,.02,0,2,%,223150,623150,ff,The 10 lastest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.00
-,18DAF1DA,31,31,1,0,0,,223244,623244,ff,variable for Shift by wire type,0:desactivated;1:activated
+,18DAF1DA,24,39,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.09
+,18DAF1DA,40,55,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.08
+,18DAF1DA,56,71,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.07
+,18DAF1DA,72,87,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.06
+,18DAF1DA,88,103,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.05
+,18DAF1DA,104,119,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.04
+,18DAF1DA,120,135,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.03
+,18DAF1DA,136,151,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.02
+,18DAF1DA,152,167,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.01
+,18DAF1DA,168,183,.02,0,2,%,223150,623150,ff,The 10 latest estimated percentages of SOC at end of charge memorized at the end/interruption of battery charge.00
+,18DAF1DA,31,31,1,0,0,,223244,623244,ff,variable for Shift by wire type,0:deactivated;1:activated
 ,18DAF1DA,31,31,1,0,0,,22324E,62324E,ff,DC COMBO charge dysfunctional exit memorized
 ,18DAF1DA,31,31,1,0,0,,2232D6,6232D6,ff,Management of water pump1 configuration for B10
 ,18DAF1DA,31,31,1,0,0,,2233D3,6233D3,ff,($33D3) BPLC spot presence status to be read by diag tool.9,0:spot not present;1:spot present

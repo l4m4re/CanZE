@@ -412,7 +412,7 @@
 ,7ec,72,87,.2,0,1,%,2233d7,6233d7,ff,soc 7
 ,7ec,56,71,.2,0,1,%,2233d7,6233d7,ff,soc 8
 ,7ec,40,55,.2,0,1,%,2233d7,6233d7,ff,soc 9
-,7ec,24,39,.2,0,1,%,2233d7,6233d7,ff,soc 20
+,7ec,24,39,.2,0,1,%,2233d7,6233d7,ff,soc 10
 ,7ec,96,103,1,40,0,°C,2233d8,6233d8,ff,temp 1
 ,7ec,88,95,1,40,0,°C,2233d8,6233d8,ff,temp 2
 ,7ec,80,87,1,40,0,°C,2233d8,6233d8,ff,temp 3
@@ -440,4 +440,4 @@
 ,7ec,24,47,0.001,0,0,kwh,2233dd,6233dd,ff,Trip energy consumed
 ,7ec,24,55,0.0001,0,0,km,2233de,6233de,ff,Trip distance
 ,7ec,24,39,1,32767,0,A,223484,623484,ff,Current measurement given by BCS Battery Current Sensor
-,7ec,24,39,.001,0,0,V,223485,623485,ff,Voltage measurement given by BCS Battery Current Sensor
+,7ec,24,39,.001,0,0,mV,223485,623485,ff,BCS shunt voltage

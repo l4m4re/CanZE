@@ -98,7 +98,7 @@
 ,35c,11,11,1,0,0,,,,ff,Engine Stop Driver Requested
 ,35c,12,12,1,0,0,,,,ff,Switch Off SES Disturbers
 ,35c,15,15,1,0,0,,,,ff,Delivery Mode Information
-,35c,16,39,1,0,0,min,,,ff,Absolute Time Since 1rst Ignition
+,35c,16,39,1,0,0,min,,,ff,Absolute Time Since 1st Ignition
 ,35c,40,42,1,0,0,,,,ff,Brake Info Status
 ,35c,47,47,1,0,0,,,,ff,ProbableCustomer Feed Back Need
 ,35c,48,51,1,0,0,,,,ff,Emergency Engine Stop

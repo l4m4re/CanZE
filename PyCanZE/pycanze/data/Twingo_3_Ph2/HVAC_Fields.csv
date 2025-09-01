@@ -369,8 +369,8 @@
 ,764,16,23,25,0,0,W,2141,6141,ff,OH_ACCompPowerUsed_V2
 ,764,25,25,1,0,0,,2141,6141,ff,OH_Blower_State,0:Blower fan OFF;1:Blower fan ON
 ,764,26,27,1,0,0,,2141,6141,ff,OH_ACCoolingFanSpeedRequest,0:No Request;1:Low Request;2:Mid Request;3:High Request
-,764,28,29,1,0,0,,2141,6141,ff,OH_PumpActivationRequest,0:Unvailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
-,764,30,31,1,0,0,,2141,6141,ff,OH_AC_StopAutoFobidden,0:Unvailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
+,764,28,29,1,0,0,,2141,6141,ff,OH_PumpActivationRequest,0:Unavailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
+,764,30,31,1,0,0,,2141,6141,ff,OH_AC_StopAutoForbidden,0:Unavailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
 ,764,32,35,1,0,0,,2141,6141,ff,OH_PTCNumberThermalReq,0:0 PTC requested;1:1 PTC requested;2:2 PTC requested;3:3 PTC requested;4:4 PTC requested;5:5 PTC requested;6:6 PTC requested;7:7 PTC requested;8:8 PTC requested;9:9 PTC requested;10:10 PTC requested;11:Not used;15:No Request
 ,764,36,39,50,-10,0,rpm,2141,6141,ff,OH_ACMinEngineIdleSpeedRequest
 ,764,40,43,.25,-46,1,V,2141,6141,ff,OH_MinimumVoltagebyAC
@@ -809,12 +809,12 @@
 ,764,35,35,1,0,0,,2170,6170,ff,OH_ACCompRequest,0:No AC Requested;1:AC Requested
 ,764,36,36,1,0,0,,2170,6170,ff,OH_ACCompWorkingMode,0:Running in idle mode or stopped;1:Running not in idle mode
 ,764,37,37,1,0,0,,2170,6170,ff,OH_ACCompClutchRequest,0:Compressor Not Requested;1:Compressor Requested
-,764,38,39,1,0,0,,2170,6170,ff,OH_PumpActivationRequest,0:Unvailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
+,764,38,39,1,0,0,,2170,6170,ff,OH_PumpActivationRequest,0:Unavailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
 ,764,40,40,1,0,0,,2170,6170,ff,OH_RearDefrostRequest,0:Not Requested;1:Requested
 ,764,41,47,1,0,0,%,2170,6170,ff,OH_EngineFanSpeedRequestPWM_AC
 ,764,48,51,1,0,0,,2170,6170,ff,OH_PTCNumberThermalReq,0:0 PTC requested;1:1 PTC requested;2:2 PTC requested;3:3 PTC requested;4:4 PTC requested;5:5 PTC requested;6:6 PTC requested;7:7 PTC requested;8:8 PTC requested;9:9 PTC requested;10:10 PTC requested;11:Not used;15:No Request
 ,764,52,55,50,-10,0,rpm,2170,6170,ff,OH_ACMinEngineIdleSpeedRequest
-,764,56,57,1,0,0,,2170,6170,ff,OH_AC_StopAutoFobidden,0:Unvailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
+,764,56,57,1,0,0,,2170,6170,ff,OH_AC_StopAutoForbidden,0:Unavailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
 ,764,58,59,1,0,0,,2170,6170,ff,OH_ClimConsoButtonDisplay,0:No display;1:Clim Conso Button ON;2:Clim Conso Button OFF;3:Not used
 ,764,60,62,.5,-24,1,V,2170,6170,ff,OH_MinimumVoltagebyAC_1540
 ,764,63,63,1,0,0,,2170,6170,ff,OH_FrontDefrostEngaged,0:Front defrost not engaged;1:Front defrost engaged

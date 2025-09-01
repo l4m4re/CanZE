@@ -219,7 +219,7 @@
 ,76D,23,23,1,0,0,,2121,6121,ff,HeadLampsWasherRequest,0:Headlamps washer not requested;1:headlamps washer requested
 ,76D,24,25,1,0,0,,2121,6121,ff,ClutchSwitchMaximumTravel,0:Not used;1:Maximum clutch travel switch not active;2:Maximum clutch travel switch active;3:Unavailable
 ,76D,26,53,.01,0,2,km,2121,6121,ff,DistanceTotalizer
-,76D,54,77,1,0,0,mn,2121,6121,ff,AbsoluteTimeSince1rstIgnition
+,76D,54,77,1,0,0,mn,2121,6121,ff,AbsoluteTimeSince1stIgnition
 ,76D,78,78,1,0,0,,2121,6121,ff,WakeUpType,0:Customer wake up;1:Technical wake up
 ,76D,79,79,1,0,0,,2121,6121,ff,PositionLightsRequest,0:Position Lights not requested;1:Position Lights requested
 ,76D,80,80,1,0,0,,2121,6121,ff,LowBeamRequest,0:Low beam not requested;1:Low Beam requested
@@ -268,7 +268,7 @@
 ,76D,217,224,40,0,0,W/s,2121,6121,ff,AllowedPowerGradientNeg
 ,76D,225,226,1,0,0,,2121,6121,ff,ECM_StopAutoForbidden,0:UNAVAILABLE_REQUEST_ECM;1:STOP_AUTO_FORBIDDEN_ECM;2:STOP_AUTO_AUTHORIZED_ECM;3:ECM_REQUEST_NOT_USED
 ,76D,227,234,40,0,0,W,2121,6121,ff,AlternatorOptimumPower
-,76D,235,236,1,0,0,,2121,6121,ff,BatteryChangedActivation,0:Not Used;1:NO battery parameter reset request;2:Battery parameter reset requested;3:Unvailable Value
+,76D,235,236,1,0,0,,2121,6121,ff,BatteryChangedActivation,0:Not Used;1:NO battery parameter reset request;2:Battery parameter reset requested;3:Unavailable Value
 ,76D,237,237,1,0,0,,2121,6121,ff,StartAutoSystemFailure,0:NO_START_AUTO_SYSTEM_FAILURE;1:START_AUTO_SYSTEM_FAILURE
 ,76D,238,241,.25,-46,1,V,2121,6121,ff,MinimumVoltagebyBCM
 ,76D,242,242,1,0,0,,2121,6121,ff,CrashDetected,0:No crash detected;1:Crash Detected
@@ -300,14 +300,14 @@
 ,76D,77,77,1,0,0,,2122,6122,ff,BDUCommandLineFailure,0:No BDU command line failure - in;1:BDU command line failure
 ,76D,78,85,40,0,0,W,2122,6122,ff,ElecPowerConsumedByAux
 ,76D,86,91,.5,-138,1,%,2122,6122,ff,SOCBattery14V
-,76D,92,93,1,0,0,,2122,6122,ff,StopStartStateDisplayRequest,0:No_SS_State_Display_Request;1:SS_Activation_Display_Request;2:SS_Desactivation_Display_Request;3:StopStart_Display_Unavailability_for_Failure
+,76D,92,93,1,0,0,,2122,6122,ff,StopStartStateDisplayRequest,0:No_SS_State_Display_Request;1:SS_Activation_Display_Request;2:SS_Deactivation_Display_Request;3:StopStart_Display_Unavailability_for_Failure
 ,76D,94,94,1,0,0,,2122,6122,ff,StopAutoStateDisplayRequest,0:NO_REQUEST_DISPLAY_SS;1:REQUEST_DISPLAY_SS
 ,76D,95,95,1,0,0,,2122,6122,ff,BatteryChangedDisplay,0:NO Stop Auto Display Request;1:1 Stop Auto Display Request
 ,76D,96,97,1,0,0,,2122,6122,ff,TechnicalStartAutoRequest,0:UNAVAILABLE;1:TECHNICAL_AUTOSTART_NOT_REQUESTED;2:TECHNICAL_AUTOSTART_REQUESTED;3:NOT USED
 ,76D,98,99,1,0,0,,2122,6122,ff,StopAutoRequest,0:UNAVAILABLE;1:STOP_AUTO_REQUESTED;2:STOP_AUTO_NOT_REQUESTED;3:NOT USED
 ,76D,100,101,1,0,0,,2122,6122,ff,StartAutoAuthorization,0:START_AUTO_UNAVAILABLE;1:START_AUTO_AUTHORIZED;2:START_AUTO_FALSE_DEFINITIVELY;3:START_AUTO_FALSE_TEMPORARILY
 ,76D,102,103,1,0,0,,2122,6122,ff,DriverSeatStatus,0:DRIVER_NAPPE_UNAVAILABLE;1:DRIVER_NAPPE_DETECTED;2:DRIVER_NAPPE_NOT_DETECTED;3:DRIVER_NAPPE_NOT_USED
-,76D,104,105,1,0,0,,2122,6122,ff,IdleSpeedInhibitionRequest,0:Unavalaible Value;1:IdleSpeed Inhibition Requested;2:IdleSpeed Inhibition not Requested;3:Not Used
+,76D,104,105,1,0,0,,2122,6122,ff,IdleSpeedInhibitionRequest,0:Unavailable Value;1:IdleSpeed Inhibition Requested;2:IdleSpeed Inhibition not Requested;3:Not Used
 ,76D,112,119,40,0,0,Watts,2122,6122,ff,SharpInstantMechanicalPowerByAlt
 ,76D,16,26,.001,-11500,3,V,2123,6123,ff,LastBattSleep
 ,76D,27,39,.1,2000,1,A,2123,6123,ff,IBattSensor
@@ -540,15 +540,15 @@
 ,76D,24,24,1,0,0,,2207CE,6207CE,ff,V_B_ZoneBatt_OK,0:Zone Batt Not OK;1:Zone Batt OK
 ,76D,24,25,1,0,0,,2207CF,6207CF,ff,BMS_StopAutoForbidden,0:UNAVAILABLE_BMS;1:STOP_AUTO_FORBIDDEN_BMS;2:STOP_AUTO_AUTHORIZED_BMS
 ,76D,24,31,.390625,0,1,%,2207D0,6207D0,ff,AlternatorLoad
-,76D,24,47,1,0,0,mn,2207D1,6207D1,ff,AbsoluteTimeSince1rstIgnition
+,76D,24,47,1,0,0,mn,2207D1,6207D1,ff,AbsoluteTimeSince1stIgnition
 ,76D,24,25,1,0,0,,2207D2,6207D2,ff,EngineStatus_R,0:Stopped;1:Reserved;2:Running;3:Cranking
 ,76D,24,31,.0625,0,2,V,2207D3,6207D3,ff,BatteryVoltage
 ,76D,24,26,1,0,0,,2207D4,6207D4,ff,VehicleState,0:VEHICLEASLEEP_ENGINESTOPPED;1:VEHICLEAWAKE_ENGINESTOPPED;2:ENGINE_READY_TO_START;3:STARTING_IN_PROGRESS;4:VEHICLEAWAKE_ENGINERUNNING
 ,76D,24,24,1,0,0,,2207D5,6207D5,ff,StopAutoStateDisplayRequest,0:NO_REQUEST_DISPLAY_SS;1:REQUEST_DISPLAY_SS
-,76D,24,25,1,0,0,,2207D6,6207D6,ff,StopStartStateDisplayRequest,0:No_SS_State_Display_Request;1:SS_Activation_Display_Request;2:SS_Desactivation_Display_Request;3:StopStart_Display_Unavailability_for_Failure
+,76D,24,25,1,0,0,,2207D6,6207D6,ff,StopStartStateDisplayRequest,0:No_SS_State_Display_Request;1:SS_Activation_Display_Request;2:SS_Deactivation_Display_Request;3:StopStart_Display_Unavailability_for_Failure
 ,76D,24,39,.125,0,1,tr/min,2207D7,6207D7,ff,EngineRPM
 ,76D,24,24,1,0,0,,2207D8,6207D8,ff,BatteryChangedDisplay,0:NO Stop Auto Display Request;1:1 Stop Auto Display Request
-,76D,24,25,1,0,0,,2207D9,6207D9,ff,BatteryChangedActivation,0:Not Used;1:NO battery parameter reset request;2:Battery parameter reset requested;3:Unvailable Value
+,76D,24,25,1,0,0,,2207D9,6207D9,ff,BatteryChangedActivation,0:Not Used;1:NO battery parameter reset request;2:Battery parameter reset requested;3:Unavailable Value
 ,76D,24,25,1,0,0,,2207DA,6207DA,ff,V_K_StopStart_state,0:UNAVAILABLE NOMINAL;1:UNAVAILABLE NOT NOMINAL;2:AVAILABLE INACTIVE;3:AVAILABLE ACTIVE
 ,76D,28,28,1,0,0,,2207DB,6207DB,ff,V_K_TypeFailure.Number_of_cycles_Failure,0:No failure;1:Failure
 ,76D,29,29,1,0,0,,2207DB,6207DB,ff,V_K_TypeFailure.CrashDetection_Failure,0:No failure;1:Failure

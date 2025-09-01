@@ -287,11 +287,11 @@
 ,764,16,23,50,0,0,W,2143,6143,ff,OH_ACCompPowerUsed_V2
 ,764,25,25,1,0,0,,2143,6143,ff,OH_Blower_State,0:Blower fan OFF;1:Blower fan ON
 ,764,26,27,1,0,0,,2143,6143,ff,OH_ACCoolingFanSpeedRequest,0:No Request;1:Low Request;2:Mid Request;3:High Request
-,764,28,29,1,0,0,,2143,6143,ff,OH_PumpActivationRequest,0:Unvailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
-,764,30,31,1,0,0,,2143,6143,ff,OH_AC_StopAutoFobidden,0:Unvailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
+,764,28,29,1,0,0,,2143,6143,ff,OH_PumpActivationRequest,0:Unavailable Value;1:No Activation Requested;2:Activation Requested;3:Not Used
+,764,30,31,1,0,0,,2143,6143,ff,OH_AC_StopAutoForbidden,0:Unavailable Value;1:Auto Stop forbidden;2:Auto Stop authorized;3:Not used
 ,764,32,35,1,0,0,,2143,6143,ff,OH_PTCNumberThermalReq,0:0 PTC requested;1:1 PTC requested;2:2 PTC requested;3:3 PTC requested;4:4 PTC requested;5:5 PTC requested;6:6 PTC requested;7:7 PTC requested;8:8 PTC requested;9:9 PTC requested;10:10 PTC requested;11:Not used;15:No Request
 ,764,36,39,50,-10,0,rpm,2143,6143,ff,OH_ACMinEngineIdleSpeedRequest
-,764,40,43,.25,-46,1,V,2143,6143,ff,OH_MinimunVoltagebyAC
+,764,40,43,.25,-46,1,V,2143,6143,ff,OH_MinimumVoltagebyAC
 ,764,44,44,1,0,0,,2143,6143,ff,OH_ACCompRequest,0:No AC Requested;1:AC Requested
 ,764,45,45,1,0,0,,2143,6143,ff,OH_ACCompClutchRequest,0:Compressor Not Requested;1:Compressor Requested
 ,764,46,46,1,0,0,,2143,6143,ff,OH_RearDefrostRequest,0:Not Requested;1:Requested
@@ -326,7 +326,7 @@
 ,764,198,198,1,0,0,,2143,6143,ff,IH_VehicleOutsideLockedToggle,0:No toggle;1:Toggle
 ,764,199,201,1,0,0,,2143,6143,ff,IH_VehicleState,0:Vehicle asleep and engine stopped;1:Vehicle awake and engine stopped;2:Ignition ON (Engine ready to start);3:Starting in Progress;4:Vehicle awake and engine running;5:Value not defined (101);6:Value not defined (110);7:Unavailable
 ,764,202,205,50,0,0,W,2143,6143,ff,IH_VisibleSolarLevelInfo
-,764,209,210,1,0,0,,2143,6143,ff,IH_VehicleStateSSExtension,0:Vehicle not in automatic state;1:Vehicle in automatic state;2:Not used;3:Unvailable
+,764,209,210,1,0,0,,2143,6143,ff,IH_VehicleStateSSExtension,0:Vehicle not in automatic state;1:Vehicle in automatic state;2:Not used;3:Unavailable
 ,764,212,212,1,0,0,,2143,6143,ff,IH_StopAutoForClim,0:Not in automatic state;1:In automatic state
 ,764,214,215,1,0,0,,2143,6143,ff,IH_WiperState,0:Unavailable;1:Wiper Off;2:Wiper On;3:Not used
 ,764,16,16,1,0,0,,2144,6144,ff,OH_PreHeatingRequest,0:No Requested;1:Requested

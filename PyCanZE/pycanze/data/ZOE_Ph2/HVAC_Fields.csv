@@ -179,9 +179,9 @@
 ,764,24,31,25,0,0,,22426B,62426B,ff,IH_ACMaxCompPowerAllowed
 ,764,24,39,.1,0,1,bar,22426C,62426C,ff,IH_ACHighPressureSensor
 ,764,24,31,1,0,0,,22426D,62426D,ff,IH_EngineFanSpeedRequest
-,764,24,31,1,0,0,,22426E,62426E,ff,IH_EngineStatus_R,0:engine stopped;1:Reserved;2:independant running engine;3:running engine-driven
+,764,24,31,1,0,0,,22426E,62426E,ff,IH_EngineStatus_R,0:engine stopped;1:Reserved;2:independent running engine;3:running engine-driven
 ,764,24,31,1,0,0,,22426F,62426F,ff,IH_EngineStopOrigine
-,764,24,31,1,0,0,,224270,624270,ff,IH_EngineCoolantFlowStatus,0:Unvailable Value;1:No EngineCoolantFlow;2:EngineCoolantFlow;3:Not Used
+,764,24,31,1,0,0,,224270,624270,ff,IH_EngineCoolantFlowStatus,0:Unavailable Value;1:No EngineCoolantFlow;2:EngineCoolantFlow;3:Not Used
 ,764,24,31,1,0,0,,224271,624271,ff,IH_CoolingFanSpeedStatus,0:Engine fan stopped;1:low speed engine fan active;2:mid speed engine fan active;3:high speed engine fan active
 ,764,24,31,50,0,0,W/m²,224272,624272,ff,IH_RightSolarLevel
 ,764,24,24,1,0,0,,224273,624273,ff,VL_InCarTempDiag_OCFM

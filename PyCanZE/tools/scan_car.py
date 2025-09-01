@@ -133,7 +133,8 @@ def scan_car(car: str, client: UDSClient) -> None:
         ecu = field_file.stem.replace("_Fields", "")
         if filters and not any(tok in ecu.lower() for tok in filters):
             continue
-        print(f"\nECU: {ecu}")
+        ecu_label = ecu if ecu else "_Fields (generic)"
+        print(f"\nECU: {ecu_label}")
         ok = 0
         total = 0
         nodata_streak = 0
@@ -143,29 +144,31 @@ def scan_car(car: str, client: UDSClient) -> None:
         for row in _read_csv(field_file):
             # ECU-level guards: time budget and max items
             if (not full_scan) and getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
-                print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu}")
+                print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu_label}")
                 break
             if (not full_scan) and getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
-                print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu}")
+                print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu_label}")
                 break
             # Build SID compatible with the in-memory database
             sid = _sid_for_row(row)
             if not sid:
                 continue
+            # Normalise SID case for lookup (parser lowercases SIDs)
+            sid_key = sid.lower()
             # Only attempt UDS read queries: 0x22 (DID) and 0x21 (local id)
             req = (row + [""] * 13)[8]
             if not req or not (req.startswith("22") or req.startswith("21")):
                 continue
             name = (row + [""] * 12)[11]
             # If the exact SID is unknown, try the generated fallback form
-            if sid not in client.fields:
+            if sid_key not in client.fields:
                 # Attempt swapping when CSV uses frame.response.startbit
                 try:
-                    parts = sid.split(".")
+                    parts = sid_key.split(".")
                     if len(parts) == 3 and all(parts):
                         alt = f"{parts[0]}.{parts[2]}.{parts[1]}"
                         if alt in client.fields:
-                            sid = alt
+                            sid_key = alt
                 except Exception:
                     pass
             # Avoid re-sending the same request when we already saw NO_DATA for it
@@ -174,7 +177,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                 client.last_status = "NO_DATA"  # mimic last status to drive streak logic
             else:
                 try:
-                    value = client.read_field(sid)
+                    value = client.read_field(sid_key)
                 except BrokenPipeError:
                     # Allow graceful exit when piped to head
                     return
@@ -201,10 +204,18 @@ def scan_car(car: str, client: UDSClient) -> None:
             total += 1
             if value is not None:
                 ok += 1
-                print(f" {sid:>16} {name} -> {value}")
+                # Include unit if available from the loaded field database
+                unit = ""
+                try:
+                    fld = client.fields.get(sid_key)
+                    if fld and fld.unit:
+                        unit = f" {fld.unit}"
+                except Exception:
+                    pass
+                print(f" {sid_key:>16} {name} -> {value}{unit}")
             elif not args.only_values:
-                print(f" {sid:>16} {name} -> {value}")
-        print(f"-- {ecu}: {ok}/{total} values")
+                print(f" {sid_key:>16} {name} -> {value}")
+    print(f"-- {ecu_label}: {ok}/{total} values")
 
 
 def main() -> None:

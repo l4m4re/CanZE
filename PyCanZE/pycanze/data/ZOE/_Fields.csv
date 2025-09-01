@@ -331,66 +331,66 @@
 ,7ec,24,31,1,1,0,,223318,623318,ff,Motor Water pump speed
 ,7ec,24,31,1,1,0,,223319,623319,ff,Charger pump speed
 ,7ec,24,31,1,1,0,,22331A,62331A,ff,Heater water pump speed
-,7ec,240,263,1,0,0,km,2233d4,6233d4,ff
-,7ec,216,239,1,0,0,km,2233d4,6233d4,ff
-,7ec,192,215,1,0,0,km,2233d4,6233d4,ff
-,7ec,168,191,1,0,0,km,2233d4,6233d4,ff
-,7ec,144,167,1,0,0,km,2233d4,6233d4,ff
-,7ec,120,143,1,0,0,km,2233d4,6233d4,ff
-,7ec,96,119,1,0,0,km,2233d4,6233d4,ff
-,7ec,72,95,1,0,0,km,2233d4,6233d4,ff
-,7ec,48,71,1,0,0,km,2233d4,6233d4,ff
-,7ec,24,47,1,0,0,km,2233d4,6233d4,ff
-,7ec,96,103,1,0,0,,2233d5,6233d5,ff,
-,7ec,88,95,1,0,0,,2233d5,6233d5,ff
-,7ec,80,87,1,0,0,,2233d5,6233d5,ff
-,7ec,72,79,1,0,0,,2233d5,6233d5,ff
-,7ec,64,71,1,0,0,,2233d5,6233d5,ff
-,7ec,56,63,1,0,0,,2233d5,6233d5,ff
-,7ec,48,55,1,0,0,,2233d5,6233d5,ff
-,7ec,40,47,1,0,0,,2233d5,6233d5,ff
-,7ec,32,39,1,0,0,,2233d5,6233d5,ff
-,7ec,24,31,1,0,0,,2233d5,6233d5,ff
-,7ec,96,103,1,0,0,,2233d6,6233d6,ff
-,7ec,88,95,1,0,0,,2233d6,6233d6,ff
-,7ec,80,87,1,0,0,,2233d6,6233d6,ff
-,7ec,72,79,1,0,0,,2233d6,6233d6,ff
-,7ec,64,71,1,0,0,,2233d6,6233d6,ff
-,7ec,56,63,1,0,0,,2233d6,6233d6,ff
-,7ec,48,55,1,0,0,,2233d6,6233d6,ff
-,7ec,40,47,1,0,0,,2233d6,6233d6,ff
-,7ec,32,39,1,0,0,,2233d6,6233d6,ff
-,7ec,24,31,1,0,0,,2233d6,6233d6,ff
-,7ec,168,183,.2,0,1,%,2233d7,6233d7,ff
-,7ec,152,167,.2,0,1,%,2233d7,6233d7,ff
-,7ec,136,151,.2,0,1,%,2233d7,6233d7,ff
-,7ec,120,135,.2,0,1,%,2233d7,6233d7,ff
-,7ec,104,119,.2,0,1,%,2233d7,6233d7,ff
-,7ec,88,103,.2,0,1,%,2233d7,6233d7,ff
-,7ec,72,87,.2,0,1,%,2233d7,6233d7,ff
-,7ec,56,71,.2,0,1,%,2233d7,6233d7,ff
-,7ec,40,55,.2,0,1,%,2233d7,6233d7,ff
-,7ec,24,39,.2,0,1,%,2233d7,6233d7,ff
-,7ec,96,103,1,40,0,°C,2233d8,6233d8,ff
-,7ec,88,95,1,40,0,°C,2233d8,6233d8,ff
-,7ec,80,87,1,40,0,°C,2233d8,6233d8,ff
-,7ec,72,79,1,40,0,°C,2233d8,6233d8,ff
-,7ec,64,71,1,40,0,°C,2233d8,6233d8,ff
-,7ec,56,63,1,40,0,°C,2233d8,6233d8,ff
-,7ec,48,55,1,40,0,°C,2233d8,6233d8,ff
-,7ec,40,47,1,40,0,°C,2233d8,6233d8,ff
-,7ec,32,39,1,40,0,°C,2233d8,6233d8,ff
-,7ec,24,31,1,40,0,°C,2233d8,6233d8,ff
-,7ec,168,183,1,0,0,min,2233d9,6233d9,ff
-,7ec,152,167,1,0,0,min,2233d9,6233d9,ff
-,7ec,136,151,1,0,0,min,2233d9,6233d9,ff
-,7ec,120,135,1,0,0,min,2233d9,6233d9,ff
-,7ec,104,119,1,0,0,min,2233d9,6233d9,ff
-,7ec,88,103,1,0,0,min,2233d9,6233d9,ff
-,7ec,72,87,1,0,0,min,2233d9,6233d9,ff
-,7ec,56,71,1,0,0,min,2233d9,6233d9,ff
-,7ec,40,55,1,0,0,min,2233d9,6233d9,ff
-,7ec,24,39,1,0,0,min,2233d9,6233d9,ff
+,7ec,240,263,1,0,0,km,2233d4,6233d4,ff,odometer history 1
+,7ec,216,239,1,0,0,km,2233d4,6233d4,ff,odometer history 2
+,7ec,192,215,1,0,0,km,2233d4,6233d4,ff,odometer history 3
+,7ec,168,191,1,0,0,km,2233d4,6233d4,ff,odometer history 4
+,7ec,144,167,1,0,0,km,2233d4,6233d4,ff,odometer history 5
+,7ec,120,143,1,0,0,km,2233d4,6233d4,ff,odometer history 6
+,7ec,96,119,1,0,0,km,2233d4,6233d4,ff,odometer history 7
+,7ec,72,95,1,0,0,km,2233d4,6233d4,ff,odometer history 8
+,7ec,48,71,1,0,0,km,2233d4,6233d4,ff,odometer history 9
+,7ec,24,47,1,0,0,km,2233d4,6233d4,ff,odometer history 10
+,7ec,96,103,1,0,0,,2233d5,6233d5,ff,end of charge reason 1,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,88,95,1,0,0,,2233d5,6233d5,ff,end of charge reason 2,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,80,87,1,0,0,,2233d5,6233d5,ff,end of charge reason 3,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,72,79,1,0,0,,2233d5,6233d5,ff,end of charge reason 4,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,64,71,1,0,0,,2233d5,6233d5,ff,end of charge reason 5,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,56,63,1,0,0,,2233d5,6233d5,ff,end of charge reason 6,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,48,55,1,0,0,,2233d5,6233d5,ff,end of charge reason 7,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,40,47,1,0,0,,2233d5,6233d5,ff,end of charge reason 8,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,32,39,1,0,0,,2233d5,6233d5,ff,end of charge reason 9,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,24,31,1,0,0,,2233d5,6233d5,ff,end of charge reason 10,0:Nominal end of charge (battery full);1:Unplugged (Vehicle side);2:PowerCut (Spot side);3:Failure (except charger fault);4:Scheduled Charge;5:ChargerFaultType1;6:ChargerFaultType2;7:ChargerFaultType3;8:ChargerFaultType4;9:ChargerFaultType5;10:ChargerFaultType6
+,7ec,96,103,1,0,0,,2233d6,6233d6,ff,charge type 1,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,88,95,1,0,0,,2233d6,6233d6,ff,charge type 2,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,80,87,1,0,0,,2233d6,6233d6,ff,charge type 3,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,72,79,1,0,0,,2233d6,6233d6,ff,charge type 4,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,64,71,1,0,0,,2233d6,6233d6,ff,charge type 5,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,56,63,1,0,0,,2233d6,6233d6,ff,charge type 6,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,48,55,1,0,0,,2233d6,6233d6,ff,charge type 7,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,40,47,1,0,0,,2233d6,6233d6,ff,charge type 8,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,32,39,1,0,0,,2233d6,6233d6,ff,charge type 9,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,24,31,1,0,0,,2233d6,6233d6,ff,charge type 10,0:Slow;1:Quick;2:Quick Drop;3:Unknown;4:Charge scheduled
+,7ec,168,183,.2,0,1,%,2233d7,6233d7,ff,State of charge 1
+,7ec,152,167,.2,0,1,%,2233d7,6233d7,ff,State of charge 2
+,7ec,136,151,.2,0,1,%,2233d7,6233d7,ff,State of charge 3
+,7ec,120,135,.2,0,1,%,2233d7,6233d7,ff,State of charge 4
+,7ec,104,119,.2,0,1,%,2233d7,6233d7,ff,State of charge 5
+,7ec,88,103,.2,0,1,%,2233d7,6233d7,ff,State of charge 6
+,7ec,72,87,.2,0,1,%,2233d7,6233d7,ff,State of charge 7
+,7ec,56,71,.2,0,1,%,2233d7,6233d7,ff,State of charge 8
+,7ec,40,55,.2,0,1,%,2233d7,6233d7,ff,State of charge 9
+,7ec,24,39,.2,0,1,%,2233d7,6233d7,ff,State of charge 10
+,7ec,96,103,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 1
+,7ec,88,95,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 2
+,7ec,80,87,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 3
+,7ec,72,79,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 4
+,7ec,64,71,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 5
+,7ec,56,63,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 6
+,7ec,48,55,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 7
+,7ec,40,47,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 8
+,7ec,32,39,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 9
+,7ec,24,31,1,40,0,°C,2233d8,6233d8,ff,Battery temperature 10
+,7ec,168,183,1,0,0,min,2233d9,6233d9,ff,Charge duration 1
+,7ec,152,167,1,0,0,min,2233d9,6233d9,ff,Charge duration 2
+,7ec,136,151,1,0,0,min,2233d9,6233d9,ff,Charge duration 3
+,7ec,120,135,1,0,0,min,2233d9,6233d9,ff,Charge duration 4
+,7ec,104,119,1,0,0,min,2233d9,6233d9,ff,Charge duration 5
+,7ec,88,103,1,0,0,min,2233d9,6233d9,ff,Charge duration 6
+,7ec,72,87,1,0,0,min,2233d9,6233d9,ff,Charge duration 7
+,7ec,56,71,1,0,0,min,2233d9,6233d9,ff,Charge duration 8
+,7ec,40,55,1,0,0,min,2233d9,6233d9,ff,Charge duration 9
+,7ec,24,39,1,0,0,min,2233d9,6233d9,ff,Charge duration 10
 #,7ec,24,30,0.01,1,2,kWh,2233db,6233db,ff,Consumed domestic energy
 #,7ec,24,47,0.001,1,3,kWh,2233dc,6233dc,ff,Consumed energy
 ,7ec,24,39,1,0,0,km,223451,623451,ff,Estimated kilometric cruising range sent to MMI
@@ -398,8 +398,8 @@
 ,7ec,24,39,.001953125,0,3,kW,223457,623457,ff,Mean pessimistic electrical consumption (worst possible consumption)
 ,7ec,24,47,0.001,0,3,kwh,2233dd,6233dd,ff,Trip energy consumed
 ,7ec,24,55,0.0001,0,2,km,2233de,6233de,ff,Trip distance
-,7ec,24,39,1,32767,0,A,223484,623484,ff,Current measurement given by BCS Battery Current Sensor
-,7ec,24,39,.001,0,3,V,223485,623485,ff,Voltage measurement given by BCS Battery Current Sensor
+,7ec,24,39,1,32768,0,A,223484,623484,ff,Current measurement given by BCS Battery Current Sensor
+,7ec,24,39,.001,0,0,mV,223485,623485,ff,BCS shunt voltage
 #,7ec,31,31,1,0,0,,223498,623498,ff,Battery relay PTC n°1
 #,7ec,31,31,1,0,0,,22349a,62349a,ff,Battery relay PTC n°2
 #,7ec,31,31,1,0,0,,22349c,62349c,ff,Battery relay PTC n°3

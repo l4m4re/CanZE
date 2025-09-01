@@ -16,6 +16,30 @@ values over MQTT. A GUI similar to the original app may be built later.
 
 Contributions are welcome as this module is under active development.
 
+## Handling vehicle states and sentinel values (2025-09-01)
+
+When agents/pollers consume PyCanZE, decide what to read/publish based on vehicle state. Some EVC/LBC values are unavailable or placeholders while the car sleeps, especially with the charger plugged but inactive.
+
+- States to detect: ready/driving, charging, charger-connected-sleep, parked-sleep.
+- Simple indicators:
+  - 7ec.24.622002 SOC HV battery — often 0.0% in charger-connected-sleep.
+  - 7ec.24.623319 Charger pump speed — 0% asleep; >0% charging/cooling.
+  - 7ec.24.623028 DCDC Load — 0% asleep; small >0% when charging.
+
+Guidance per state:
+- Charger-connected-sleep: skip publishing these (treat as unavailable):
+  - 7ec.24.623203 HV LBC voltage measure (shows 500.0 V placeholder)
+  - 7ec.24.623204 HV LBC current measure (shows ~−6144 A placeholder)
+  - 7ec.24.623206 SOH HV battery (can exceed 100%)
+  - 7ec.24.623451 Estimated range (may report max like 1023 km)
+
+Notes:
+- We intentionally don’t filter these inside the decoder; handle in your agent based on state.
+- 7ec.24.622002 = 0.0% is a strong signal of charger-connected-sleep.
+- LBC current during charging: logs showed ~−6143 A, which is unrealistic. This likely points to a scaling/offset mismatch for 623204 on some variants. Prefer EVC-specific overrides; if still wrong, review the CSV definitions for 623204 for your vehicle variant.
+
+Update (2025-09-01): Adjusted ZOE/EVC_Fields.csv for 7ec.24.623204 to use the generic scaling (resolution .25, offset 32768, decimals 1) to avoid the −6144 A artifact observed during charging on some cars. If your variant still reports implausible values, consider sourcing HV current from an alternative DID (e.g., $3110 Charge current measure or $3042 HV INV current) in your agent.
+
 ## Java log replayer
 
 The `Testing/LogReplayer` directory provides a small Java utility to turn raw ELM327 dumps into decoded JSON. No compiled classes are checked in; rebuild as needed:
