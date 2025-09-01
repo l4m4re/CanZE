@@ -12,9 +12,13 @@ from pycanze.uds import UDSClient, ELM_CMD_SLEEP
 from pycanze.replay_client import ReplayClient as ReplayUDSClient
 
 
+# Preload field definitions once to avoid repeated CSV parsing
+FIELDS = ReplayUDSClient().fields
+
 # Lists used for summary reporting after the SID decoding tests run
 MISSING_DB_SIDS: set[str] = set()
-MISMATCHES: dict[str, tuple[float, float | None, str | None]] = {}
+MISMATCHES: dict[str, tuple[float, float | None, str | None, str | None]] = {}
+SKIPPED_SIDS: dict[str, str] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -118,37 +122,26 @@ def _clean_json(path: Path):
 
 def _collect_cases(limit_per_file: int = 10):
     root = Path(__file__).resolve().parents[2] / "Testing" / "logs"
-    fields = ReplayUDSClient().fields
-    cases = []
+    fields = FIELDS
+    cases: dict[str, tuple[float, str | None, dict[str, list[str]]]] = {}
+    missing_from_logs: dict[str, str] = {}
     for json_path in sorted(root.glob("*.json")):
         raw_path = json_path.with_suffix(".raw")
         if not raw_path.exists():
             continue
         mapping = _parse_raw_mapping(raw_path)
         entries = _clean_json(json_path)
-        missing_db = False
-        missing_log = False
-        count = 0
         for ent in entries:
             sid = ent.get("sid")
             value = ent.get("value")
             unit = ent.get("unit")
-            if not isinstance(value, (int, float)):
+            if not isinstance(sid, str) or not isinstance(value, (int, float)):
+                continue
+            if sid in cases or sid in MISSING_DB_SIDS:
                 continue
             field = fields.get(sid)
             if field is None:
                 MISSING_DB_SIDS.add(sid)
-                if not missing_db:
-                    cases.append(
-                        pytest.param(
-                            sid,
-                            value,
-                            unit,
-                            mapping,
-                            marks=pytest.mark.skip(reason="SID missing from database"),
-                        )
-                    )
-                    missing_db = True
                 continue
             rid = field.request_id.upper()
             service = int(rid[:2], 16)
@@ -161,29 +154,26 @@ def _collect_cases(limit_per_file: int = 10):
                 ident = int(id_hex, 16)
                 cmd = f"02{service:02X}{ident:02X}"
             if cmd not in mapping:
-                if not missing_log:
-                    cases.append(
-                        pytest.param(
-                            sid,
-                            value,
-                            unit,
-                            mapping,
-                            marks=pytest.mark.skip(reason="SID missing from logs"),
-                        )
-                    )
-                    missing_log = True
+                missing_from_logs.setdefault(sid, field.name)
                 continue
-            client = ReplayUDSClient(responses=mapping)
+            client = ReplayUDSClient(responses=mapping, fields=fields)
             result = client.read_field(sid)
             if result is None or not math.isclose(result, float(value), rel_tol=1e-5, abs_tol=1e-5):
                 if sid not in MISMATCHES:
-                    MISMATCHES[sid] = (float(value), float(result) if result is not None else None, unit)
+                    MISMATCHES[sid] = (
+                        float(value),
+                        float(result) if result is not None else None,
+                        unit,
+                        field.name,
+                    )
                 continue
-            cases.append((sid, float(value), unit, mapping))
-            count += 1
-            if count >= limit_per_file:
+            cases[sid] = (float(value), unit, mapping)
+            if len(cases) >= limit_per_file:
                 break
-    return cases
+    for sid, name in missing_from_logs.items():
+        if sid not in cases:
+            SKIPPED_SIDS[sid] = name
+    return [(sid, *data) for sid, data in sorted(cases.items())]
 
 
 # Use a large limit so all captured cases are considered during testing.
@@ -193,8 +183,8 @@ CASES = _collect_cases(limit_per_file=65536)
 
 @pytest.mark.parametrize("sid, value, unit, mapping", CASES)
 def test_sid_decoding(sid: str, value: float, unit, mapping):
-    client = ReplayUDSClient(responses=mapping)
-    field = client.fields.get(sid)
+    client = ReplayUDSClient(responses=mapping, fields=FIELDS)
+    field = FIELDS.get(sid)
     if field is None:
         pytest.skip("SID missing from database")
     rid = field.request_id.upper()

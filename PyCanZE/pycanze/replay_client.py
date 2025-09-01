@@ -27,6 +27,7 @@ Unknown commands yield an empty list of lines.
 
 from typing import Dict, Mapping, Sequence, Optional, Union
 
+from .models import Field
 from .uds import UDSClient, ELM_CMD_SLEEP
 
 
@@ -37,8 +38,9 @@ class ReplayClient(UDSClient):
         self,
         responses: Optional[Mapping[str, Sequence[str]]] = None,
         sid_responses: Optional[Mapping[str, Union[Sequence[str], str]]] = None,
+        fields: Optional[Dict[str, Field]] = None,
     ) -> None:
-        super().__init__("0.0.0.0")
+        super().__init__("0.0.0.0", fields=fields)
         # a dummy sock object satisfies UDSClient checks without networking
         self.sock = object()
         self._last_cmd = ""
