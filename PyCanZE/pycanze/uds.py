@@ -793,22 +793,17 @@ class UDSClient:
             return None
         data = bytes(resp)
         width = max(1, int(field.end_bit) - int(field.start_bit) + 1)
-        optmask = field.options or 0
+        start_byte = int(field.start_bit) // 8
+        end_byte = int(field.end_bit) // 8
+        raw = data[start_byte : end_byte + 1]
+        raw_value = self._extract_bits(data, field.start_bit, field.end_bit)
+        if width >= 5 and raw_value == (1 << width) - 1:
+            return None
         # String / hex-string fields return decoded text or hex
         if field.is_string() or field.is_hex_string():
-            start_byte = int(field.start_bit) // 8
-            end_byte = int(field.end_bit) // 8
-            raw = data[start_byte : end_byte + 1]
-            if raw and all(b == 0xFF for b in raw):
-                return None
             if field.is_string():
                 return raw.rstrip(b"\x00").decode("latin-1", errors="ignore")
             return raw.hex()
-        raw_value = self._extract_bits(data, field.start_bit, field.end_bit)
-        # Treat all-ones patterns as N/A when indicated (CSV often marks with 'ff')
-        all_ones = (1 << width) - 1 if width < 32 else 0xFFFFFFFF
-        if raw_value == all_ones and ((optmask & 0xFF) == 0xFF or width in (8, 16, 32)):
-            return None
         # Signed fields use two's complement
         if field.is_signed():
             sign_bit = 1 << (width - 1)
