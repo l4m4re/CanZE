@@ -1737,7 +1737,7 @@
 ,7BB,24,39,.001,0,3,V,221421,621421,ff,1421 Cell Voltage No.6 of Failure Slave
 ,7BB,24,39,.001,0,3,V,221422,621422,ff,1422 Cell Voltage No.7 of Failure Slave
 ,7BB,24,39,.001,0,3,V,221423,621423,ff,1423 Cell Voltage No.8 of Failure Slave
-,7BB,24,26,1,0,0,,221424,621424,ff,1424 BMS State (LBC_CANHS_R_01/02/03).1424_BMS State,0:Not Used;1:Slow charge;2:Fast charge;3:Init;4:Transitory;5:Normal;6:Quick Drop;7:Unavalaible Vlaue
+,7BB,24,26,1,0,0,,221424,621424,ff,1424 BMS State (LBC_CANHS_R_01/02/03).1424_BMS State,0:Not Used;1:Slow charge;2:Fast charge;3:Init;4:Transitory;5:Normal;6:Quick Drop;7:Unavailable Value
 ,7BB,27,28,1,0,0,,221424,621424,ff,1424 BMS State (LBC_CANHS_R_01/02/03).1424_LBC RefusetoSleep,0:Not Used;1:LBC Refuse To Sleep;2:LBC Ready To Sleep;3:Not Used 2
 ,7BB,29,30,1,0,0,,221424,621424,ff,1424 BMS State (LBC_CANHS_R_01/02/03).1424_HVpowerConnection,1:HVPowerConnection allowed;2:HVPowerConnection Not allowed
 ,7BB,31,32,1,0,0,,221424,621424,ff,1424 BMS State (LBC_CANHS_R_01/02/03).1424_IsolDiagAuthorisation,0:Not Used;1:Diag of isolation allowed;2:Diag of isolation not allowed;3:Unavailable value
