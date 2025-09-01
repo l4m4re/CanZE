@@ -158,16 +158,25 @@ def _collect_cases(limit_per_file: int = 10):
                 continue
             client = ReplayUDSClient(responses=mapping, fields=fields)
             result = client.read_field(sid)
-            if result is None or not math.isclose(result, float(value), rel_tol=1e-5, abs_tol=1e-5):
+            try:
+                expected_val = float(value)
+            except Exception:
+                # Skip non-numeric values (string/hex fields)
+                continue
+            if (
+                result is None
+                or not isinstance(result, (int, float))
+                or not math.isclose(result, expected_val, rel_tol=1e-5, abs_tol=1e-5)
+            ):
                 if sid not in MISMATCHES:
                     MISMATCHES[sid] = (
-                        float(value),
-                        float(result) if result is not None else None,
+                        expected_val,
+                        float(result) if isinstance(result, (int, float)) else result,
                         unit,
                         field.name,
                     )
                 continue
-            cases[sid] = (float(value), unit, mapping)
+            cases[sid] = (expected_val, unit, mapping)
             if len(cases) >= limit_per_file:
                 break
     for sid, name in missing_from_logs.items():
