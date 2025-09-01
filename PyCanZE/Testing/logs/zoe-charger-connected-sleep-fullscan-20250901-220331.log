@@ -1,0 +1,1216 @@
+
+ECU: BCB-OBC
+
+ECU: DCM
+
+ECU: EPS
+
+ECU: EVC
+      7ec.16.6180 PartNumber.LowerPart -> 0275R
+      7ec.56.6180 DiagnosticIdentificationCode -> 26
+      7ec.64.6180 SupplierNumber.ITG -> 001
+      7ec.88.6180 HardwareNumber.LowerPart -> 0054R
+     7ec.128.6180 SoftwareNumber -> 0204
+     7ec.144.6180 EditionNumber -> 0ab0
+     7ec.160.6180 CalibrationNumber -> 1391
+     7ec.176.6180 PartNumber.BasicPartList -> 1.0
+     7ec.184.6180 HardwareNumber.BasicPartList -> 1.0
+     7ec.192.6180 ApprovalNumber.BasicPartList -> 1.0
+     7ec.200.6180 ManufacturerIdentificationCode -> 136.0
+      7ec.16.6181 V.I.N -> VF1AGVYF060489113
+     7ec.152.6181 CRC -> ffd3
+      7ec.16.6184 ITG Supplier Number -> 303031
+      7ec.40.6184 Traceability Factory Code -> F
+      7ec.48.6184 Traceability Serial Number -> 180331635067
+      7ec.16.61b7 Configuration of Electrical Vehicle Networks -> 01f8000000000000000000
+      7ec.16.61b8 List of Electrical Vehicle ECUs with After-sales diagnostic -> 01f8000000000000000000
+      7ec.16.61ef Hardware Part Number 1 -> 0
+      7ec.24.61ef Hardware Part Number 2 -> 0
+      7ec.32.61ef Hardware Part Number 3 -> 0
+      7ec.40.61ef Hardware Part Number 4 -> 0
+      7ec.48.61ef Hardware Part Number 5 -> 0
+      7ec.56.61ef Hardware Part Number 6 -> 0
+      7ec.64.61ef Hardware Part Number 7 -> 0
+      7ec.72.61ef Hardware Part Number 8 -> 0
+      7ec.80.61ef Hardware Part Number 9 -> 0
+      7ec.88.61ef Hardware Part Number 10 -> 0
+      7ec.96.61ef Software Part Number 1 -> 0
+     7ec.104.61ef Software Part Number 2 -> 0
+     7ec.112.61ef Software Part Number 3 -> 0
+     7ec.120.61ef Software Part Number 4 -> 0
+     7ec.128.61ef Software Part Number 5 -> 0
+     7ec.136.61ef Software Part Number 6 -> 0
+     7ec.144.61ef Software Part Number 7 -> 0
+     7ec.152.61ef Software Part Number 8 -> 0
+     7ec.160.61ef Software Part Number 9 -> 0
+     7ec.168.61ef Software Part Number 10 -> 0
+      7ec.16.61f0 PartNumber.LowerPart -> 0254R
+      7ec.56.61f0 DiagnosticIdentificationCode -> 26
+      7ec.64.61f0 SupplierNumber.ITG -> 001
+      7ec.88.61f0 HardwareNumber.LowerPart -> 0054R
+     7ec.128.61f0 SoftwareNumber -> 0204
+     7ec.144.61f0 EditionNumber -> 0ab0
+     7ec.160.61f0 CalibrationNumber -> 0000
+     7ec.176.61f0 PartNumber.BasicPartList -> 1.0
+     7ec.184.61f0 HardwareNumber.BasicPartList -> 1.0
+     7ec.192.61f0 ApprovalNumber.BasicPartList -> 0.0
+     7ec.200.61f0 ManufacturerIdentificationCode -> 136.0
+      7ec.16.61ff ApprovalNumber.LowerPart -> 4433R
+      7ec.56.61ff ProgrammingSiteReference -> PLANT
+      7ec.96.61ff ProgrammingToolReference -> ECOS_
+     7ec.136.61ff NumberOfReprogrammings -> 1.0
+     7ec.144.61ff DateOfReprogramming -> 180427
+     7ec.168.61ff TimeOfReprogramming -> 0831
+     7ec.184.61ff SaveMarking -> 92.0
+     7ec.192.61ff CrcOfLogSave -> bd10
+    7ec.24.622000 DIDs supported in range [$2001 - $2020] -> 7c
+    7ec.24.622001 ($2001) Battery Rack temperature -> 0.0 °C
+    7ec.24.622002 ($2002) State Of Charge (SOC) HV battery -> 0.0 %
+    7ec.24.622003 ($2003) Vehicle speed -> 0.0 km/h
+    7ec.24.622004 ($2004) consolidated HV voltage -> 0.0 V
+    7ec.24.622005 ($2005) Battery voltage 14v -> 12.39 V
+    7ec.24.622006 ($2006) Total vehicle distance -> 47019.0 km
+    7ec.24.62200b ($200B) Accelerator pedal voltage _ track 1 -> 752.0 mV
+    7ec.24.62200c ($200C) Accelerator pedal voltage _ track 2 -> 376.0 mV
+    7ec.31.62200e ($200E) Key state -> 0.0
+    7ec.28.62200f ($200F) Brake pedal _ switches consolidation state -> 2.0
+    7ec.24.622010 ($2010) Engine status -> 0.0
+    7ec.24.622020 DIDs supported in range [$2021 - $2040] -> 4c
+    7ec.24.622021 ($2021) Sensors supply voltage 1 -> 5000.0 mV
+    7ec.24.622022 ($2022) Sensors supply voltage 2 -> 5000.0 mV
+    7ec.30.622025 ($2025) Brake pedal _ close active switch state -> 2.0
+    7ec.24.622035 ($2035) CCSL _ Cruise control speed setpoint -> 0.0 km/h
+    7ec.24.622036 ($2036) Counter of inconsistencies between accelerator pedal and brake -> 0.0 -
+    7ec.24.622039 ($2039) CCSL _ Steering wheel push buttons voltage -> 3994.0 mV
+    7ec.31.62203a ($203A) Configuration _ Cruise control (option) -> 1.0
+    7ec.31.62203b ($203B) Configuration _ Cruise control (OnOff button) -> 1.0
+    7ec.31.62203c ($203C) Cruise control OnOff button state -> 0.0
+    7ec.31.62203d ($203D) Configuration _ Speed limiter (option) -> 1.0
+    7ec.31.62203e ($203E) Configuration _ Speed limiter (OnOff button) -> 1.0
+    7ec.31.62203f ($203F) Speed limiter OnOff button state -> 0.0
+    7ec.24.622040 DIDs supported in range [$2041 - $2060] -> 00
+    7ec.31.622041 ($2041) Configuration _ CCSL steering wheel push buttons -> 1.0
+    7ec.29.62204b ($204B) CCSL _ Steering wheel push buttons state -> 0.0
+    7ec.29.62204c ($204C) CCSL _ Status -> 0.0
+    7ec.29.62204d ($204D) CCSL - State of the failures which cause irreversible CC safety failure.2 -> 0.0
+    7ec.30.62204d ($204D) CCSL - State of the failures which cause irreversible CC safety failure.1 -> 0.0
+    7ec.31.62204d ($204D) CCSL - State of the failures which cause irreversible CC safety failure.0 -> 0.0
+    7ec.26.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.5 -> 1.0
+    7ec.27.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.4 -> 0.0
+    7ec.28.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.3 -> 0.0
+    7ec.29.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.2 -> 0.0
+    7ec.30.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.1 -> 0.0
+    7ec.31.62204e ($204E) CCSL - State of the reversible failures not due to CCSL which cause CCSL failure.0 -> 0.0
+    7ec.24.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.7 -> 1.0
+    7ec.25.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.6 -> 0.0
+    7ec.26.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.5 -> 1.0
+    7ec.27.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.4 -> 0.0
+    7ec.28.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.3 -> 0.0
+    7ec.29.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.2 -> 1.0
+    7ec.30.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.1 -> 0.0
+    7ec.31.62204f ($204F) CCSL - State of the reversible failures not due to CC which cause CC failure.0 -> 0.0
+    7ec.24.622050 ($2050) Displayed vehicle speed received on the CAN network -> 0.0 km/h
+    7ec.31.622051 ($2051) Displayed vehicle speed unit -> 0.0
+    7ec.31.62205b ($205B) Limp home activation state -> 0.0
+    7ec.24.622060 DIDs supported in range [$2061 - $2080] -> 80
+    7ec.24.62206a ($206A) Brake pedal _ duration of the close active switch blocked -> 0.0 s
+    7ec.24.62206b ($206B) Brake pedal _ duration of the open active switch blocked -> 0.0 s
+    7ec.31.62206e ($206E) Configuration _ Brake pedal _ open active switch -> 0.0
+    7ec.26.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.5 -> 0.0
+    7ec.27.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.4 -> 0.0
+    7ec.28.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.3 -> 0.0
+    7ec.29.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.2 -> 0.0
+    7ec.30.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.1 -> 0.0
+    7ec.31.622078 ($2078) CCSL - State of the causes for normal CCSL deactivation.0 -> 0.0
+    7ec.25.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.6 -> 0.0
+    7ec.26.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.5 -> 0.0
+    7ec.27.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.4 -> 0.0
+    7ec.28.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.3 -> 0.0
+    7ec.29.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.2 -> 0.0
+    7ec.30.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.1 -> 0.0
+    7ec.31.622079 ($2079) CCSL - State of the system causes for normal CCSL deactivation.0 -> 0.0
+    7ec.24.62207a ($207A) Maximum duration of resume button pressed -> 1.0 s
+    7ec.24.62207b ($207B) Maximum duration of set + button pressed -> 3.0 s
+    7ec.24.62207c ($207C) Maximum duration of set manus button pressed -> 3.0 s
+    7ec.24.62207d ($207D) Maximum duration of suspend button pressed -> 0.0 s
+    7ec.24.62207e ($207E) Maximum value of blocked button detection counter -> 1.0 -
+    7ec.24.622080 DIDs supported in range [$2081 - $20A0] -> 80
+    7ec.30.622093 ($2093) Test of underload made on the freon pressure measure -> 2.0
+    7ec.24.622120 DIDs supported in range [$2121-$2140] -> 80
+    7ec.31.62212e ($212E) A crash occured and the diagnostic add-on strategy is frozen -> 0.0
+    7ec.24.622160 DIDs supported in range [$2161 - $2180] -> 84
+    7ec.31.622166 ($2166) External controls safety authorization flag -> 0.0
+    7ec.24.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).7 -> 0.0
+    7ec.25.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).6 -> 0.0
+    7ec.26.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).5 -> 0.0
+    7ec.27.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).4 -> 0.0
+    7ec.28.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).3 -> 0.0
+    7ec.29.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).2 -> 0.0
+    7ec.30.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).1 -> 0.0
+    7ec.31.622170 ($2170) CCSL - State of the system causes for normal CCSL deactivation (2nd byte).0 -> 0.0
+    7ec.24.622180 DIDs supported in range [$2181 - $21A0] -> 10
+    7ec.24.622181 ($2181) Mileage recording -> 0.0 km
+    7ec.24.622184 ($2184) Requested speed setpoint for FSL function -> 200.0 km/h
+    7ec.24.622220 DIDs supported in range [$2221 - $2240] -> 3f
+    7ec.31.622221 ($2221) Brake pedal states validity indicator is in the limp home data status -> 0.0
+    7ec.31.622223 ($2223) Engine control request for cruise control abnormal deactivation -> 0.0
+    7ec.31.622224 ($2224) Engine control request for cruise control system deactivation -> 0.0
+    7ec.31.622225 ($2225) Vehicle speed received on the CAN network not available after a filtering time -> 1.0
+    7ec.31.622226 ($2226) Displayed vehicle speed received on the CAN network not available after a filtering time -> 1.0
+    7ec.31.622227 ($2227) Engine control request for speed limiter abnormal deactivation -> 0.0
+    7ec.31.622228 ($2228) Engine control request for speed limiter system deactivation -> 0.0
+    7ec.31.62222b ($222B) Automatic or manual parking brake detected -> 0.0
+    7ec.31.62222f ($222F) Authorization to connect cruise control and speed limiter options -> 0.0
+    7ec.31.622230 ($2230) ABS in regulation -> 0.0
+    7ec.31.622231 ($2231) Authorized ASR torque request -> 0.0
+    7ec.31.622232 ($2232) AYC in regulation -> 0.0
+    7ec.31.622233 ($2233) Request to turn the brake lights on (1) during regenerative braking -> 0.0
+    7ec.31.622234 ($2234) PTC accessories activation flag. -> 0.0
+    7ec.31.622235 ($2235) Flag indicating that a MSR torque request is being applied -> 0.0
+    7ec.31.622236 ($2236) Foot_up situation detected -> 1.0
+    7ec.31.622237 ($2237) Flag to limit the regenerative braking demand in case MSR function is faulty -> 1.0
+    7ec.29.622238 ($2238) Gear level position -> 1.0
+    7ec.24.622239 ($2239) Powertrain setpoint (%) requested by the driver via the accelerator pedal -> 0.0 -
+    7ec.24.62223a ($223A) Force demand at the wheels (output of the drivers' arbitration) -> 720.0 N
+    7ec.24.62223b ($223B) Electrical motor (EM) torque setpoint before AJS Correction action -> 0.0 N.m
+    7ec.24.62223c ($223C) ASR setpoint torque sent to torque arbitration -> 1647.0 N.m
+    7ec.24.62223d ($223D) Torque correction calculated by AJCOR function -> 0.0 N.m
+    7ec.24.62223e ($223E) Final torque setpoint after AJMOD action -> 0.0 N.m
+    7ec.24.62223f ($223F) Force demand derived from accelerator pedal position -> 720.0 N
+    7ec.24.622241 ($2241) MSR torque setting sent to torque arbitration -> -400.0 N.m
+    7ec.24.622242 ($2242) Filtered electric motor (EM) speed -> -19999.0 rpm
+    7ec.24.622243 ($2243) Final effective torque request to the electric motor (EM) -> 0.0 N.m
+    7ec.28.622244 ($2244) Lever position word -> 0.0 -
+    7ec.30.62224b ($224B) Data used to validated a detection of braking -> 0.0
+    7ec.30.62224c ($224C) Gear lever position validity flag -> 1.0
+    7ec.30.62224d ($224D) METS Vehicle speed validity flag -> 1.0
+    7ec.30.62224e ($224E) Engine speed validity flag from ECC -> 1.0
+    7ec.24.622500 DIDs supported in range [$2501 - $2520] -> 80
+    7ec.31.62251f ($251F) Vehicle speed threshold detected -> 1.0
+    7ec.24.622860 DIDs supported in range [$2861 - $2880] -> 80
+    7ec.24.622875 ($2875) External controls denial status flag.7 -> 0.0
+    7ec.25.622875 ($2875) External controls denial status flag.6 -> 0.0
+    7ec.26.622875 ($2875) External controls denial status flag.5 -> 0.0
+    7ec.27.622875 ($2875) External controls denial status flag.4 -> 0.0
+    7ec.28.622875 ($2875) External controls denial status flag.3 -> 0.0
+    7ec.29.622875 ($2875) External controls denial status flag.2 -> 0.0
+    7ec.30.622875 ($2875) External controls denial status flag.1 -> 0.0
+    7ec.31.622875 ($2875) External controls denial status flag.0 -> 0.0
+    7ec.32.622875 ($2875) External controls denial status flag.15 -> 0.0
+    7ec.33.622875 ($2875) External controls denial status flag.14 -> 0.0
+    7ec.34.622875 ($2875) External controls denial status flag.13 -> 0.0
+    7ec.35.622875 ($2875) External controls denial status flag.12 -> 0.0
+    7ec.36.622875 ($2875) External controls denial status flag.11 -> 0.0
+    7ec.37.622875 ($2875) External controls denial status flag.10 -> 0.0
+    7ec.38.622875 ($2875) External controls denial status flag.9 -> 0.0
+    7ec.39.622875 ($2875) External controls denial status flag.8 -> 0.0
+    7ec.24.622c00 DIDs supported in range [$2C01 - $2C20] -> 90
+    7ec.29.622c04 ($2C04) Current gear engaged -> 0.0
+    7ec.24.622c20 DIDs supported in range [$2C21 - $2C40] -> 80
+    7ec.31.622c2c ($2C2C) Kick down state -> 0.0
+    7ec.24.623000 DIDs supported in range [$3001 - $3020] -> 07
+    7ec.30.623001 ($3001) Verlog state -> 0.0
+    7ec.30.623006 ($3006) HV Network discharge request -> 1.0
+    7ec.31.623007 ($3007) HV Network discharge Feedback -> 0.0
+    7ec.24.623008 ($3008) HV PEB voltage measure -> 511.0 V
+    7ec.24.623020 DIDs supported in range [$3021 - $3040] -> f9
+    7ec.31.623022 ($3022) DCDC activation request -> 0.0
+    7ec.24.623023 ($3023) 14V voltage request -> 13.5 V
+    7ec.24.623024 ($3024) 14V DCDC voltage measure -> 20.0 V
+    7ec.24.623025 ($3025) 14V DCDC current measure -> 254.0 A
+    7ec.24.623028 ($3028) DCDC Load -> 0.0 %
+    7ec.25.623029 ($3029) DCDC temperature indicator -> 100.0 %
+    7ec.24.623040 DIDs supported in range [$3041 - $3060] -> ea
+    7ec.24.623042 ($3042) HV INV current measure -> 400.0 A
+    7ec.24.623043 ($3043) Torque request -> 0.0 N.m
+    7ec.24.623045 ($3045) Electrical Motor speed -> -20000.0 rpm
+    7ec.24.623047 ($3047) INV temperature indicator -> 100.0 %
+    7ec.24.623100 DIDs supported in range [$3101 - $3120] -> 33
+    7ec.29.623101 ($3101) Charger Bloc state -> 0.0
+    7ec.24.623103 ($3103) HV BCB voltage measure -> 0.0 V
+    7ec.31.623104 ($3104) Mains Network detection -> 0.0
+    7ec.30.623107 ($3107) Charge current limitation -> 2.0
+    7ec.31.623108 ($3108) Earth plug connection -> 1.0
+    7ec.24.62310a ($310A) BCB internal temperature -> 100.0 %
+    7ec.30.62310b ($310B) interlock connection HV Bat -> 0.0
+    7ec.30.62310d ($310D) Interlock JB cover -> 0.0
+    7ec.30.62310e ($310E) Interlock JB Charge -> 0.0
+    7ec.24.623110 ($3110) Charge current measure -> 0.0 A
+    7ec.31.623111 ($3111) Quick charge start -> 0.0
+    7ec.31.623112 ($3112) Quick charge stop -> 0.0
+    7ec.24.623113 ($3113) Quick charge current request -> 0.0 A
+    7ec.24.623200 DIDs supported in range [$3201 - $3220] -> 75
+    7ec.29.623201 ($3201) LBC mode request -> 0.0
+    7ec.29.623202 ($3202) LBC fonctionning state -> 7.0
+    7ec.24.623203 ($3203) HV LBC voltage measure -> 500.0 V
+    7ec.24.623204 ($3204) HV LBC current measure -> 0.0 A
+    7ec.24.623206 ($3206) State Of Health (SOH) HV battery -> 126.0 %
+    7ec.30.623208 ($3208) Caution flag state -> 0.0
+    7ec.30.623209 ($3209) Failure flag state -> 3.0
+    7ec.24.62320b ($320B) Available charge power -> 100.0 Kw
+    7ec.24.62320c ($320C) Available discharge Energy -> 0.0 kwh
+    7ec.31.62320d ($320D) Saving of the state of the interlocks.8 -> 0.0
+    7ec.32.62320d ($320D) Saving of the state of the interlocks.7 -> 0.0
+    7ec.33.62320d ($320D) Saving of the state of the interlocks.6 -> 0.0
+    7ec.34.62320d ($320D) Saving of the state of the interlocks.5 -> 0.0
+    7ec.35.62320d ($320D) Saving of the state of the interlocks.4 -> 0.0
+    7ec.36.62320d ($320D) Saving of the state of the interlocks.3 -> 0.0
+    7ec.37.62320d ($320D) Saving of the state of the interlocks.2 -> 0.0
+    7ec.38.62320d ($320D) Saving of the state of the interlocks.1 -> 0.0
+    7ec.39.62320d ($320D) Saving of the state of the interlocks.0 -> 0.0
+    7ec.24.623300 DIDs supported in range [$3301 - $3320] -> 43
+    7ec.24.623301 ($3301) USM 14V Voltage measure (from CAN) -> 15.88 V
+    7ec.31.623302 ($3302) Wake Up Type -> 0.0
+    7ec.24.623307 ($3307) Heat water temperature -> 20.0 °C
+    7ec.30.623308 ($3308) HV relay connection state -> 0.0
+    7ec.31.623309 ($3309) HV relay P1 command -> 0.0
+    7ec.31.62330a ($330A) HV relay P2 command -> 0.0
+    7ec.31.62330b ($330B) HV Battery relay A request -> 0.0
+    7ec.30.62330c ($330C) HV Network Insulation level -> 0.0
+    7ec.31.62330d ($330D) 14V Unballasting request -> 1.0
+    7ec.31.623310 ($3310) 14V Batterie charge request -> 0.0
+    7ec.31.623311 ($3311) Heater switch state -> 0.0
+    7ec.31.623312 ($3312) Hot switch state -> 0.0
+    7ec.31.623313 ($3313) Cold switch state -> 0.0
+    7ec.31.623315 ($3315) QuickDrop lock 1st loop state -> 1.0
+    7ec.31.623316 ($3316) QuickDrop lock 2nd loop state -> 1.0
+    7ec.30.623317 ($3317) QuickDrop lock global state -> 2.0
+    7ec.24.623319 ($3319) Charge pump Feedback -> 0.0 %
+    7ec.24.62331a ($331A) Heat pump Feedback -> 0.0 %
+    7ec.31.62331b ($331B) Cooling valve request -> 0.0
+    7ec.31.62331d ($331D) Pulser relay request -> 0.0
+    7ec.31.62331e ($331E) Heater request -> 0.0
+    7ec.31.623322 ($3322) Heater led state -> 0.0
+    7ec.31.623325 ($3325) Shiftlock request -> 1.0
+    7ec.25.623328 ($3328) Heat pump Request -> 0.0 %
+    7ec.31.62332a ($332A) Fan cabin status -> 0.0
+    7ec.29.62332b ($332B) ETS state -> 0.0
+    7ec.29.62332c ($332C) Start refuse Reason -> 0.0
+    7ec.31.62332d ($332D) 14V Network functioning Authorization -> 0.0
+    7ec.31.62332e ($332E) PowerTrain functioning Authorization -> 0.0
+    7ec.30.62332f ($332F) Thermal Comfort functioning Authorization -> 0.0
+    7ec.30.623330 ($3330) Charge Management functioning Authorization -> 0.0
+    7ec.30.623331 ($3331) PreHeating functioning Authorization -> 0.0
+    7ec.30.623332 ($3332) Electrical Machine functioning Authorization -> 1.0
+    7ec.30.623335 ($3335) 1st level insulation Alert MMI request -> 1.0
+    7ec.30.623336 ($3336) 2nd level insulation Alert MMI request -> 1.0
+    7ec.30.623337 ($3337) ETS Alert MMI request -> 1.0
+    7ec.30.623338 ($3338) Motor Alert MMI request -> 1.0
+    7ec.30.62333a ($333A) Low Battery 14V MMI request -> 0.0
+    7ec.31.62333d ($333D) Brake assist pump state -> 0.0
+    7ec.24.623340 DIDs supported in range [$3341 - $3360] -> 81
+    7ec.24.623348 ($3348) PTC request -> 0.0 %
+    7ec.24.623349 ($3349) Time Counter for the driving WEP in Low Speed -> 25615020.0 -
+    7ec.24.62334a ($334A) Time Counter for the driving WEP in Middle Speed -> 100577.0 -
+    7ec.24.62334b ($334B) Time Counter for the driving WEP in High Speed -> 6033828.0 -
+    7ec.24.62334d ($334D) Time Counter for the load WEP in Low Speed -> 0.0 -
+    7ec.24.62334e ($334E) Time Counter for the load WEP in Middle Speed -> 0.0 -
+    7ec.24.62334f ($334F) Time Counter for the load WEP in High Speed -> 0.0 -
+    7ec.24.623351 ($3351) Time Counter for the Cooling fan in Low Speed -> 1.0 -
+    7ec.24.623352 ($3352) Time Counter for the Cooling fan in Middle Speed -> 0.0 -
+    7ec.24.623353 ($3353) Time Counter for the Cooling fan in High Speed -> 32219950.0 -
+    7ec.24.623355 ($3355) Time Counter for the PEB temperature in driving mode below 40 degrees Celsius -> 20898.0 -
+    7ec.24.623356 ($3356) Time Counter for the PEB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 16659193.0 -
+    7ec.24.623357 ($3357) Time Counter for the PEB temperature in driving mode between 50 degrees Celsius and 60 degrees Celsius -> 4336601.0 -
+    7ec.24.623358 ($3358) Time Counter for the PEB temperature in driving mode between 60 degrees Celsius and 70 degrees Celsius -> 93983.0 -
+    7ec.24.623359 ($3359) Time Counter for the PEB temperature in driving mode above 70 degrees Celsius -> 16531.0 -
+    7ec.24.62335a ($335A) Time Counter for the PEB temperature in load mode below 40 degrees Celsius -> 6457.0 -
+    7ec.24.62335b ($335B) Time Counter for the PEB temperature in load mode between 40 degrees Celsius and 50 degrees Celsius -> 1928372.0 -
+    7ec.24.62335c ($335C) Time Counter for the PEB temperature in load mode between 50 degrees Celsius and 60 degrees Celsius -> 1379157.0 -
+    7ec.24.62335e ($335E) Time Counter for the PEB temperature in load mode above 70 degrees Celsius -> 5849811.0 -
+    7ec.24.62335f ($335F) Time Counter for the BCB temperature in driving mode below 40 degrees Celsius -> 0.0 -
+    7ec.24.623361 ($3361) Time Counter for the BCB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 20962331.0 -
+    7ec.24.623363 ($3363) Time Counter for the BCB temperature in driving mode between 60 degrees Celsius and 70 degrees Celsius -> 25051.0 -
+    7ec.24.623364 ($3364) Time Counter for the BCB temperature in driving mode above 70 degrees Celsius -> 6.0 -
+    7ec.24.623365 ($3365) Time Counter for the BCB temperature in load mode below 40 degrees Celsius -> 0.0 -
+    7ec.24.623366 ($3366) Time Counter for the BCB temperature in load mode between 40 degrees Celsius and 50 degrees Celsius -> 2544219.0 -
+    7ec.24.623367 ($3367) Time Counter for the BCB temperature in load mode between 50 degrees Celsius and 60 degrees Celsius -> 561355.0 -
+    7ec.24.623368 ($3368) Time Counter for the BCB temperature in load mode between 60 degrees Celsius and 70 degrees Celsius -> 6141786.0 -
+    7ec.24.623369 ($3369) Time Counter for the BCB temperature in load mode above 70 degrees Celsius -> 1369364.0 -
+    7ec.24.62336a ($336A) Maximum value of PEB temperature -> 85.0 %
+    7ec.24.62336b ($336B) Maximum value of BCB temperature -> 78.0 %
+    7ec.24.62336c ($336C) Quick Drop operating counter -> 0.0 -
+    7ec.24.62336e ($336E) Value of the vehicle speed before a safety level 2 hotreset -> 0.0 km/h
+    7ec.24.62336f ($336F) Value of the safety monitoring status flags before the hotreset -> 0.0 -
+    7ec.24.623370 ($3370) Value of the electric motor speed before a safety level 2 hotreset -> 0.0 rpm
+    7ec.24.623371 ($3371) Pressure value max in the booster during failure confirmation time -> 1270.0 mbar
+    7ec.24.623372 ($3372) Current pressure in the mastervac -> 1270.0 mbar
+    7ec.30.623373 ($3373)The most critical state of the brake assist system between detected and confirmed states of a mastervac failure -> 3.0
+    7ec.30.623374 ($3374) The most critical state of the Brake assist system when a failure has been confirmed -> 0.0
+    7ec.24.623375 ($3375) Memorized reason of Starting Refuse for Start Refuse History elaboration.4 -> 1.0
+    7ec.32.623375 ($3375) Memorized reason of Starting Refuse for Start Refuse History elaboration.3 -> 6.0
+    7ec.40.623375 ($3375) Memorized reason of Starting Refuse for Start Refuse History elaboration.2 -> 1.0
+    7ec.48.623375 ($3375) Memorized reason of Starting Refuse for Start Refuse History elaboration.1 -> 1.0
+    7ec.56.623375 ($3375) Memorized reason of Starting Refuse for Start Refuse History elaboration.0 -> 1.0
+    7ec.24.623376 ($3376) Measure of the freon pressure -> 0.0 bar
+    7ec.30.623377 ($3377) AC compressor Interlock State -> 0.0
+    7ec.30.623378 ($3378) Interlock HV battery -> 3.0
+    7ec.30.623379 ($3379) Interlock of PTCs -> 0.0
+    7ec.24.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.7-Internal diag Stop Light Relay -> 0.0
+    7ec.25.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.6-Internal diag Water Cooling Valve -> 0.0
+    7ec.26.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.5-Internal diag Shift Lock -> 0.0
+    7ec.27.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.4-Internal diag RELAY N -> 0.0
+    7ec.28.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.3-Internal diag RELAY P -> 0.0
+    7ec.29.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.2-Internal diag RELAY A -> 0.0
+    7ec.30.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.1 -> 0.0
+    7ec.31.62337d ($337D) Context not safety datas microcontroller memorised carrier 1.0-diagnostic of NVMY -> 0.0
+    7ec.32.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.7 -> 0.0
+    7ec.33.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.6-ERR_SYM_SPI-4 -> 0.0
+    7ec.34.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.5-ERR_SYM_SPI-3 -> 0.0
+    7ec.35.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.4-ERR_SYM_SPI-2 -> 0.0
+    7ec.36.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.3-ERR_SYM_SPI-1 -> 0.0
+    7ec.37.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.2-ERR_SYM_SPI-0 -> 0.0
+    7ec.38.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.1-ERR_SYM_RAM -> 0.0
+    7ec.39.62337e ($337E) Context not safety data microcontroller memorised Carrier 2.0-ERR_SYM_ROM -> 0.0
+    7ec.24.623381 ($3381) Context safty datas memorised in Safety microcontroller -> 0.0 -
+    7ec.24.623382 ($3382) AC compressor Error Bits Recordings.-5 -> 34.0
+    7ec.40.623382 ($3382) AC compressor Error Bits Recordings.-4 -> 34.0
+    7ec.56.623382 ($3382) AC compressor Error Bits Recordings.-3 -> 34.0
+    7ec.72.623382 ($3382) AC compressor Error Bits Recordings.-2 -> 34.0
+    7ec.88.623382 ($3382) AC compressor Error Bits Recordings.-1.15 Under_voltage_HV -> 0.0
+    7ec.89.623382 ($3382) AC compressor Error Bits Recordings.-1.14 Over_voltage_HV -> 0.0
+    7ec.90.623382 ($3382) AC compressor Error Bits Recordings.-1.13 Current_Restriction -> 0.0
+    7ec.91.623382 ($3382) AC compressor Error Bits Recordings.-1.12 Voltage_Restriction -> 0.0
+    7ec.92.623382 ($3382) AC compressor Error Bits Recordings.-1.11 Internal_communication_error -> 0.0
+    7ec.93.623382 ($3382) AC compressor Error Bits Recordings.-1.10 Over_heat_warning -> 0.0
+    7ec.94.623382 ($3382) AC compressor Error Bits Recordings.-1.09 Low_Voltage_error -> 0.0
+    7ec.95.623382 ($3382) AC compressor Error Bits Recordings.-1.08 Short_Circuit -> 0.0
+    7ec.96.623382 ($3382) AC compressor Error Bits Recordings.-1.07 Open_contact -> 0.0
+    7ec.97.623382 ($3382) AC compressor Error Bits Recordings.-1.06 Current_sensor_Error -> 0.0
+    7ec.98.623382 ($3382) AC compressor Error Bits Recordings.-1.05 Over_load -> 1.0
+    7ec.99.623382 ($3382) AC compressor Error Bits Recordings.-1.04 Over_heat -> 0.0
+   7ec.100.623382 ($3382) AC compressor Error Bits Recordings.-1.03 Abnormal_Run_up -> 0.0
+   7ec.101.623382 ($3382) AC compressor Error Bits Recordings.-1.02 High_Voltage_error -> 0.0
+   7ec.102.623382 ($3382) AC compressor Error Bits Recordings.-1.00 CI_Error_Status -> 2.0
+    7ec.26.623383 ($3383) Reasons of cut off PTCs.-5 -> 0.0
+    7ec.28.623387 ($3387) Brake pedal state during diagnostic confirmation -> 1.0
+    7ec.31.623388 ($3388) Bcb Activation failed Flag : charge or pre_heating not authorized any more -> 0.0
+    7ec.31.62338a ($338A) Customer WakeUp flag after internal processing -> 0.0
+    7ec.31.62338b ($338B) Event type technical WakeUp flag after internal processing -> 0.0
+    7ec.31.62338c ($338C) ComfortMode failed and ended after confirmed non HV relays connexion -> 0.0
+    7ec.31.62338d ($338D) Comfort mode disabled -> 0.0
+    7ec.31.62338e ($338E) Indicates the status of the driver door of the vehicle -> 0.0
+    7ec.31.62338f ($338F) Driving Restart flag (after EVC reset) -> 0.0
+    7ec.31.623390 ($3390) EVC reset flag for HV connexion after EVC reset management -> 1.0
+    7ec.31.623391 ($3391) Gas Heater not allowed flag -> 1.0
+    7ec.31.623392 ($3392) 400 V Battery Cooling Needed flag -> 0.0
+    7ec.31.623393 ($3393) HV Network Power cut request -> 0.0
+    7ec.31.623394 ($3394) Flag for LBC Actual status(= to 1 when LBC status is Driving ). AfterK_BHVStateConfirmed_status processing -> 0.0
+    7ec.31.623395 ($3395) Internal condition for Zero Ampere mode Authorisation -> 0.0
+    7ec.31.623396 ($3396) PEB State failure defect present : PEB is Absent or PEB Status is not power on . PEB status is in limp mode -> 1.0
+    7ec.31.623397 ($3397) Gas Heater Activation Authorisation flag -> 0.0
+    7ec.31.623398 ($3398) HV Battery cooling Authorisation flag -> 0.0
+    7ec.31.623399 ($3399) Quick Drop flag memorisation (EEPROM memorisation) -> 0.0
+    7ec.31.62339a ($339A) No Major failure -> 1.0
+    7ec.31.62339b ($339B) Front passenger door state from CANV -> 0.0
+    7ec.31.62339c ($339C) PEB status after internal processing -> 0.0
+    7ec.31.62339d ($339D) Charging Plug detected as present by the Charger.processed -> 1.0
+    7ec.31.62339e ($339E) Quick drop condition is active -> 0.0
+    7ec.31.62339f ($339F) Soc authorisation for pre_heating authorisation during charge -> 0.0
+    7ec.31.6233a1 ($33A1) BCM absent and vehicle stopped flag : driving interruption -> 0.0
+    7ec.31.6233a2 ($33A2) Button AC from the cluster (X61) or AC request from CAREG (L38) -> 0.0
+    7ec.31.6233a3 ($33A3) For L38 vehicule -> 0.0
+    7ec.24.6233a4 ($33A4) Measure of the speed of the cabin blower -> 0.0 %
+    7ec.29.6233a6 ($33A6) AC compressor DTC Rootcause -> 0.0
+    7ec.24.6233a7 ($33A7) AC compressor Power Consumption Estimation -> 6350.0 W
+    7ec.24.6233a8 ($33A8) Request of FAN activation from the thermal comfort -> 0.0
+    7ec.31.6233aa ($33AA) Minimum gasoline Level indicator in the tank supplying the heater -> 0.0
+    7ec.29.6233ab ($33AB) State of PreHeating to display -> 0.0
+    7ec.30.6233ac ($33AC) Status of pre_heating sent to Manage ETS -> 0.0
+    7ec.26.6233ad ($33AD) Computation of PTC defaults.5 -> 0.0
+    7ec.27.6233ad ($33AD) Computation of PTC defaults.4 -> 0.0
+    7ec.28.6233ad ($33AD) Computation of PTC defaults.3 -> 0.0
+    7ec.29.6233ad ($33AD) Computation of PTC defaults.2 -> 0.0
+    7ec.30.6233ad ($33AD) Computation of PTC defaults.1 -> 0.0
+    7ec.31.6233ad ($33AD) Computation of PTC defaults.0 -> 0.0
+    7ec.24.6233ae ($33AE) AC compressor RPM Command -> 0.0 rpm
+    7ec.24.6233af ($33AF)temp used to prevent the evaporator from freezing within the heating venting and air conditionner system(HVAC) -> 0.0 °C
+    7ec.24.6233b0 ($33B0) evaporator temperature setpoint for compressor control -> 10.0 °C
+    7ec.24.6233b1 ($33B1) CAN signal for external temperature of the vehicle. -> 214.0 °C
+    7ec.24.6233b3 ($33B3) water temperature setpoint for PTC control -> 33.0 °C
+    7ec.31.6233b5 ($33B5) HV Relays Connection Authorisation synthesis flag -> 0.0
+    7ec.30.6233b6 ($33B6) Charge Management status for ETS -> 0.0
+    7ec.30.6233b7 ($33B7) Technical WakeUp type -> 0.0
+    7ec.30.6233b8 ($33B8) Confirmation of the state of the battery from ManageHVBattery -> 0.0
+    7ec.30.6233b9 ($33B9) Start_up Authorisation _ Anti_kick off management -> 1.0
+    7ec.30.6233ba ($33BA) Indicates if the external power supply is present and the type of power supply -> 0.0
+    7ec.31.6233bb ($33BB) Signal coming from Manage HVBattery indicating if the battery need to be charged or to be cooled -> 1.0
+    7ec.30.6233bc ($33BC) HV connection request from LBC -> 3.0
+    7ec.30.6233bd ($33BD) Plug status validity flag -> 2.0
+    7ec.30.6233be ($33BE) LBC sleep mode request -> 1.0
+    7ec.29.6233bf ($33BF) HV connection request -> 1.0
+    7ec.30.6233c1 ($33C1) K_StartingMode_BCM_req input validity state -> 2.0
+    7ec.29.6233c2 ($33C2) IVLD of the signal Pct_UserSOC_bhv_est -> 3.0
+    7ec.29.6233c3 ($33C3) PEB status from CAN ETS -> 7.0
+    7ec.30.6233c4 ($33C4) Preheating requested by the vehicle -> 3.0
+    7ec.30.6233c5 ($33C5) ETS System Sleeping authorisation synthesis -> 2.0
+    7ec.30.6233c6 ($33C6) Electrical Motor state requested bu user and build by the BCM -> 0.0
+    7ec.29.6233c7 ($33C7) Driver requests synthesis -> 0.0
+    7ec.30.6233c8 ($33C8) ETS Organs on CAN_E Wake up or Sleep request -> 0.0
+    7ec.31.6233c9 ($33C9) High level failure in the BCB -> 0.0
+    7ec.31.6233ca ($33CA) Low level failure in the BCB. -> 0.0
+    7ec.31.6233cb ($33CB) This flag from Charge Management indicates that a charge is finished. -> 0.0
+    7ec.31.6233cc ($33CC) Request for the Gasoline heater relay -> 0.0
+    7ec.31.6233cd ($33CD) Request of Hvac power Relay -> 1.0
+    7ec.31.6233ce ($33CE) Software failure detected in the quick charge stateflow -> 0.0
+    7ec.31.6233cf ($33CF) Specific failure during the quick charge -> 0.0
+    7ec.31.6233d0 ($33D0) This signal indicates that a quick drop is finished -> 0.0
+    7ec.31.6233d1 ($33D1) Specific failure during slow charge or zero ampere mode -> 0.0
+    7ec.31.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.9 -> 0.0
+    7ec.39.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.8 -> 0.0
+    7ec.47.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.7 -> 0.0
+    7ec.55.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.6 -> 0.0
+    7ec.63.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.5 -> 0.0
+    7ec.71.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.4 -> 0.0
+    7ec.79.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.3 -> 0.0
+    7ec.87.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.2 -> 0.0
+    7ec.95.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.1 -> 0.0
+   7ec.103.6233d3 ($33D3) BPLC spot presence status to be read by diag tool.0 -> 0.0
+    7ec.24.6233d4 ($33D4) Total travelled distance to be read by diag tool.9 -> 46747.0 km
+    7ec.48.6233d4 ($33D4) Total travelled distance to be read by diag tool.8 -> 46842.0 km
+    7ec.72.6233d4 ($33D4) Total travelled distance to be read by diag tool.7 -> 46878.0 km
+    7ec.96.6233d4 ($33D4) Total travelled distance to be read by diag tool.6 -> 46878.0 km
+   7ec.120.6233d4 ($33D4) Total travelled distance to be read by diag tool.5 -> 46878.0 km
+   7ec.144.6233d4 ($33D4) Total travelled distance to be read by diag tool.4 -> 46878.0 km
+   7ec.168.6233d4 ($33D4) Total travelled distance to be read by diag tool.3 -> 46925.0 km
+   7ec.192.6233d4 ($33D4) Total travelled distance to be read by diag tool.2 -> 46925.0 km
+   7ec.216.6233d4 ($33D4) Total travelled distance to be read by diag tool.1 -> 47019.0 km
+   7ec.240.6233d4 ($33D4) Total travelled distance to be read by diag tool.0 -> 47019.0 km
+    7ec.24.6233d5 ($33D5) Reason of end of charge to be read by diag tool.9 -> 1.0
+    7ec.32.6233d5 ($33D5) Reason of end of charge to be read by diag tool.8 -> 1.0
+    7ec.40.6233d5 ($33D5) Reason of end of charge to be read by diag tool.7 -> 2.0
+    7ec.48.6233d5 ($33D5) Reason of end of charge to be read by diag tool.6 -> 2.0
+    7ec.56.6233d5 ($33D5) Reason of end of charge to be read by diag tool.5 -> 2.0
+    7ec.64.6233d5 ($33D5) Reason of end of charge to be read by diag tool.4 -> 1.0
+    7ec.72.6233d5 ($33D5) Reason of end of charge to be read by diag tool.3 -> 1.0
+    7ec.80.6233d5 ($33D5) Reason of end of charge to be read by diag tool.2 -> 1.0
+    7ec.88.6233d5 ($33D5) Reason of end of charge to be read by diag tool.1 -> 2.0
+    7ec.32.6233d6 ($33D6) Type of charge to be read by diag tool.8 -> 0.0
+    7ec.40.6233d6 ($33D6) Type of charge to be read by diag tool.7 -> 0.0
+    7ec.48.6233d6 ($33D6) Type of charge to be read by diag tool.6 -> 0.0
+    7ec.56.6233d6 ($33D6) Type of charge to be read by diag tool.5 -> 0.0
+    7ec.64.6233d6 ($33D6) Type of charge to be read by diag tool.4 -> 0.0
+    7ec.72.6233d6 ($33D6) Type of charge to be read by diag tool.3 -> 0.0
+    7ec.80.6233d6 ($33D6) Type of charge to be read by diag tool.2 -> 0.0
+    7ec.88.6233d6 ($33D6) Type of charge to be read by diag tool.1 -> 0.0
+    7ec.96.6233d6 ($33D6) Type of charge to be read by diag tool.0 -> 0.0
+    7ec.24.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.9 -> 74.6 %
+    7ec.40.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.8 -> 72.6 %
+    7ec.56.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.7 -> 53.2 %
+    7ec.72.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.6 -> 53.8 %
+    7ec.88.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.5 -> 55.6 %
+   7ec.104.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.4 -> 60.4 %
+   7ec.120.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.3 -> 56.6 %
+   7ec.136.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.2 -> 78.0 %
+   7ec.152.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.1 -> 45.8 %
+   7ec.168.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.0 -> 47.2 %
+    7ec.24.6233d8 ($33D8) Battery temperature to be read by diag tool.9 -> 23.0 °C
+    7ec.32.6233d8 ($33D8) Battery temperature to be read by diag tool.8 -> 23.0 °C
+    7ec.40.6233d8 ($33D8) Battery temperature to be read by diag tool.7 -> 19.0 °C
+    7ec.48.6233d8 ($33D8) Battery temperature to be read by diag tool.6 -> 19.0 °C
+    7ec.56.6233d8 ($33D8) Battery temperature to be read by diag tool.5 -> 19.0 °C
+    7ec.64.6233d8 ($33D8) Battery temperature to be read by diag tool.4 -> 19.0 °C
+    7ec.72.6233d8 ($33D8) Battery temperature to be read by diag tool.3 -> 23.0 °C
+    7ec.80.6233d8 ($33D8) Battery temperature to be read by diag tool.2 -> 23.0 °C
+    7ec.88.6233d8 ($33D8) Battery temperature to be read by diag tool.1 -> 22.0 °C
+    7ec.96.6233d8 ($33D8) Battery temperature to be read by diag tool.0 -> 22.0 °C
+    7ec.24.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.9 -> 472.0 min
+    7ec.40.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.8 -> 619.0 min
+    7ec.56.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.7 -> 0.0 min
+    7ec.72.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.6 -> 12.0 min
+    7ec.88.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.5 -> 28.0 min
+   7ec.104.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.4 -> 95.0 min
+   7ec.120.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.3 -> 197.0 min
+   7ec.136.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.2 -> 206.0 min
+   7ec.152.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.1 -> 37.0 min
+   7ec.168.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.0 -> 5.0 min
+    7ec.24.6233db ($33DB) Memorized value of domestic energy consumption -> 7.0 kWh
+    7ec.24.6233dd ($33DD) This variable allows to memorize the reseted energy consumed -> 139.071 kwh
+    7ec.24.6233de ($33DE) This variable allows to memorize the reseted distance -> 979.98 km
+    7ec.29.6233e2 ($33E2) Flow that requests the BCB to make available certain functionalities -> 4.0
+    7ec.28.6233e3 ($33E3) Status of Manage HV Battery Master Stateflow -> 0.0
+    7ec.30.6233e4 ($33E4) Cooling Management status answering to cooling request from Manage ETS -> 2.0
+    7ec.28.6233e5 ($33E5) Charge WEP Feedback Diag -> 0.0
+    7ec.28.6233e6 ($33E6) Driving WEP Feedback Diag -> 0.0
+    7ec.24.6233e7 ($33E7) Code Failure of All the sensors of temperature -> 0.0
+    7ec.30.6233e8 ($33E8) JB_AC Interlock status -> 0.0
+    7ec.30.6233e9 ($33E9) JB_PTC Interlock status -> 0.0
+    7ec.29.6233ea ($33EA) CAN signal for the status of the plugs connection -> 7.0
+    7ec.30.6233eb ($33EB) Power supply relay of fan requested by EVC -> 0.0
+    7ec.29.6233ec ($33EC) Different states of CM master stateflow -> 0.0
+    7ec.29.6233ed ($33ED) Different states of quick charge management stateflow -> 0.0
+    7ec.24.6233ee ($33EE) Resistance insulation value -> 1000000.0 Ohm
+    7ec.29.6233ef ($33EF) Different states of slow charge management stateflow -> 0.0
+    7ec.30.6233f0 ($33F0) Different states of the stand_by management stateflow -> 0.0
+    7ec.24.6233f1 ($33F1) Electrical Machine normalised temperature -> 100.0 %
+    7ec.24.6233f2 ($33F2) High Voltage Battery maximal Temperature -> 0.0 °C
+    7ec.24.6233f3 ($33F3) Maximal torque without unballasting -> 0.0 N.m
+    7ec.24.6233f4 ($33F4) Minimal torque -> 0.0 N.m
+    7ec.24.6233f5 ($33F5) Cooling Temperature dcdc mesured -> 0.0 °C
+    7ec.24.6233f6 ($33F6) Temperature of the inverter given by PEB (CAN ETS) -> 0.0 °C
+    7ec.24.6233f7 ($33F7) Counter of Efan speed on Low and very low speed -> 1803.0
+    7ec.29.6233f8 ($33F8) Different states of the Zero Ampere mode management stateflow. -> 0.0
+    7ec.30.6233f9 ($33F9) Primary ignition supply state -> 1.0
+    7ec.31.6233fa ($33FA) Pedal pressed flag internal processing -> 0.0
+    7ec.31.6233fb ($33FB) Preheating requested by the vehicle. Processed -> 0.0
+    7ec.30.6233fc ($33FC) Electrical Motor state requested by user and built by the BCM -> 1.0
+    7ec.31.6233fd ($33FD) Peltier Control Order -> 0.0
+    7ec.31.6233fe ($33FE) Peltier Fan control order -> 0.0
+    7ec.31.6233ff ($33FF) Major failure detected on the ETS -> 0.0
+    7ec.24.623400 DIDs supported in range [$3400 - $3420] -> 7b
+    7ec.31.623401 ($3401) Manage Failure Authorization of the AC -> 1.0
+    7ec.31.623402 ($3402) Manage Failure Authorization of the 14V Network management -> 1.0
+    7ec.31.623403 ($3403) Manage Failure Authorization of the heater -> 1.0
+    7ec.31.623404 ($3404) Manage Failure Authorization of the Peltier -> 1.0
+    7ec.31.623405 ($3405) Manage Failure Authorization of the PowerTrain -> 1.0
+    7ec.31.623407 ($3407) Manage Failure Authorization of the RSA Quick Charge -> 1.0
+    7ec.31.623408 ($3408) Manage Failure Authorization of the Slow Charge -> 1.0
+    7ec.30.623409 ($3409) Signal of requesting the MMI EBAAlertLevel1 (brake failure with SERV) -> 1.0
+    7ec.30.62340a ($340A) Signal of requesting the MMI EBAAlertLevel1 (brake failure with STOP) -> 1.0
+    7ec.30.62340b ($340B) Signal of requesting the MMI QuickDropIterationExceededDisplay -> 1.0
+    7ec.30.62340c ($340C) Signal of requesting the MMI QuickDropLockFailureDisplay -> 1.0
+    7ec.30.62340d ($340D) Signal of requesting the MMI QuickDropUnlockedDisplay -> 1.0
+    7ec.30.62340e ($340E) Signal of requesting the MMI ETAlertDCDC -> 1.0
+    7ec.30.62340f ($340F) Signal of requesting the MMI ETAlertRepairETS -> 1.0
+    7ec.29.623410 ($3410) HV Network Diagnosis synthesis -> 1.0
+    7ec.24.623411 ($3411) Distance memorized for energy consumption journal.9 -> 46747.0 km
+    7ec.48.623411 ($3411) Distance memorized for energy consumption journal.8 -> 46842.0 km
+    7ec.72.623411 ($3411) Distance memorized for energy consumption journal.7 -> 46878.0 km
+    7ec.96.623411 ($3411) Distance memorized for energy consumption journal.6 -> 46878.0 km
+   7ec.120.623411 ($3411) Distance memorized for energy consumption journal.5 -> 46878.0 km
+   7ec.144.623411 ($3411) Distance memorized for energy consumption journal.4 -> 46878.0 km
+   7ec.168.623411 ($3411) Distance memorized for energy consumption journal.3 -> 46925.0 km
+   7ec.192.623411 ($3411) Distance memorized for energy consumption journal.2 -> 46925.0 km
+   7ec.216.623411 ($3411) Distance memorized for energy consumption journal.1 -> 47019.0 km
+   7ec.240.623411 ($3411) Distance memorized for energy consumption journal.0 -> 47019.0 km
+    7ec.24.623412 Memorized accumulated HV battery output energy for energy consumption journal.9 -> 41.43 kWh
+    7ec.40.623412 Memorized accumulated HV battery output energy for energy consumption journal.8 -> 58.59 kWh
+    7ec.56.623412 Memorized accumulated HV battery output energy for energy consumption journal.7 -> 66.58 kWh
+    7ec.72.623412 Memorized accumulated HV battery output energy for energy consumption journal.6 -> 66.58 kWh
+    7ec.88.623412 Memorized accumulated HV battery output energy for energy consumption journal.5 -> 66.58 kWh
+   7ec.104.623412 Memorized accumulated HV battery output energy for energy consumption journal.4 -> 66.58 kWh
+   7ec.120.623412 Memorized accumulated HV battery output energy for energy consumption journal.3 -> 75.27 kWh
+    7ec.24.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.9 -> 0.0 kWh
+    7ec.40.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.8 -> 0.0 kWh
+    7ec.56.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.7 -> 0.0 kWh
+    7ec.72.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.6 -> 0.0 kWh
+    7ec.88.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.5 -> 0.0 kWh
+   7ec.104.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.4 -> 0.0 kWh
+   7ec.120.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.3 -> 2.83 kWh
+   7ec.136.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.2 -> 0.0 kWh
+   7ec.152.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.1 -> 0.3 kWh
+   7ec.168.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.0 -> 0.3 kWh
+    7ec.24.623415 ($3415) Memorized User SOC for energy consumption journal.9 -> 74.74 %
+    7ec.40.623415 ($3415) Memorized User SOC for energy consumption journal.8 -> 72.78 %
+    7ec.56.623415 ($3415) Memorized User SOC for energy consumption journal.7 -> 53.22 %
+    7ec.72.623415 ($3415) Memorized User SOC for energy consumption journal.6 -> 53.92 %
+    7ec.88.623415 ($3415) Memorized User SOC for energy consumption journal.5 -> 55.66 %
+   7ec.104.623415 ($3415) Memorized User SOC for energy consumption journal.4 -> 60.44 %
+   7ec.120.623415 ($3415) Memorized User SOC for energy consumption journal.3 -> 56.66 %
+   7ec.136.623415 ($3415) Memorized User SOC for energy consumption journal.2 -> 78.14 %
+   7ec.152.623415 ($3415) Memorized User SOC for energy consumption journal.1 -> 45.86 %
+   7ec.168.623415 ($3415) Memorized User SOC for energy consumption journal.0 -> 47.28 %
+    7ec.24.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.9 -> 1.12 kWh
+    7ec.40.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.8 -> 1.98 kWh
+    7ec.56.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.7 -> 2.55 kWh
+    7ec.72.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.6 -> 2.55 kWh
+    7ec.88.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.5 -> 2.55 kWh
+   7ec.104.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.4 -> 2.55 kWh
+   7ec.120.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.3 -> 3.01 kWh
+   7ec.136.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.2 -> 0.0 kWh
+   7ec.152.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.1 -> 0.42 kWh
+   7ec.168.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.0 -> 0.42 kWh
+    7ec.31.623417 Saving of the NAVL state of the interlocks.8 -> 0.0
+    7ec.32.623417 Saving of the NAVL state of the interlocks.7 -> 0.0
+    7ec.33.623417 Saving of the NAVL state of the interlocks.6 -> 0.0
+    7ec.34.623417 Saving of the NAVL state of the interlocks.5 -> 0.0
+    7ec.35.623417 Saving of the NAVL state of the interlocks.4 -> 0.0
+    7ec.36.623417 Saving of the NAVL state of the interlocks.3 -> 0.0
+    7ec.37.623417 Saving of the NAVL state of the interlocks.2 -> 0.0
+    7ec.38.623417 Saving of the NAVL state of the interlocks.1 -> 0.0
+    7ec.39.623417 Saving of the NAVL state of the interlocks.0 -> 0.0
+    7ec.31.623418 ($3418) DCDC deactivation requested by diagnostic tool in plant -> 0.0
+    7ec.31.623419 ($3419) Memorized crash level 1 (medium) detection -> 0.0
+    7ec.31.62341a ($341A) Memorized crash level 2 (violent) detection -> 0.0
+    7ec.24.62341e ($341E) Rotation speed of External Fan for battery cooling (Peltier) -> 0.0 Hz
+    7ec.24.623421 ($3421) For reading Battery temperature starting point of the Peltier System (Diagnostic Input) -> 0.0 °C
+    7ec.24.623422 ($3422) External temperature (Peltier side) -> 20.0 °C
+    7ec.31.623423 ($3423) P_R_N_D_P_N -> 0.0
+    7ec.31.623424 ($3424) P_R_N_D_L2 -> 0.0
+    7ec.31.623425 ($3425) P_R_N_D_L3 -> 0.0
+    7ec.31.623426 ($3426) P_R_N_D_L4 -> 0.0
+    7ec.31.623427 ($3427) debounced signal from eco mode button -> 0.0
+    7ec.24.623428 ($3428) Battery 14V Voltage after everychecking (internal SCH) -> 15.938 V
+    7ec.31.623429 ($3429) DCDC ready or not (internal EVC) -> 0.0
+    7ec.30.62342e ($342E) DCDC ready to sleep (internal EVC) -> 2.0
+    7ec.24.623431 ($3431) Time since the vehicle has been parked (calculated in SCH) -> 16777215.0 min
+    7ec.24.623432 ($3432) Battery voltage no load estimation memorization (internal SCH) -> 12.812 V
+    7ec.24.623433 ($3433) Battery voltage request (internal SCH) -> 13.5 V
+    7ec.30.623435 ($3435) AC compressor authorization command -> 0.0
+    7ec.24.623436 ($3436) AC compressor RPM real value -> 9000.0 rpm
+    7ec.24.623437 ($3437) AC compressor High Voltage value -> 508.0 V
+    7ec.24.623438 ($3438) AC compressor Power Module Temperature -> 120.0 °C
+    7ec.30.623439 ($3439) AC compressor Error Status -> 0.0
+    7ec.24.62343a ($343A) AC compressor Motor Phase Current -> 25.4
+    7ec.30.62343b ($343B) AC compressor State -> 0.0
+    7ec.24.62343c ($343C) Dysfunctional disconnections counter -> 0.0
+    7ec.24.62343d ($343D) Identification number of the batteries for the 10 last quick drop.9 -> 0.0
+    7ec.56.62343d ($343D) Identification number of the batteries for the 10 last quick drop.8 -> 0.0
+    7ec.88.62343d ($343D) Identification number of the batteries for the 10 last quick drop.7 -> 0.0
+   7ec.120.62343d ($343D) Identification number of the batteries for the 10 last quick drop.6 -> 0.0
+   7ec.152.62343d ($343D) Identification number of the batteries for the 10 last quick drop.5 -> 0.0
+   7ec.184.62343d ($343D) Identification number of the batteries for the 10 last quick drop.4 -> 0.0
+   7ec.216.62343d ($343D) Identification number of the batteries for the 10 last quick drop.3 -> 0.0
+   7ec.248.62343d ($343D) Identification number of the batteries for the 10 last quick drop.2 -> 0.0
+   7ec.280.62343d ($343D) Identification number of the batteries for the 10 last quick drop.1 -> 0.0
+   7ec.312.62343d ($343D) Identification number of the batteries for the 10 last quick drop.0 -> 0.0
+    7ec.24.623440 DIDs supported in range [$3440 - $3460] -> 5d
+    7ec.31.623441 ($3441) CAN signal for the status of the K-Line communication -> 0.0
+    7ec.30.623442 ($3442) ETS Sleeping authorisation according to HV Battery Management Strategies -> 2.0
+    7ec.24.623444 ($3444) CAN signal for the maximal charging power authorized by the HV battery -> 60.0 kW
+    7ec.24.623445 ($3445) CAN signal for the estimation of the BCB input power (power consumed from the Mains network) -> 51000.0 W
+    7ec.31.623446 ($3446) eco mode request -> 0.0
+    7ec.24.623448 ($3448) Electrical motor (EM) maximum effective torque available -> 0.0 N·m
+    7ec.24.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.9 -> 0.0 km
+    7ec.56.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.8 -> 0.0 km
+    7ec.88.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.7 -> 0.0 km
+   7ec.120.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.6 -> 0.0 km
+   7ec.152.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.5 -> 0.0 km
+   7ec.184.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.4 -> 0.0 km
+   7ec.216.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.3 -> 0.0 km
+   7ec.248.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.2 -> 0.0 km
+   7ec.280.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.1 -> 0.0 km
+   7ec.312.623449 ($3449) Total vehicle distance associated with each last ten Quick Drop.0 -> 0.0 km
+    7ec.24.62344a ($344A)Counter of the funct diag which aim at detecting a too often low performance of batt cooling system in study -> 0.0
+    7ec.31.62344b ($344B) Allow to control the BattVE Relay which gives energy to several ECU linked to thermal comfort -> 0.0
+    7ec.31.62344c ($344C) Plug Unlock/ Trap Open Push Button request -> 0.0
+    7ec.31.62344d ($344D) Energy Trap sensor status -> 1.0
+    7ec.31.62344e ($344E) Energy Trap Actuator Command -> 0.0
+    7ec.31.62344f ($344F) Plug Unlock/ Trap Open Push Button Status -> 0.0
+    7ec.31.623450 ($3450) Configuration of the Quick Drop (Enable or disable) -> 0.0
+    7ec.24.623451 ($3451) Estimated kilometric cruising range sent to MMI -> 1023.0 km
+    7ec.31.623452 ($3452) Eco mode request to be sent on the CAN for CLIM and MMC -> 0.0
+    7ec.31.623453 ($3453) EEPROM memorized value of the eco mode switch request -> 0.0
+    7ec.24.623454 ($3454) Contributions of anticipation lack and excessive vehicle speed to elec overconsumption since cluster reset.1 -> 22.58 kWh
+    7ec.48.623454 ($3454) Contributions of anticipation lack and excessive vehicle speed to elec overconsumption since cluster reset.0 -> 2.175 kWh
+    7ec.24.623457 ($3457) Mean pessimistic electrical consumption (worst possible consumption) -> 0.005 kW
+    7ec.24.623458 ($3458) Temporary estimated minimum kilometric cruising range sent to MMI -> 1023.0 km
+    7ec.24.623459 ($3459) Mean consumption per unit of distance -> 0.129 kW
+    7ec.24.62345a ($345A) Indicator relative to anticipation for economical scoring -> 0.0
+    7ec.24.62345b ($345B) Indicator of economical monitoring -> 0.0
+    7ec.24.62345c ($345C) Indicator relative to vehicle speed for economical scoring -> 0.0
+    7ec.24.62345d ($345D) Information about the performance of Battery conditionning system memorized in E2PROM -> 0.0
+    7ec.24.62345e ($345E) FAN global request from ETS in PWM including AC -> 5.0 %
+    7ec.29.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.10 -> 0.0
+    7ec.30.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.9 -> 0.0
+    7ec.31.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.8 -> 1.0
+    7ec.32.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.7 -> 0.0
+    7ec.33.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.6 -> 0.0
+    7ec.34.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.5 -> 0.0
+    7ec.35.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.4 -> 0.0
+    7ec.36.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.3 -> 0.0
+    7ec.37.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.2 -> 0.0
+    7ec.38.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.1 -> 0.0
+    7ec.39.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.0 -> 0.0
+    7ec.24.623460 DIDs supported in range [$3460 - $3480] -> 7c
+    7ec.31.623461 ($3461) Frame consistency ok -> 0.0
+    7ec.31.623463 ($3463) electrical braking torque setpoint -> 0.0
+    7ec.24.623464 ($3464) UBP brake pedal ratio from CAN -> 0.0
+    7ec.24.623465 ($3465) UBP wheel torque request from CAN -> 0.0 N·m
+    7ec.31.623466 ($3466) memorisation flag in NVMY of HV battery over-heating -> 0.0
+    7ec.31.623469 ($3469) Flag to prevent the activation of downgraded mode when MSR function is disabled -> 0.0
+    7ec.24.62346a ($346A) High Voltage Battery maximal Temperature from reductant LBC -> 80.0 °C
+    7ec.24.62346b ($346B) No pump allowed neither DCDC if this boolean is set to 0 -> 1.0
+    7ec.29.62346e ($346E) CAN signal for the PEB class of failure status (on charge) -> 0.0
+    7ec.29.62346f ($346F) Synthesis of JB charger fault type -> 7.0
+    7ec.24.623470 ($3470) Available JB2 power for a battery charge -> 51.1 kW
+    7ec.24.623471 ($3471) Request for engine fan speed from ClimBox -> 100.0 %
+    7ec.24.623472 ($3472) Lever 1st track duty cycle -> 0.177
+    7ec.24.623473 ($3473) Lever 2nd track duty cycle -> 0.826
+    7ec.29.623474 ($3474) PWM gearbox lever track 1 position -> 1.0
+    7ec.29.623475 ($3475) PWM gearbox lever track 2 position -> 1.0
+    7ec.24.623476 ($3476) Counter during one trip for contributions of anticipation lack and excessive vehicle speed to overconsumption.1 -> 0.0 J
+    7ec.48.623476 ($3476) Counter during one trip for contributions of anticipation lack and excessive vehicle speed to overconsumption.0 -> 0.0 J
+    7ec.24.623477 ($3477) Raw mean electrical consumption while economical driving -> 0.098 kWh/km
+    7ec.24.623478 ($3478) Raw mean consumption per unit of distance -> 0.129 kWh/km
+    7ec.24.623479 ($3479) Average over-consumption used for economical monitoring -> 0.0 kWh/km
+    7ec.31.62347a ($347A) Request to turn the reverse lights on (1) during reverse mode -> 0.0
+    7ec.31.62347b ($347B) Pulse box command -> 0.0
+    7ec.31.62347c ($347C) Pulse box diagnosis status -> 0.0
+    7ec.24.62347d ($347D) Internal errors detected by Battery Current Sensor.7 -> 1.0
+    7ec.25.62347d ($347D) Internal errors detected by Battery Current Sensor.6 -> 1.0
+    7ec.26.62347d ($347D) Internal errors detected by Battery Current Sensor.5 -> 1.0
+    7ec.28.62347d ($347D) Internal errors detected by Battery Current Sensor.3 -> 1.0
+    7ec.29.62347d ($347D) Internal errors detected by Battery Current Sensor.2 -> 1.0
+    7ec.30.62347d ($347D) Internal errors detected by Battery Current Sensor.1 -> 1.0
+    7ec.31.62347d ($347D) Internal errors detected by Battery Current Sensor.0 -> 1.0
+    7ec.24.62347e ($347E) Memorization of next 4 years alert value in time -> 1460.0 d
+    7ec.24.623481 ($3481) Internal counter for SOF test KO -> 0.0
+    7ec.24.623482 ($3482) Internal counter for SOF test failed -> 0.0
+    7ec.24.623483 ($3483) Time of the last SOF Test that occured -> 0.0 min
+    7ec.24.623484 ($3484) Current measurement given by BCS Battery Current Sensor -> 150.0 A
+    7ec.24.623485 ($3485) BCS shunt voltage -> 16.0 mV
+    7ec.29.623486 ($3486) Alert for changing battery -> 0.0
+    7ec.24.623487 ($3487) Counter of PWM Efan speed on Low speeds -> 804182.0
+    7ec.24.623488 ($3488) Counter of PWM Efan speed on Medium speeds -> 1921304.0
+    7ec.24.623489 ($3489) Counter of PWM Efan speed on High speeds -> 7387052.0
+    7ec.24.62348a ($348A) Current memorized for SOF test.20 -> -138.0 A
+    7ec.40.62348a ($348A) Current memorized for SOF test.19 -> -79.0 A
+    7ec.56.62348a ($348A) Current memorized for SOF test.18 -> -79.0 A
+    7ec.72.62348a ($348A) Current memorized for SOF test.17 -> -79.0 A
+    7ec.88.62348a ($348A) Current memorized for SOF test.16 -> -78.0 A
+   7ec.104.62348a ($348A) Current memorized for SOF test.15 -> -97.0 A
+   7ec.120.62348a ($348A) Current memorized for SOF test.14 -> -79.0 A
+   7ec.136.62348a ($348A) Current memorized for SOF test.13 -> -78.0 A
+   7ec.152.62348a ($348A) Current memorized for SOF test.12 -> -78.0 A
+   7ec.168.62348a ($348A) Current memorized for SOF test.11 -> -79.0 A
+   7ec.184.62348a ($348A) Current memorized for SOF test.10 -> -79.0 A
+   7ec.200.62348a ($348A) Current memorized for SOF test.9 -> -78.0 A
+   7ec.216.62348a ($348A) Current memorized for SOF test.8 -> -82.0 A
+   7ec.232.62348a ($348A) Current memorized for SOF test.7 -> -79.0 A
+   7ec.248.62348a ($348A) Current memorized for SOF test.6 -> -79.0 A
+   7ec.264.62348a ($348A) Current memorized for SOF test.5 -> -79.0 A
+   7ec.280.62348a ($348A) Current memorized for SOF test.4 -> -80.0 A
+   7ec.296.62348a ($348A) Current memorized for SOF test.3 -> -79.0 A
+   7ec.312.62348a ($348A) Current memorized for SOF test.2 -> -80.0 A
+   7ec.328.62348a ($348A) Current memorized for SOF test.1 -> -78.0 A
+    7ec.24.62348b ($348B) Result of measure memorized for SOF test.20 -> 57344.0
+    7ec.48.62348b ($348B) Result of measure memorized for SOF test.19 -> 57344.0
+    7ec.72.62348b ($348B) Result of measure memorized for SOF test.18 -> 57344.0
+    7ec.96.62348b ($348B) Result of measure memorized for SOF test.17 -> 57344.0
+   7ec.120.62348b ($348B) Result of measure memorized for SOF test.16 -> 57344.0
+   7ec.144.62348b ($348B) Result of measure memorized for SOF test.15 -> 57344.0
+   7ec.168.62348b ($348B) Result of measure memorized for SOF test.14 -> 57344.0
+   7ec.192.62348b ($348B) Result of measure memorized for SOF test.13 -> 57344.0
+   7ec.216.62348b ($348B) Result of measure memorized for SOF test.12 -> 57344.0
+   7ec.240.62348b ($348B) Result of measure memorized for SOF test.11 -> 57344.0
+   7ec.264.62348b ($348B) Result of measure memorized for SOF test.10 -> 57344.0
+   7ec.288.62348b ($348B) Result of measure memorized for SOF test.9 -> 57344.0
+   7ec.312.62348b ($348B) Result of measure memorized for SOF test.8 -> 57344.0
+   7ec.336.62348b ($348B) Result of measure memorized for SOF test.7 -> 57344.0
+   7ec.360.62348b ($348B) Result of measure memorized for SOF test.6 -> 57344.0
+   7ec.384.62348b ($348B) Result of measure memorized for SOF test.5 -> 57344.0
+   7ec.408.62348b ($348B) Result of measure memorized for SOF test.4 -> 57344.0
+    7ec.30.623490 ($3490) Critical Failure detected on the 14V network (internal SCH) -> 0.0
+    7ec.31.623491 ($3491) Request of ETS to force 14v network energy management into traction battery (from ETS CAN) -> 0.0
+    7ec.31.623492 ($3492) Boolean that indicates the loss of a correct measurement on 14V -> 1.0
+    7ec.31.623493 ($3493) Authorisation from METS to activate DCDC converter -> 0.0
+    7ec.24.623494 ($3494) Instantaneous DCDC output power -> 0.0 W
+    7ec.24.623495 ($3495) Current ratio from DCDC. (Idcdc / Idcdcmax) -> 99.2 %
+    7ec.31.623496 ($3496) 14 V battery charge Authorisation flag from METS -> 0.0
+    7ec.31.623497 ($3497) Better Place Config -> 0.0
+    7ec.31.623498 ($3498) This flag shows the battery relay PTC n°1(X10 -> 0.0
+    7ec.31.623499 ($3499) relay thermoplunger (X07) n°1 request -> 0.0
+    7ec.31.62349a ($349A) This flag shows the battery relay PTC n°2 (X10 -> 0.0
+    7ec.31.62349b ($349B) relay thermoplunger (X07) n°2 request -> 0.0
+    7ec.31.62349c ($349C) This flag shows the battery relay PTC n°3 (X10 -> 0.0
+    7ec.31.62349d ($349D) relay thermoplunger (X07) n°3 request -> 0.0
+    7ec.31.62349e ($349E) Battery evaporator electrical Valve status (Valve for battery HVAC) -> 0.0
+    7ec.31.62349f ($349F) Cabin evaporator electrical Valve status (Valve for cabin HVAC) -> 0.0
+    7ec.24.6234a1 ($34A1) Battery blower speed rotation (Feedback signal) -> 0.0 Hz
+    7ec.24.6234a2 ($34A2) Battery Evaporator thermal sensor -> 0.0 °C
+    7ec.24.6234a3 ($34A3) Rear Evaporator temperature target -> 25.0 °C
+    7ec.29.6234a4 ($34A4) Battery cooling order -> 0.0
+    7ec.30.6234a5 ($34A5) TC flag ready to sleep -> 2.0
+    7ec.25.6234a6 ($34A6) Battery HVAC speed rotation request (command of the blower) -> 0.0 %
+    7ec.29.6234a7 ($34A7) Battery Cooling System Type -> 1.0
+    7ec.29.6234a8 ($34A8) Battery Heating System Type -> 1.0
+    7ec.31.6234a9 ($34A9) Configuration of the TCU (Enable or disable) -> 1.0
+    7ec.31.6234aa ($34AA) Differential Protection in EVC -> 0.0
+    7ec.24.6234ad ($34AD) Set-point for the charge current for the JB2 -> 0.0 A
+    7ec.24.6234ae ($34AE) PEB frame monitoring status flags.all -> 0.0
+    7ec.27.6234ae ($34AE) PEB frame monitoring status flags.B4 -> 0.0
+    7ec.29.6234ae ($34AE) PEB frame monitoring status flags.B2 -> 0.0
+    7ec.30.6234ae ($34AE) PEB frame monitoring status flags.B1 -> 0.0
+    7ec.31.6234ae ($34AE) PEB frame monitoring status flags.B0 -> 0.0
+    7ec.31.6234af ($34AF) EVC waiting for isolation confirmation before starting charge -> 0.0
+    7ec.31.6234b0 ($34B0) Configuration of the Load Shedding -> 0.0
+    7ec.30.6234b2 ($34B2) Gasoline heater configuration V2 -> 0.0
+    7ec.30.6234b3 ($34B3) PTC_Config V2 -> 0.0
+    7ec.31.6234b4 ($34B4) Cut off charge request by thermal comfort to start compressor with safety conditions -> 1.0
+    7ec.30.6234b5 ($34B5) Authorization for deicing function -> 3.0
+    7ec.24.6234b6 ($34B6) Pre-conditionning available energy -> 0.0 Wh
+    7ec.29.6234b7 ($34B7) Defaults and state of the compressor description -> 1.0
+    7ec.31.6234b8 ($34B8) Request for activation of preconditionning from EVC to Climbox -> 0.0
+    7ec.30.6234b9 ($34B9) Pre Conditionning activation request from cluster -> 0.0
+    7ec.30.6234ba ($34BA) Pre-conditionning request memorized by EVC -> 0.0
+    7ec.30.6234bb ($34BB) Request for low level battery -> 0.0
+    7ec.30.6234bc ($34BC) Request for flashers when Immediate PreHeating is requested -> 1.0
+    7ec.24.6234be ($34BE) Local time received by EVC -> 1440.0 min
+    7ec.30.6234bf ($34BF) Immediate pre-conditionning request -> 0.0
+    7ec.30.6234c1 ($34C1) Pre Conditionning activation request from climbox -> 0.0
+    7ec.30.6234c2 ($34C2) Defaults and state of the HV PTC description -> 1.0
+    7ec.24.6234c3 ($34C3) Scheduled time 1 requested by the customer for the preconditionning system -> 1440.0 min
+    7ec.24.6234c4 ($34C4) Scheduled time 2 requested by the customer for the preconditionning system -> 1440.0 min
+    7ec.31.6234c5 ($34C5) Request to the BCM to start the counter for vehicle wakeup due to preconditionning -> 0.0
+    7ec.31.6234c6 ($34C6) Request to the BCM to stop the counter for vehicle wakeup due to preconditionning -> 0.0
+    7ec.24.6234c8 ($34C8) Power available for Climate functions -> 0.5 kW
+    7ec.24.6234c9 ($34C9) Available charging power necessary to authorize some functions (preconditionning -> 51.1 kW
+    7ec.24.6234ca ($34CA) Available power for preconditionning -> 500.0 W
+    7ec.24.6234cb ($34CB) Cabin blower command -> 100.0 %
+    7ec.24.6234cc ($34CC) Scheduled Time 1 memorized by EVC -> 405.0 min
+    7ec.24.6234cd ($34CD) Scheduled Time 2 memorized by EVC -> 450.0 min
+    7ec.31.6234ce ($34CE) Manage Failure Authorization of the HV PTC -> 1.0
+    7ec.24.6234cf ($34CF) Power consumed by the 400V components for Thermal Comfort -> 0.0
+    7ec.31.6234d0 ($34D0) Internal flag : HV Battery Conditionning Authorisation flag -> 0.0
+    7ec.24.6234d1 ($34D1) This variable allows to memorize the reseted energy consumed 2 -> 7398.254 KWh
+    7ec.24.6234d2 ($34D2) This variable allows to memorize the reseted distance 2 -> 10000.0
+    7ec.30.6234d3 ($34D3) HV Battery Conditioning Activation Authorisation -> 0.0
+    7ec.30.6234d4 ($34D4) Signal of requesting the MMI DoNotTow -> 1.0
+    7ec.30.6234d5 ($34D5) Chiller activation request -> 1.0
+    7ec.24.6234d7 ($34D7) HVB chiller temperature set point -> 0.0 °C
+    7ec.25.6234d8 ($34D8) Water Temperature in BCB -> 25.0 °C
+    7ec.30.6234d9 ($34D9) State of Chiller valves received from CAREG -> 0.0
+    7ec.31.6234da ($34DA) Postal service configuration -> 0.0
+    7ec.30.6234dc ($34DC) CAN signal for PEB charge mode status V2 -> 0.0
+    7ec.30.6234dd ($34DD) Request for PEB Charge mode V2 -> 1.0
+    7ec.30.6234de ($34DE) Compressor Configuration V3 -> 1.0
+    7ec.24.6234e0 DIDs supported in range [$34E0 - $3500] -> 9f
+    7ec.24.6234e4 ($34E4) Charge power available.9 -> 2.5 kW
+    7ec.40.6234e4 ($34E4) Charge power available.8 -> 1.4 kW
+    7ec.56.6234e4 ($34E4) Charge power available.7 -> 1.3 kW
+    7ec.72.6234e4 ($34E4) Charge power available.6 -> 1.3 kW
+    7ec.88.6234e4 ($34E4) Charge power available.5 -> 1.3 kW
+   7ec.104.6234e4 ($34E4) Charge power available.4 -> 1.3 kW
+   7ec.120.6234e4 ($34E4) Charge power available.3 -> 1.3 kW
+   7ec.136.6234e4 ($34E4) Charge power available.2 -> 2.4 kW
+   7ec.152.6234e4 ($34E4) Charge power available.1 -> 1.3 kW
+   7ec.168.6234e4 ($34E4) Charge power available.0 -> 1.3 kW
+    7ec.24.6234e5 ($34E5) Low level battery warning sent to the MMI -> 0.0
+    7ec.24.6234e6 ($34E6) Empty level battery warning sent to the MMI -> 0.0
+    7ec.24.6234e7 ($34E7) Coding Signal from CAN data CompTemperatureDischarge -> 200.0
+    7ec.24.6234e8 ($34E8) Coding Signal from CAN data DeIcingRequest -> 3.0
+    7ec.24.6234e9 ($34E9) Ratio of PTC power used -> 100.0
+    7ec.24.6234ea ($34EA) Estimation of the current consumed by the PTC -> 20.0
+    7ec.24.6234eb ($34EB) Power used by HVPTC -> 0.0 W
+    7ec.24.6234ec ($34EC) State of the AC Loop -> 0.0
+    7ec.24.6234ed ($34ED) PreheatingSelectedDisplayRequest -> 0.0
+    7ec.24.6234ee ($34EE) LeftTimeBeforeVehicleWakeUp -> 2047.0 min
+    7ec.24.6234ef ($34EF) HVB Water Cooling Temperature -> 25.0 °C
+    7ec.24.6234f0 ($34F0) Command of battery heater relay -> 0.0
+    7ec.24.6234f1 ($34F1) Request to METS asking for authorisation of battery heating -> 0.0
+    7ec.24.6234f2 ($34F2) Maximal power authorised for thermal comfort -> 0.0 kW
+    7ec.24.6234f3 ($34F3)High Voltage min Batt Temp checked by CAN -> 0.0 °C
+    7ec.24.6234f4 ($34F4) Threshold for HVBattery conditioning received from BMS -> 80.0 °C
+    7ec.24.6234f5 ($34F5) Threshold for HVBattery conditioning received from BMS (01) -> 80.0 °C
+    7ec.24.6234f8 ($34F8) Threshold for HVBattery conditioning received from BMS (03) -> 80.0 °C
+    7ec.24.6234f9 ($34F9) Number of authorized stages for CTP battery -> 0.0
+    7ec.24.6234fa ($34FA) Power authorized for CTP battery activation -> 0.0
+    7ec.24.6234fb ($34FB) Number of authorized stages for CTP battery taking power allocated into account -> 0.0
+    7ec.24.6234fc ($34FC) Water temperature used for Chiller -> 20.0 °C
+    7ec.24.6234fd ($34FD)High Voltage min Batt Temp checked by CAN -> 0.0 °C
+    7ec.31.6234fe ($34FE) Authorisation req checking for compressor in charge mode -> 0.0
+    7ec.31.6234ff ($34FF) Second water gate when battery is cooled with water -> 0.0
+    7ec.24.623500 DIDs supported in range [$3500 - $3520] -> cd
+    7ec.24.623502 ($3502) FANConfig flag memorised into EVC EEPROM at powerlatch -> 1.0
+    7ec.24.623505 ($3505) PLGWConfig flag memorised into EVC EEPROM at powerlatch -> 0.0
+    7ec.24.623506 ($3506) PlugTypeConfig flag memorised into EVC EEPROM at powerlatch -> 0.0
+    7ec.24.623508 ($3508) AEBS presence for regenerative braking -> 0.0
+    7ec.24.623509 ($3509) BatVE presence -> 1.0
+    7ec.24.62350a ($350A) Battery Heating 12V presence -> 0.0
+    7ec.24.62350b ($350B) Raw gear position of PWM lever corresponding to the actual lever position -> 1.0
+    7ec.24.62350c ($350C) flag configuration X61 with Heat pump -> 0.0 -
+    7ec.24.62350d ($350D) Response Error HP61 -> 0.0 -
+    7ec.24.62350e ($350E) Climatisation Compressor Speed Heat HP61 request -> 9000.0 -
+    7ec.24.62350f ($350F) Climatisation Loop Mode HP61 status -> 0.0
+    7ec.24.623510 ($3510) Cooling Mode Request -> 0.0
+    7ec.31.623511 ($3511) Delcing Request HP61 status -> 0.0
+    7ec.24.623512 ($3512) BatVE ShutDown Alert HP61 -> 2.0 -
+    7ec.24.623513 ($3513) Cooling Mode Request (01) -> 0.0
+    7ec.24.623514 ($3514) DeIce Vehicle Request -> 0.0
+    7ec.24.623515 ($3515) Deice Permission -> 1.0
+    7ec.24.623516 ($3516) Heating Mode Request -> 0.0
+    7ec.24.623517 ($3517) PTC Number Thermal BCM request -> 4.0 -
+    7ec.24.623518 ($3518) Water Temperature SetPoint HP61 -> 33.0 °C
+    7ec.24.623519 ($3519) BlowerSpeed PH61 status -> 50.0 %
+    7ec.24.62351a ($351A) Temperature Evaporation SetPoint HP61 request -> 0.0 °C
+    7ec.24.62351b ($351B) Temperature Hot Source HP61 -> 20.0 °C
+    7ec.24.62351c ($351C) Hot Mode HP61 -> 0.0 -
+    7ec.24.62351d ($351D) flag configuration X61 with Heat pump -> 0.0 -
+    7ec.24.62351e ($351E) Cooling fluid config (01) -> 1.0
+    7ec.24.62351f ($351F) AC Heat pump circuit Valve 1 managed by PAC system on LIN -> 0.0
+    7ec.30.623521 ($3521) AC Heat pump circuit Valve 2 managed by PAC system on LIN -> 0.0
+    7ec.28.623522 ($3522) IH_FailureValve1_HP61_status -> 0.0
+    7ec.28.623523 ($3523) IH_FailureValve2_HP61_status -> 0.0
+    7ec.28.623524 ($3524) VH_FailureSensor2_HP61_status -> 0.0
+    7ec.28.623525 ($3525) VH_FailureSensor1_HP61_status -> 0.0
+    7ec.24.623526 ($3526) Reset fault identifying number -> 0.0
+    7ec.31.623527 ($3527) Preheating requested by the customer -> 0.0
+    7ec.31.623528 ($3528) Authorization boolean from METS for PreheatByKey f(SOC) -> 0.0
+    7ec.31.623529 ($3529) Authorization boolean from METS for Preheat f(SOC) -> 0.0
+    7ec.30.62352a ($352A) Less power range by AC to decrease IHM range autonomy -> 0.0
+    7ec.31.62352b ($352B) B_Batt_BlowerState for MCS -> 0.0
+    7ec.31.62352c ($352C) B_CTP_Rly_ConfirmedFail to MCS -> 0.0
+    7ec.24.62352d ($352D) K_LessPowerRangeByAC for MMI display X07 -> 0.0
+    7ec.24.62352e ($352E) ClimTempDisplay -> 10.0
+    7ec.24.62352f ($352F) Internal Temp -> 0.0 °C
+    7ec.24.623532 ($3532) Country configuration -> 0.0
+    7ec.31.623533 ($3533) DeIcing Activation -> 0.0
+    7ec.30.623534 ($3534) HV Battery cooling State -> 0.0
+    7ec.31.623535 ($3535) DeIce Activation Authorisation flag -> 0.0
+    7ec.29.623536 ($3536) HV Battery Condtionning mode -> 3.0
+    7ec.24.623537 ($3537) IH_Pct_EngineFanSpeedPWM_HP61 -> 150.0 %
+    7ec.28.623538 ($3538) IH_StateValve1_HP61_status -> 15.0
+    7ec.28.623539 ($3539) IH_StateValve2_HP61_status -> 15.0
+    7ec.24.62353a ($353A) Physical value of the sensor NTC1 (Td) -> 200.0 °C
+    7ec.24.62353b ($353B) Physical value of the sensor NTC2 (Ts) -> -16263.5 °C
+    7ec.31.62353c ($353C) VH_ChillerInDriveON -> 0.0
+    7ec.28.62353d ($353D) Number of batt CTP or Thp water requested -> 0.0
+    7ec.30.62353e ($353E) VH_BattThpNumberThermalReq -> 0.0
+    7ec.29.62353f ($353F) Raw gear position of lever by CAN corresponding to the actual lever position -> 1.0
+    7ec.24.623540 DIDs supported in range [$3540 - $3560] -> 5c
+    7ec.24.623541 ($3541) Boolean of Charge limitation during Very cold preheat -> 0.0
+    7ec.24.623542 ($3542) Value of the safety torque structure monitoring status flags before the hot-reset -> 0.0
+    7ec.24.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.00 -> 3916885.0 min
+    7ec.48.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.01 -> 3916671.0 min
+    7ec.72.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.02 -> 3916610.0 min
+    7ec.96.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.03 -> 3916504.0 min
+   7ec.120.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.04 -> 3916486.0 min
+   7ec.144.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.05 -> 3916439.0 min
+   7ec.168.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.06 -> 3916395.0 min
+   7ec.192.623544 ($3544) Time spent since first ignition of the vehicle for the last extrafeeding.07 -> 0.0 min
+    7ec.24.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.00 -> 88.0 °C
+    7ec.32.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.01 -> -20.0 °C
+    7ec.40.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.02 -> 88.0 °C
+    7ec.48.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.03 -> -16.0 °C
+    7ec.56.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.04 -> 88.0 °C
+    7ec.64.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.05 -> -16.0 °C
+    7ec.72.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.06 -> 88.0 °C
+    7ec.80.623545 ($3545) CAN signal for external temperature of the vehicle for the last extrafeeding.07 -> -18.0 °C
+    7ec.24.623546 ($3546) No Load Battery Voltage for the last extrafeeding.00 -> 29.196 V
+    7ec.40.623546 ($3546) No Load Battery Voltage for the last extrafeeding.01 -> 29.196 V
+    7ec.56.623546 ($3546) No Load Battery Voltage for the last extrafeeding.02 -> 29.196 V
+    7ec.72.623546 ($3546) No Load Battery Voltage for the last extrafeeding.03 -> 29.196 V
+    7ec.88.623546 ($3546) No Load Battery Voltage for the last extrafeeding.04 -> 29.196 V
+   7ec.104.623546 ($3546) No Load Battery Voltage for the last extrafeeding.05 -> 29.196 V
+   7ec.120.623546 ($3546) No Load Battery Voltage for the last extrafeeding.06 -> 29.196 V
+   7ec.136.623546 ($3546) No Load Battery Voltage for the last extrafeeding.07 -> 29.196 V
+    7ec.24.62f800 DIDs supported in range [$F801 - $F820] -> 80
+    7ec.24.62f804 ($F804) $09 - OBD calibration identifications.7 -> 1213025351.0
+    7ec.56.62f804 ($F804) $09 - OBD calibration identifications.6 -> 1412707379.0
+    7ec.88.62f804 ($F804) $09 - OBD calibration identifications.5 -> 861011968.0
+
+ECU: FFC
+
+ECU: HVAC
+
+ECU: LBC2
+
+ECU: LBC
+
+ECU: PEB
+
+ECU: Parking-Sonar
+
+ECU: TDB
+
+ECU: UBP
+
+ECU: UCH
+
+ECU: USM
+      76d.16.6102 Batt_Voltage_Sense_High -> 4.0
+      76d.24.6102 Batt_Voltage_Sense_Low -> 235.0
+      76d.32.6102 Ac_Valve_Adiag_High -> 0.0
+      76d.40.6102 Ac_Valve_Adiag_Low -> 24.0
+      76d.48.6102 Low_Beam_Left_Adiag_High -> 0.0
+      76d.56.6102 Low_Beam_Left_Adiag_Low -> 0.0
+      76d.64.6102 Low_Beam_Right_Adiag_High -> 0.0
+      76d.72.6102 Low_Beam_Right_Adiag_Low -> 0.0
+      76d.80.6102 Auto_Stop_Wiper_High -> 0.003
+      76d.88.6102 Auto_Stop_Wiper_Low -> 3.0
+      76d.96.6102 MASTERVAC_PRESSURE_SENSE_MSB -> 0.038
+     76d.104.6102 MASTERVAC_PRESSURE_SENSE_LSB -> 38.0
+     76d.112.6102 DTRL_VOLT_REREAD_LEFT_MSB -> 0.0
+     76d.120.6102 DTRL_VOLT_REREAD_LEFT_LSB -> 0.0
+     76d.128.6102 DTRL_VOLT_REREAD_RIGHT_MSB -> 0.0
+     76d.136.6102 DTRL_VOLT_REREAD_RIGHT_LSB -> 0.0
+     76d.144.6102 AC_Clutch_Adiag_High -> 0.003
+     76d.152.6102 AC_Clutch_Adiag_Low -> 3.0
+     76d.160.6102 SEAT_SENSOR_SENSE_MSB -> 0.042
+     76d.168.6102 SEAT_SENSOR_SENSE_LSB -> 42.0
+     76d.176.6102 Batt1_Voltage_Sense_High -> 1.252
+     76d.184.6102 Batt1_Voltage_Sense_Low -> 228.0
+     76d.192.6102 HIGH_BEAM_RIGHT_MSB -> 0.0
+     76d.200.6102 HIGH_BEAM_RIGHT_LSB -> 0.0
+     76d.208.6102 HIGH_BEAM_LEFT_MSB -> 0.0
+     76d.216.6102 HIGH_BEAM_LEFT_LSB -> 0.0
+     76d.224.6102 INT_THERMAL_SENSE_MSB -> 0.455
+     76d.232.6102 INT_THERMAL_SENSE_LSB -> 199.0
+     76d.240.6102 Batt2_D_Sense_High -> 4.0
+     76d.248.6102 Batt2_D_Sense_Low -> 223.0
+      76d.16.6103 Diag_contactor -> 0.0
+      76d.18.6103 Bat_Abs_Valves_Reread -> 1.0
+      76d.19.6103 Bat_At_Gear_Lpg_Reread -> 1.0
+      76d.22.6103 Ignition_Ddiag -> 0.0
+      76d.24.6103 Feedback1_Adiag_High -> 0.0
+      76d.32.6103 Feedback1_Adiag_Low -> 0.0
+      76d.40.6103 Feedback2_Adiag_High -> 0.0
+      76d.48.6103 Feedback2_Adiag_Low -> 0.0
+      76d.72.6103 Feedback4_Adiag_High -> 0.0
+      76d.80.6103 Feedback4_Adiag_Low -> 0.0
+     76d.104.6103 FIRST_GND_A_DIAG_MSB -> 0.0
+     76d.112.6103 FIRST_GND_A_DIAG_LSB -> 254.0
+     76d.120.6103 FBL_ADIAG_LH_MSB -> 0.0
+     76d.128.6103 FBL_ADIAG_LH_LSB -> 0.0
+     76d.136.6103 POSITION_NIGHT_ADIAG_MSB -> 0.0
+     76d.144.6103 POSITION_NIGHT_ADIAG_LSB -> 0.0
+     76d.152.6103 POSITION_REAR_LH_ADIAG MSB -> 0.0
+     76d.160.6103 POSITION_REAR_LH_ADIAG LSB -> 0.0
+     76d.168.6103 POSITION_FRONT_LEFT_AND_RIGHT_MSB -> 0.0
+     76d.176.6103 POSITION_FRONT_LEFT_AND_RIGHT_LSB -> 0.0
+     76d.184.6103 POSITION_REAR_RIGHT_MSB -> 0.0
+     76d.192.6103 POSITION_REAR_RIGHT_LSB -> 0.0
+     76d.200.6103 FOG_LAMPS_LH_A_DIAG_MSB -> 0.0
+     76d.208.6103 FOG_LAMPS_LH_A_DIAG_LSB -> 0.0
+     76d.216.6103 FOG_LAMPS_RH_A_DIAG_MSB -> 0.0
+     76d.224.6103 FOG_LAMPS_RH_A_DIAG_LSB -> 0.0
+     76d.232.6103 IGNITION_NOT_COLUMN_LOCK_ADIAG_MSB -> 0.0
+     76d.240.6103 IGNITION_NOT_COLUMN_LOCK_ADIAG_LSB -> 0.0
+     76d.248.6103 FBL_ADIAG_RH_MSB -> 0.0
+     76d.256.6103 FBL_ADIAG_RH_LSB -> 0.0
+      76d.16.6104 IgnitionReset_status -> 1.0
+      76d.17.6104 Right_Washer_Relay -> 0.0
+      76d.20.6104 Left_Washer_Relay -> 0.0
+      76d.21.6104 Starter_relay -> 0.0
+      76d.23.6104 Motor_Fan_Lo_Relay -> 0.0
+      76d.24.6104 IgnitionSet_status -> 0.0
+      76d.25.6104 Close_Contactor_Relay -> 0.0
+      76d.26.6104 Ac_Clutch_Relay -> 1.0
+      76d.27.6104 WATER_PUMP -> 0.0
+      76d.28.6104 External_Fan_Relay_1 -> 0.0
+      76d.29.6104 LED_ON_OFF -> 0.0
+      76d.30.6104 CONVERTER -> 0.0
+      76d.31.6104 EXT_MOTOR_FAN2_RELAY -> 0.0
+      76d.32.6104 FRONT_WIPER_LO_HI_RELAY -> 0.0
+      76d.33.6104 Control_Contactor_Fet -> 0.0
+      76d.34.6104 IGNITION NOT COLUMN LOCK -> 1.0
+      76d.36.6104 Control_Diag_Contactor -> 0.0
+      76d.37.6104 Open_Contactor_Relay -> 0.0
+      76d.38.6104 FRONT_WIPER_ON_OFF_RELAY -> 0.0
+      76d.43.6104 POSITION NIGHT -> 0.0
+      76d.44.6104 External_Fan_Relay_3 -> 0.0
+      76d.48.6104 CONTROL_LIGHTING -> 0.0
+      76d.49.6104 VCC_LIGHTING_ENABLE -> 0.0
+      76d.16.6105 AC_valve_duty_cycle -> 0.0 %
+      76d.24.6105 HIGH_BEAM_LEFT -> 0.0 %
+      76d.32.6105 HIGH_BEAM_RIGHT -> 0.0 %
+      76d.40.6105 LOW_BEAM_LEFT_duty_cycle -> 0.0 %
+      76d.48.6105 LOW_BEAM_RIGHT_duty_cycle -> 0.0 %
+      76d.56.6105 DRL_LEFT -> 0.0
+      76d.72.6105 DRL_RIGHT -> 0.0 %
+      76d.80.6105 FOG_LAMPS_LEFT -> 0.0 %
+      76d.88.6105 FOG_LAMPS_RIGHT -> 0.0 %
+      76d.96.6105 FBL_LEFT -> 0.0 %
+     76d.104.6105 FBL RIGHT -> 0.0 %
+     76d.112.6105 POSTION_FRONT_LEFT_AND_RIGHT -> 0.0 %
+     76d.120.6105 POSITION_REAR_RIGHT -> 0.0 %
+     76d.128.6105 POSITION -> 0.0 %
+      76d.16.6106 E_B_OilPressureFailureInhibition -> 1.0
+      76d.17.6106 C_B_StressProtectionEnable -> 2.0
+      76d.19.6106 E_B_GearBoxType -> 2.0
+      76d.20.6106 E_B_LCS -> 0.0
+      76d.21.6106 C_B_StarterProtection -> 0.0
+      76d.22.6106 C_B_VRLA_Batt -> 0.0
+      76d.23.6106 C_B_IHMLowBatteryActiv -> 0.0
+      76d.24.6106 E_K_CompType -> 449.0
+      76d.32.6106 C_B_BDUActivation -> 0.0
+      76d.33.6106 C_B_AutoStopProtection -> 1.0
+      76d.34.6106 C_K_BatteryType -> 1760.0
+      76d.37.6106 C_K_FrontBattery_type -> 1.0
+      76d.38.6106 C_B_UsingDirectActivation -> 1.0
+      76d.39.6106 C_B_NeutralContact_Diag -> 0.0
+      76d.48.6106 C_K_MechanicalRatio -> 2.0
+      76d.56.6106 E_B_FailureInhibition -> 1.0
+     76d.136.6106 E_B_NeutralNeverReachedInhibition -> 0.71
+     76d.137.6106 C_K_Low_limit_min -> 0.15
+     76d.144.6106 E_B_DRLWithoutPWM -> 5177.0
+     76d.145.6106 C_K_Low_limit_max -> 0.2
+     76d.153.6106 C_K_High_limit_min -> 0.57
+     76d.160.6106 C_B_FloatingInhibit -> 2.0
+     76d.161.6106 C_K_High_limit_max -> 0.62
+     76d.168.6106 E_B_EEM_FailureInhibition -> 83.0
+     76d.178.6106 E_B_AlertBDUDirect -> 1.0
+     76d.179.6106 C_B_VehiculeRunning -> 1.0
+     76d.180.6106 C_RPM_EngineThreshold -> 1600.0
+      76d.16.6107 E_B_ECMReset -> 1.0
+      76d.23.6107 C_TM_LowSpeedWipingProtection -> 30000.0 ms
+      76d.29.6107 C_TM_HighSpeedWipingProtection -> 30000.0 ms
+      76d.35.6107 C_TM_HighSpeedPeriod_limit_max -> 1900.0 ms
+      76d.41.6107 C_TM_LowSpeedPeriod_limit_max -> 2500.0 ms
+      76d.47.6107 C_K_Mission -> 50.0
+      76d.53.6107 C_Tau_Engine -> 190.0 min
+      76d.61.6107 C_TM_HeadLampFirstWash -> 2.3 s
+      76d.67.6107 C_TM_HeadLampSecondWash -> 1.3 s
+      76d.76.6107 C_TM_HeadLampStopped -> 0.5 s
+      76d.16.6108 C_K_AlternatorTable -> 128.0
+
+ECU: VFC
+
+ECU: _Fields (generic)
+    7ec.24.622002 State Of Charge (SOC) HV battery -> 0.0 %
+    7ec.24.623204 HV LBC current measure -> 0.0 A
+    7ec.24.623206 State Of Health (SOH) HV battery -> 126.0 %
+    7ec.24.623319 Charger pump speed -> 0.0 %
+    7ec.24.62331a Heater water pump speed -> 0.0 %
+   7ec.240.6233d4 odometer history 1 -> 47019.0 km
+   7ec.216.6233d4 odometer history 2 -> 47019.0 km
+   7ec.192.6233d4 odometer history 3 -> 46925.0 km
+   7ec.168.6233d4 odometer history 4 -> 46925.0 km
+   7ec.144.6233d4 odometer history 5 -> 46878.0 km
+   7ec.120.6233d4 odometer history 6 -> 46878.0 km
+    7ec.96.6233d4 odometer history 7 -> 46878.0 km
+    7ec.72.6233d4 odometer history 8 -> 46878.0 km
+    7ec.48.6233d4 odometer history 9 -> 46842.0 km
+    7ec.24.6233d4 odometer history 10 -> 46747.0 km
+    7ec.96.6233d5 end of charge reason 1 -> 2.0
+    7ec.88.6233d5 end of charge reason 2 -> 2.0
+    7ec.80.6233d5 end of charge reason 3 -> 1.0
+    7ec.72.6233d5 end of charge reason 4 -> 1.0
+    7ec.64.6233d5 end of charge reason 5 -> 1.0
+    7ec.56.6233d5 end of charge reason 6 -> 2.0
+    7ec.48.6233d5 end of charge reason 7 -> 2.0
+    7ec.40.6233d5 end of charge reason 8 -> 2.0
+    7ec.32.6233d5 end of charge reason 9 -> 1.0
+    7ec.24.6233d5 end of charge reason 10 -> 1.0
+    7ec.96.6233d6 charge type 1 -> 0.0
+    7ec.88.6233d6 charge type 2 -> 0.0
+    7ec.80.6233d6 charge type 3 -> 0.0
+    7ec.72.6233d6 charge type 4 -> 0.0
+    7ec.64.6233d6 charge type 5 -> 0.0
+    7ec.56.6233d6 charge type 6 -> 0.0
+    7ec.48.6233d6 charge type 7 -> 0.0
+    7ec.40.6233d6 charge type 8 -> 0.0
+    7ec.32.6233d6 charge type 9 -> 0.0
+    7ec.24.6233d6 charge type 10 -> 0.0
+   7ec.168.6233d7 State of charge 1 -> 47.2 %
+   7ec.152.6233d7 State of charge 2 -> 45.8 %
+   7ec.136.6233d7 State of charge 3 -> 78.0 %
+   7ec.120.6233d7 State of charge 4 -> 56.6 %
+   7ec.104.6233d7 State of charge 5 -> 60.4 %
+    7ec.88.6233d7 State of charge 6 -> 55.6 %
+    7ec.72.6233d7 State of charge 7 -> 53.8 %
+    7ec.56.6233d7 State of charge 8 -> 53.2 %
+    7ec.40.6233d7 State of charge 9 -> 72.6 %
+    7ec.24.6233d7 State of charge 10 -> 74.6 %
+    7ec.96.6233d8 Battery temperature 1 -> 22.0 °C
+   7ec.168.6233d9 Charge duration 1 -> 5.0 min
+   7ec.152.6233d9 Charge duration 2 -> 37.0 min
+   7ec.136.6233d9 Charge duration 3 -> 206.0 min
+   7ec.120.6233d9 Charge duration 4 -> 197.0 min
+   7ec.104.6233d9 Charge duration 5 -> 95.0 min
+    7ec.88.6233d9 Charge duration 6 -> 28.0 min
+    7ec.72.6233d9 Charge duration 7 -> 12.0 min
+    7ec.56.6233d9 Charge duration 8 -> 0.0 min
+    7ec.40.6233d9 Charge duration 9 -> 619.0 min
+    7ec.24.6233d9 Charge duration 10 -> 472.0 min
+    7ec.24.623451 Estimated kilometric cruising range sent to MMI -> 1023.0 km
+    7ec.24.623455 Mean eco electrical consumption (if driver has economical driving behavior) -> 0.097 kW
+    7ec.24.623457 Mean pessimistic electrical consumption (worst possible consumption) -> 0.005 kW
+    7ec.24.6233dd Trip energy consumed -> 139.071 kwh
+    7ec.24.6233de Trip distance -> 979.98 km
+    7ec.24.623484 Current measurement given by BCS Battery Current Sensor -> 150.0 A
+    7ec.24.623485 BCS shunt voltage -> 16.0 mV
+-- _Fields (generic): 63/302 values
+Finished scanning ZOE
+Scan duration: 00:07:13 (433s)

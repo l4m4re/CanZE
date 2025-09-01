@@ -25,6 +25,20 @@ When agents/pollers consume PyCanZE, decide what to read/publish based on vehicl
   - 7ec.24.622002 SOC HV battery — often 0.0% in charger-connected-sleep.
   - 7ec.24.623319 Charger pump speed — 0% asleep; >0% charging/cooling.
   - 7ec.24.623028 DCDC Load — 0% asleep; small >0% when charging.
+  - 7ec.31.6233cd ($33CD) Request of Hvac power Relay -> appears to differ between sleep and charge connected sleep.
+  - 7ec.25.623328 ($3328) Heat pump Request -> appears to be zero in charge connected sleep mode.
+  - 7ec.24.6234ad ($34AD) Set-point for the charge current for the JB2 -> seems to be >0 when charging
+  - 7ec.30.6234dd ($34DD) Request for PEB Charge mode V2 -> seems to be 2.0 when charging -> it’s an enum with these values:
+            0: Unavailable value
+            1: No charge requested
+            2: Charge requested
+            3: Not used
+  - 7ec.29.6233ea ($33EA) CAN signal for the status of the plugs connection 
+            0: No plug connected
+            2: Plug connected — no button pressed
+            4: 1 plug connected — button pressed
+            6: 2 plugs connected
+            7: Unavailable value
 
 Guidance per state:
 - Charger-connected-sleep: skip publishing these (treat as unavailable):
@@ -32,6 +46,8 @@ Guidance per state:
   - 7ec.24.623204 HV LBC current measure (shows ~−6144 A placeholder)
   - 7ec.24.623206 SOH HV battery (can exceed 100%)
   - 7ec.24.623451 Estimated range (may report max like 1023 km)
+
+
 
 Notes:
 - We intentionally don’t filter these inside the decoder; handle in your agent based on state.
