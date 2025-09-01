@@ -186,7 +186,9 @@ def _collect_cases(limit_per_file: int = 10):
     return cases
 
 
-CASES = _collect_cases()
+# Use a large limit so all captured cases are considered during testing.
+# 65536 effectively means "no practical limit" for our current datasets.
+CASES = _collect_cases(limit_per_file=65536)
 
 
 @pytest.mark.parametrize("sid, value, unit, mapping", CASES)
