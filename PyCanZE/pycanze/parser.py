@@ -101,16 +101,31 @@ def load_frames(base_dir: Path = DATA_DIR) -> Dict[int, Frame]:
     return frames
 
 
-def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, Field]]:
+def load_fields(
+    base_dir: Path = DATA_DIR, *, vehicle: str | None = None
+) -> Tuple[Dict[str, Field], Dict[str, Field]]:
     """Parse ``*_Fields.csv`` files.
 
-    Returns two dictionaries: by SID and by field name.
+    Parameters
+    ----------
+    base_dir:
+        Root directory containing per‑vehicle subdirectories with CSV files.
+    vehicle:
+        Optional name of the vehicle dataset (e.g. ``"ZOE"``).  When provided,
+        only that subdirectory is parsed; otherwise all datasets are merged.
+
+    Returns
+    -------
+    Tuple[Dict[str, Field], Dict[str, Field]]
+        Two dictionaries: by SID and by field name.
     """
 
     by_sid: Dict[str, Field] = {}
     by_name: Dict[str, Field] = {}
 
-    for vehicle_dir in base_dir.iterdir():
+    for vehicle_dir in sorted(base_dir.iterdir()):
+        if vehicle and vehicle_dir.name != vehicle:
+            continue
         # Ensure a deterministic load order: process the generic ``_Fields.csv``
         # first so that ECU specific files (e.g. ``EVC_Fields.csv``) can
         # override entries with more accurate metadata.  Without this explicit
