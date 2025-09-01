@@ -802,6 +802,14 @@ class UDSClient:
             return None
         # Apply Android semantics: value = (raw - offset) * resolution
         try:
-            return (raw_value - float(field.offset)) * float(field.resolution)
+            value = (raw_value - float(field.offset)) * float(field.resolution)
         except Exception:
-            return (raw_value - (field.offset or 0.0)) * (field.resolution or 1.0)
+            value = (raw_value - (field.offset or 0.0)) * (field.resolution or 1.0)
+        # Mirror Android's formatted output by rounding to the defined number
+        # of decimals. Java's ``String.format`` rounds half away from zero which
+        # matches Python's :func:`round` for positive numbers used here.
+        try:
+            decimals = int(field.decimals)
+        except Exception:
+            decimals = 0
+        return round(value, decimals) if decimals > 0 else value

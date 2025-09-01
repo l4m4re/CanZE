@@ -26,3 +26,10 @@ from the Java-generated JSON logs, meaning the Android app returned a
 value even though the SID was not available in the Python CSV database.
 This suggests the Android version contains additional hard-coded
 definitions or the CSV set is incomplete.
+
+## Test results
+
+```
+$ pytest -q
+1417 passed in 1027.82s (0:17:07)
+```
