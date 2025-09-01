@@ -56,6 +56,25 @@ Notes:
 
 Update (2025-09-01): Adjusted ZOE/EVC_Fields.csv for 7ec.24.623204 to use the generic scaling (resolution .25, offset 32768, decimals 1) to avoid the −6144 A artifact observed during charging on some cars. If your variant still reports implausible values, consider sourcing HV current from an alternative DID (e.g., $3110 Charge current measure or $3042 HV INV current) in your agent.
 
+### State detection heuristic (2025-09-01 logs)
+
+The full-scan logs from 2025‑09‑01 show a practical way to classify vehicle
+state from EVC signals:
+
+ - **Offline** – ELM327 host unreachable; no diagnostic fields available.
+- **Ready/Driving** – 7ec.31.62200e Key state = 1.
+- **Charging** – 7ec.30.6234dd Request for PEB Charge mode V2 = 2 or
+  7ec.24.6234ad Set‑point for the charge current for the JB2 > 0 A.
+- **Charger‑connected sleep** – SOC (7ec.24.622002) = 0 % while
+  7ec.168.623415 reports the memorized SOC, and either
+  7ec.31.6233cd Request of HVAC power relay = 1 or
+  7ec.25.623328 Heat pump request = 0 %.
+- **Parked sleep** – SOC 7ec.24.622002 = 0 % with heat pump request > 0 %
+  and HVAC relay request = 0.
+
+For sleep states, prefer 7ec.168.623415 as SOC source; 7ec.24.623206 SOH
+reads >100 %, so fall back to 7bb.40.6160 when available.
+
 ## Java log replayer
 
 The `Testing/LogReplayer` directory provides a small Java utility to turn raw ELM327 dumps into decoded JSON. No compiled classes are checked in; rebuild as needed:
