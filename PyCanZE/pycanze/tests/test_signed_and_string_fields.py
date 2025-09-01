@@ -4,7 +4,7 @@ from pycanze.parser import load_fields
 
 
 def test_signed_field_sign_extension():
-    by_sid, _ = load_fields()
+    by_sid, _ = load_fields(vehicle="ZOE")
     client = ReplayUDSClient(
         sid_responses={"223018": ["05623018FFF6"]}, fields=by_sid
     )
@@ -12,7 +12,7 @@ def test_signed_field_sign_extension():
 
 
 def test_string_field_decoding():
-    by_sid, _ = load_fields()
+    by_sid, _ = load_fields(vehicle="ZOE")
     client = ReplayUDSClient(
         sid_responses={
             "2181": [

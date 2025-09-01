@@ -9,7 +9,7 @@ from pycanze.parser import load_fields
 
 
 def test_field_bitmask_parsing_and_predicates():
-    by_sid, by_name = load_fields()
+    by_sid, by_name = load_fields(vehicle="ZOE_Ph2")
     signed = by_sid["1f8.40"]
     assert signed.options == int("1ff", 16)
     assert signed.is_signed()

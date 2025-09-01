@@ -34,3 +34,7 @@ The script iterates over:
 - **Consecutive‑frame read timeout**: `0.1` s and `0.3` s
 
 Each run produces a log file named after the parameter values.
+
+## `sid_decoding/`
+
+Legacy SID log replay tests are kept in `sid_decoding/` for optional use. The `test_sid_decoding.py` script replays captured logs against the CSV definitions and writes mismatch reports in the same directory.
