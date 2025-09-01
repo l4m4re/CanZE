@@ -111,7 +111,19 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
     by_name: Dict[str, Field] = {}
 
     for vehicle_dir in base_dir.iterdir():
-        for csv_file in vehicle_dir.glob("*_Fields.csv"):
+        # Ensure a deterministic load order: process the generic ``_Fields.csv``
+        # first so that ECU specific files (e.g. ``EVC_Fields.csv``) can
+        # override entries with more accurate metadata.  Without this explicit
+        # ordering the iteration order of :func:`Path.glob` depends on the
+        # underlying filesystem which can lead to different files winning when
+        # duplicate SIDs exist.  In practice this meant that some fields picked
+        # up offsets or resolutions from the catch‑all ``_Fields.csv`` instead of
+        # the ECU specific definitions used by the Android implementation.
+        field_files = sorted(
+            vehicle_dir.glob("*_Fields.csv"),
+            key=lambda p: (p.name != "_Fields.csv", p.name),
+        )
+        for csv_file in field_files:
             for row in _read_csv(csv_file):
                 row += [""] * (13 - len(row))
                 (
@@ -138,6 +150,7 @@ def load_fields(base_dir: Path = DATA_DIR) -> Tuple[Dict[str, Field], Dict[str, 
                 decimals = int(decimals_s) if decimals_s else 0
                 options = [options_s[i : i + 2] for i in range(0, len(options_s), 2)] if options_s else []
                 sid = sid or f"{frame_id_s}.{start_bit_s}.{response_id}"
+                sid = sid.lower()
                 field = Field(
                     sid=sid,
                     frame_id=frame_id,
