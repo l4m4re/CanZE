@@ -2,8 +2,9 @@
 """Generate regression tests for known SIDs from captured logs.
 
 The script scans ``Testing/logs/*.json`` for entries containing a ``sid``
-field. For each unique SID that exists in the CSV database it writes a test
-module under ``pycanze/tests/generated`` verifying the decoded value.
+field. For each unique SID that exists in the CSV database it writes a single
+parametrized test module under ``pycanze/tests/generated`` verifying the
+decoded value.
 
 SIDs that appear in the logs but are missing from the database are written to
 ``skipped_sids.txt`` in the output directory.
@@ -178,8 +179,7 @@ def main() -> None:
             elif case_type == "string":
                 if result is None or not isinstance(result, str):
                     continue
-                # If log provided a numeric value, prefer the decoded string
-                value = result if not isinstance(raw_val, str) else expected_val
+                value = result
             else:  # "na"
                 if result is not None:
                     continue
@@ -194,35 +194,41 @@ def main() -> None:
                 field.is_signed(),
             )
 
-    for sid, (value, sid_key, responses, _name, case_type, is_signed) in sid_info.items():
-        test_name = f"test_sid_{sid.replace('.', '_')}.py"
-        test_path = out_dir / test_name
-        if test_path.exists() and not args.overwrite:
-            continue
-        lines = [
-            "from pycanze.replay_client import ReplayClient as ReplayUDSClient",
-            "import pytest",
-            "",
-        ]
-        if is_signed and case_type == "numeric":
-            lines.insert(0, "# signed")
-        elif case_type == "string":
-            lines.insert(0, "# string")
-        elif case_type == "na":
-            lines.insert(0, "# N/A")
-        lines.append(f"def test_{sid.replace('.', '_')}():")
+    # Remove any legacy per-SID test modules
+    for old in out_dir.glob("test_sid_*.py"):
+        old.unlink()
+
+    test_path = out_dir / "test_generated_sids.py"
+    if test_path.exists() and not args.overwrite:
+        return
+
+    lines = [
+        "from pycanze.replay_client import ReplayClient as ReplayUDSClient",
+        "import pytest",
+        "",
+        "CASES = [",
+    ]
+
+    for sid, (value, sid_key, responses, _name, case_type, _is_signed) in sorted(sid_info.items()):
         lines.append(
-            f"    client = ReplayUDSClient(sid_responses={{\"{sid_key}\": {responses!r}}})"
+            f"    ({sid!r}, {sid_key!r}, {responses!r}, {value!r}, {case_type!r}),"
         )
-        if case_type == "numeric":
-            lines.append(
-                f"    assert client.read_field(\"{sid}\") == pytest.approx({value})"
-            )
-        elif case_type == "string":
-            lines.append(f"    assert client.read_field(\"{sid}\") == {value!r}")
-        else:  # "na"
-            lines.append(f"    assert client.read_field(\"{sid}\") is None")
-        test_path.write_text("\n".join(lines) + "\n")
+
+    lines += [
+        "]",
+        "",
+        "@pytest.mark.parametrize('sid, sid_key, responses, expected, case_type', CASES)",
+        "def test_generated_sids(sid, sid_key, responses, expected, case_type):",
+        "    client = ReplayUDSClient(sid_responses={sid_key: responses})",
+        "    if case_type == 'numeric':",
+        "        assert client.read_field(sid) == pytest.approx(expected)",
+        "    elif case_type == 'string':",
+        "        assert client.read_field(sid) == expected",
+        "    else:",
+        "        assert client.read_field(sid) is None",
+    ]
+
+    test_path.write_text("\n".join(lines) + "\n")
 
     skipped = sorted(s for s in skipped_candidates if s not in sid_info)
     skip_path = out_dir / "skipped_sids.txt"
