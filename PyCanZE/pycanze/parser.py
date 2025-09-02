@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Dict, Iterator, List, Tuple
+from functools import lru_cache
 
 from .models import Ecu, Frame, Field
 
@@ -36,6 +37,7 @@ def _auto_int(value: str) -> int:
 
 
   
+@lru_cache()
 def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
     """Parse all ``_Ecus.csv`` files found in *base_dir*.
 
@@ -79,6 +81,7 @@ def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
     return ecus
 
 
+@lru_cache()
 def load_frames(base_dir: Path = DATA_DIR) -> Dict[int, Frame]:
     """Parse ``_Frames.csv`` files and return a mapping by frame id."""
 
@@ -101,6 +104,7 @@ def load_frames(base_dir: Path = DATA_DIR) -> Dict[int, Frame]:
     return frames
 
 
+@lru_cache()
 def load_fields(
     base_dir: Path = DATA_DIR, *, vehicle: str | None = None
 ) -> Tuple[Dict[str, Field], Dict[str, Field]]:
@@ -188,6 +192,7 @@ def load_fields(
     return by_sid, by_name
 
 
+@lru_cache()
 def load_database(base_dir: Path = DATA_DIR):
     """Convenience loader returning all parsed structures."""
 
