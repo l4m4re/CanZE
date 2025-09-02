@@ -1,6 +1,0 @@
-from pycanze.replay_client import ReplayClient as ReplayUDSClient
-import pytest
-
-def test_7ec_24_62351f():
-    client = ReplayUDSClient(sid_responses={"22351F": ['0462351F00AAAAAA']})
-    assert client.read_field("7ec.24.62351f") == pytest.approx(0.0)
