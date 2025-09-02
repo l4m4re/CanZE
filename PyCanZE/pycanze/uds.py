@@ -111,6 +111,14 @@ class UDSClient:
         # Optional per-ECU first-0x21 delay (currently used for LBC 0x7BB)
         self.first_21_delay_by_req = {}
 
+    # sleep hook -------------------------------------------------------------
+    def _sleep(self, duration: float) -> None:
+        """Sleep for the given duration (seconds).
+
+        Subclasses may override this to skip delays during testing.
+        """
+        time.sleep(duration)
+
     def _pair_for_frame(self, fid: int):
         """Return (req_id, resp_id) for a given 11-bit CAN id.
 
@@ -179,7 +187,7 @@ class UDSClient:
         if self.debug:
             print(f"[PYCANZE DEBUG] SEND: {line}")
         self.sock.sendall((line + "\r").encode("ascii", errors="ignore"))
-        time.sleep(wait)
+        self._sleep(wait)
 
     def _read_lines(self, timeout: float | None = None) -> Sequence[str]:
         assert self.sock is not None
@@ -415,7 +423,7 @@ class UDSClient:
                     f"[PYCANZE DEBUG] delay_before_21_ms={self.delay_before_21_ms} ms before first 0x21"
                 )
             try:
-                time.sleep(self.delay_before_21_ms / 1000.0)
+                self._sleep(self.delay_before_21_ms / 1000.0)
             except Exception:
                 pass
             finally:
@@ -530,7 +538,7 @@ class UDSClient:
                             pass
                     if self.debug:
                         print("[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once")
-                    time.sleep(0.05)
+                    self._sleep(0.05)
                     # Retry the same request once
                     return self._read_by_id(service, ident, ident_len)
                 finally:
@@ -551,22 +559,26 @@ class UDSClient:
                     self._read_lines(1.0)
                     self._send("ATCF 000")
                     self._read_lines(1.0)
-                    time.sleep(0.02)
+                    self._sleep(0.02)
                     # Resend the original request under widened filters
                     self._send(cmd)
                     self._read_lines(self.timeout)
                     # Collect any CFs that follow
                     while len(collected) < total_len and time.time() < deadline:
                         try:
-                            more = self._read_lines(float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2))
+                            more = self._read_lines(
+                                float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2)
+                            )
                         except Exception:
                             break
                         for ln in more:
                             up = ln.upper().replace(" ", "")
                             if not up.startswith(resp_hex):
                                 continue
-                            hex_part = "".join(ch for ch in up[len(resp_hex):] if ch in "0123456789ABCDEF")
-                            bb = [int(hex_part[i:i+2], 16) for i in range(0, len(hex_part), 2)]
+                            hex_part = "".join(
+                                ch for ch in up[len(resp_hex) :] if ch in "0123456789ABCDEF"
+                            )
+                            bb = [int(hex_part[i : i + 2], 16) for i in range(0, len(hex_part), 2)]
                             j = 0
                             while j < len(bb):
                                 pci = bb[j]
@@ -575,7 +587,9 @@ class UDSClient:
                                     if sn != (expected_sn & 0x0F):
                                         break
                                     expected_sn = (expected_sn + 1) & 0x0F
-                                    take = min(7, len(bb) - (j + 1), total_len - len(collected))
+                                    take = min(
+                                        7, len(bb) - (j + 1), total_len - len(collected)
+                                    )
                                     if take > 0:
                                         collected.extend(bb[j + 1 : j + 1 + take])
                                     j += 1 + take
@@ -713,10 +727,10 @@ class UDSClient:
                 print(
                     f"[PYCANZE DEBUG] header_settle_ms={self.header_settle_ms} ms after ATSH/ATCRA"
                 )
-            try:
-                time.sleep(self.header_settle_ms / 1000.0)
-            except Exception:
-                pass
+                try:
+                    self._sleep(self.header_settle_ms / 1000.0)
+                except Exception:
+                    pass
         # Mark that we've just switched to allow an optional delay before next 0x21
         self._just_switched = True
         # If a per-ECU first-0x21 delay is configured for this req id, override the generic one

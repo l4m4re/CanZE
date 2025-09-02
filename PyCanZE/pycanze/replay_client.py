@@ -65,3 +65,7 @@ class ReplayClient(UDSClient):
 
     def _read_lines(self, timeout: float | None = None):  # type: ignore[override]
         return self._responses.get(self._last_cmd, [])
+
+    def _sleep(self, duration: float) -> None:  # type: ignore[override]
+        """Override UDSClient sleep to avoid delays during testing."""
+        return
