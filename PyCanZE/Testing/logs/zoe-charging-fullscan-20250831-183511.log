@@ -955,7 +955,8 @@ ECU: LBC2
      7BB.192.6180 ApprovalNumber.BasicPartList -> 0.0
      7BB.200.6180 ManufacturerIdentificationCode -> 136.0
 -- LBC2: 8/8 values
-
+184.6121 DriverDoorState -> 0.0
+     76D.1
 ECU: LBC
       7BB.16.6101 21_01_#03 Electric_Current_of_Battery -> 3.5
       7BB.32.6101 21_01_#05_Current sensor offset value -> 0.5
@@ -2607,8 +2608,7 @@ ECU: USM
      76D.174.6121 VehicleState -> 0.0
      76D.177.6121 VehicleStateSSExtension -> 0.0
      76D.179.6121 GenericApplicativeDiagEnable -> 0.0
-     76D.184.6121 DriverDoorState -> 0.0
-     76D.185.6121 EngineHoodState -> 2.0
+     76D.85.6121 EngineHoodState -> 2.0
      76D.187.6121 AccurateOdometer -> 0.0
      76D.192.6121 AC_StopAutoForbidden -> 0.0
      76D.194.6121 MinimumVoltagebyAC -> 11.5

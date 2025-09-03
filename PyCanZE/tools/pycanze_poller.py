@@ -26,6 +26,7 @@ from pycanze import UDSClient  # type: ignore
 SID_SOC = "7ec.24.622002"            # SoC (may be None asleep)
 SID_SOC_MEM = "7ec.168.623415"       # SoC from memory (often available)
 SID_ODO = "7ec.24.622006"            # Odometer (km)
+SID_SOH = "7ec.24.623206"            # HV battery SOH (can exceed 100%)
 
 # Charger connection SIDs (lean set)
 SID_PLUG = "7ec.29.6233ea"           # Plug connection status (0/2/4/6/7)
@@ -45,6 +46,7 @@ SID_KEY_STATE = "7ec.31.62200e"
 POLL_SIDS = [
     SID_SOC,
     SID_SOC_MEM,
+    SID_SOH,
     SID_ODO,
     SID_PLUG,
     SID_PLUG_VALID,
@@ -58,6 +60,11 @@ POLL_SIDS = [
     SID_JB_FAULT,
     SID_KEY_STATE,
 ]
+ 
+# Lightweight ECU-awake probes (identification DIDs) to bracket each poll.
+# Based on logs: LBC2 0x6180 returns during charging/awake, not in sleep.
+PROBE_LBC2_BEGIN = "7bb.56.6180"   # DiagnosticIdentificationCode -> 35 when awake
+PROBE_LBC2_END   = "7bb.200.6180"  # ManufacturerIdentificationCode -> 136.0 when awake
   
 
 def _is_charging(vals: dict[str, float | None]) -> bool:
@@ -88,16 +95,17 @@ def _is_connected(vals: dict[str, float | None]) -> bool:
     return False
 
 
-def _is_awake(vals: dict[str, float | None]) -> bool:
-    """Awake when the main SoC is readable and > 0, or charging.
-
-    SoC==0.0 has been observed as a sleep signature; this heuristic may be
-    refined later if needed.
-    """
-    if _is_charging(vals):
-        return True
-    soc = vals.get(SID_SOC)
-    return bool(soc is not None and soc > 0)
+def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
+    """Read a single field with per-call resilience; return None on benign errors."""
+    try:
+        return client.read_field(sid)
+    except (TimeoutError, socket.timeout):
+        return None
+    except (OSError, ConnectionError):
+        # Bubble up for offline handling
+        raise
+    except Exception:
+        return None
 
 
 def main() -> None:
@@ -114,6 +122,8 @@ def main() -> None:
             "Path to CSV log. Defaults to PyCanZE/Testing/logs/pycanze_poller_YYYYMMDD-HHMMSS.csv"
         ),
     )
+    # No flag for probes: we always bracket each poll with LBC2 0x6180 probes to detect
+    # awakeness and reject samples if a transition occurs during the poll.
     args = parser.parse_args()
 
     # Prepare CSV logging
@@ -145,6 +155,7 @@ def main() -> None:
                 "connected_lat",
                 "soc",
                 "soc_mem",
+                "soh",
                 "odo_km",
                 "plug",
                 "plug_valid",
@@ -156,6 +167,7 @@ def main() -> None:
                 "chg_mode_status",
                 "wait_isolation",
                 "jb_fault_type",
+                "probe_lbc2_awake",
             ])
             csv_file.flush()
     except Exception:
@@ -167,13 +179,30 @@ def main() -> None:
         elm_connected = False
         # Latched cable connection: persists across sleep, reset on offline
         latched_connected = False
+        # For concise output/logging when sleeping/offline
+        last_simple_state: Optional[str] = None  # 'offline'|'sleeping'|'awake'|'charging'
+        dot_mode = False
         try:
             client.connect()
             client.initialize()
             elm_connected = True
         except Exception as e:
             ts = time.strftime('%Y-%m-%dT%H:%M:%S')
-            print(f"{ts} State: offline ELM327 init failed: {e}")
+            if last_simple_state != "offline":
+                if dot_mode:
+                    print()
+                    dot_mode = False
+                print(f"{ts} State: offline -> ELM327 init failed: {e}")
+                csv_writer.writerow([
+                    ts, "offline", False, False, False,
+                    None, None, None, None, None, None, None, None, None,
+                    None, None, None, None, None, None,
+                ])
+                csv_file.flush()
+                last_simple_state = "offline"
+            else:
+                print('.', end='', flush=True)
+                dot_mode = True
 
         while True:
             # Reconnect ELM327 link if needed
@@ -188,95 +217,156 @@ def main() -> None:
                     elm_connected = True
                 except Exception as e:
                     ts = time.strftime('%Y-%m-%dT%H:%M:%S')
-                    print(f"{ts} State: offline (reconnect) -> {e}")
+                    if last_simple_state != "offline":
+                        if dot_mode:
+                            print()
+                            dot_mode = False
+                        print(f"{ts} State: offline -> {e}")
+                        csv_writer.writerow([
+                            ts, "offline", False, False, False,
+                            None, None, None, None, None, None, None, None, None,
+                            None, None, None, None, None, None,
+                        ])
+                        csv_file.flush()
+                        last_simple_state = "offline"
+                    else:
+                        print('.', end='', flush=True)
+                        dot_mode = True
                     time.sleep(args.interval)
                     continue
 
             try:
-                vals: dict[str, float | None] = {}
-                for sid in POLL_SIDS:
-                    try:
-                        vals[sid] = client.read_field(sid)
-                    except (TimeoutError, socket.timeout):
-                        vals[sid] = None
-                    except (OSError, ConnectionError):
-                        raise
-                    except Exception:
-                        vals[sid] = None
-                # No legacy state classification; we derive simple states below
+                # Bracket the poll with LBC2 0x6180 probes to detect awakeness and transitions.
+                pre_probe_val = _safe_read(client, PROBE_LBC2_BEGIN)
+                pre_awake = pre_probe_val is not None
+
+                if not pre_awake:
+                    # Immediately check post probe to detect a rapid wake-up; if changed, retry.
+                    post_probe_val_quick = _safe_read(client, PROBE_LBC2_END)
+                    post_awake_quick = post_probe_val_quick is not None
+                    if post_awake_quick != pre_awake:
+                        # Transition occurred during our minimal bracket; discard and retry.
+                        time.sleep(0.2)
+                        continue
+                    # Stable sleeping: no need to query heavy SIDs this cycle.
+                    vals = {}
+                    awake_stable = False
+                    post_awake = post_awake_quick
+                else:
+                    # Awake at start: read the main SIDs, then post-probe to confirm stability.
+                    vals: dict[str, float | None] = {}
+                    for sid in POLL_SIDS:
+                        vals[sid] = _safe_read(client, sid)
+                    post_probe_val = _safe_read(client, PROBE_LBC2_END)
+                    post_awake = post_probe_val is not None
+                    if post_awake != pre_awake:
+                        # Transition occurred during the poll; discard this sample and retry.
+                        print(f"Transition detected: {pre_awake} -> {post_awake}")
+                        time.sleep(0.2)
+                        continue
+                    awake_stable = True
             except (TimeoutError, socket.timeout, OSError, ConnectionError) as e:
                 # Connection dropped or unreachable: mark offline and retry.
                 elm_connected = False
                 ts = time.strftime('%Y-%m-%dT%H:%M:%S')
-                print(f"{ts} State: offline -> {e}")
-                # Log offline sample
-                csv_writer.writerow([
-                    ts, "offline", False, False, False, None, None, None, None, None, None,
-                    None, None, None, None, None, None,
-                ])
-                csv_file.flush()
+                if last_simple_state != "offline":
+                    # End any dot line
+                    if dot_mode:
+                        print()
+                        dot_mode = False
+                    print(f"{ts} State: offline -> {e}")
+                    # Log offline sample once on transition
+                    csv_writer.writerow([
+                        ts, "offline", False, False, False,
+                        None, None, None, None, None, None, None, None, None,
+                        None, None, None, None, None, None,
+                    ])
+                    csv_file.flush()
+                    last_simple_state = "offline"
+                else:
+                    # Just a dot to show we're alive
+                    print('.', end='', flush=True)
+                    dot_mode = True
                 # Reset latched connection on offline
                 latched_connected = False
                 time.sleep(args.interval)
                 continue
-            # Extract values
-            soc = vals.get(SID_SOC)
-            soc_mem = vals.get(SID_SOC_MEM)
-            odo = vals.get(SID_ODO)
-            plug = vals.get(SID_PLUG)
-            plug_valid = vals.get(SID_PLUG_VALID)
-            plug_det = vals.get(SID_PLUG_DETECTED)
-            earth = vals.get(SID_EARTH)
-            charger_bloc = vals.get(SID_CHARGER_BLOC)
-            chg_set = vals.get(SID_CHG_SET)
-            chg_mode_req = vals.get(SID_CHG_MODE)
-            chg_mode_status = vals.get(SID_CHG_MODE_STATUS)
-            wait_iso = vals.get(SID_WAIT_ISO)
-            jb_fault = vals.get(SID_JB_FAULT)
+            # Extract values (may be empty when sleeping)
+            soc = vals.get(SID_SOC) if vals else None
+            soc_mem = vals.get(SID_SOC_MEM) if vals else None
+            soh = vals.get(SID_SOH) if vals else None
+            odo = vals.get(SID_ODO) if vals else None
+            plug = vals.get(SID_PLUG) if vals else None
+            plug_valid = vals.get(SID_PLUG_VALID) if vals else None
+            plug_det = vals.get(SID_PLUG_DETECTED) if vals else None
+            earth = vals.get(SID_EARTH) if vals else None
+            charger_bloc = vals.get(SID_CHARGER_BLOC) if vals else None
+            chg_set = vals.get(SID_CHG_SET) if vals else None
+            chg_mode_req = vals.get(SID_CHG_MODE) if vals else None
+            chg_mode_status = vals.get(SID_CHG_MODE_STATUS) if vals else None
+            wait_iso = vals.get(SID_WAIT_ISO) if vals else None
+            jb_fault = vals.get(SID_JB_FAULT) if vals else None
 
             ts = time.strftime('%Y-%m-%dT%H:%M:%S')
 
             # Derived flags (instantaneous)
-            charging = _is_charging(vals)
-            connected_inst = _is_connected(vals)
-            awake = _is_awake(vals)
+            probe_lbc2_awake: Optional[bool] = True if awake_stable else (False if vals == {} else None)
+            charging = _is_charging(vals) if awake_stable else False
+            # EVSE presence (powered or not) using validity-gated indicators; only trust when awake
+            connected_inst = _is_connected(vals) if awake_stable else None
+            awake = bool(awake_stable)
 
-            # Update latched connection only while awake; keep through sleep
-            if awake:
-                latched_connected = connected_inst
+            # Update latched connection only while awake AND EVSE present; keep through sleep
+            if awake and connected_inst is True:
+                latched_connected = True
 
-            # CSV row
-            csv_writer.writerow([
-                ts,
-                # Simplified taxonomy in CSV
-                ("charging" if charging else ("awake" if awake else "sleeping")),
-                charging,
-                connected_inst,
-                latched_connected,
-                None if soc is None else round(float(soc), 3),
-                None if soc_mem is None else round(float(soc_mem), 3),
-                None if odo is None else int(odo),
-                None if plug is None else int(plug),
-                None if plug_valid is None else int(plug_valid),
-                None if plug_det is None else int(plug_det),
-                None if earth is None else int(earth),
-                None if charger_bloc is None else int(charger_bloc),
-                None if chg_set is None else round(float(chg_set), 3),
-                None if chg_mode_req is None else int(chg_mode_req),
-                None if chg_mode_status is None else int(chg_mode_status),
-                None if wait_iso is None else int(wait_iso),
-                None if jb_fault is None else int(jb_fault),
-            ])
-            csv_file.flush()
-
-            # Console summary with simplified taxonomy
+            # Console/CSV with simplified taxonomy; minimize chatter while sleeping
             soc_print: Optional[float] = soc if soc is not None else soc_mem
             odo_print: Optional[int] = None if odo is None else int(odo)
             soc_str = "None" if soc_print is None else f"{soc_print:.2f}%"
             odo_str = "None" if odo_print is None else f"{odo_print} km"
             simple_state = "charging" if charging else ("awake" if awake else "sleeping")
-            tail = "" if charging else f" Conn: {'yes' if latched_connected else 'no'}"
-            print(f"{ts} State: {simple_state:<22} Odo: {odo_str:<10} SoC: {soc_str}{tail}")
+            # Decide whether to log/print fully
+            if simple_state == "sleeping" and last_simple_state == "sleeping":
+                # Keep quiet, just a dot
+                print('.', end='', flush=True)
+                dot_mode = True
+            else:
+                # End any dot line
+                if dot_mode:
+                    print()
+                    dot_mode = False
+                # CSV row
+                csv_writer.writerow([
+                    ts,
+                    simple_state,
+                    charging,
+                    connected_inst if connected_inst is not None else None,
+                    latched_connected,
+                    None if soc is None else round(float(soc), 3),
+                    None if soc_mem is None else round(float(soc_mem), 3),
+                    None if soh is None else round(float(soh), 3),
+                    None if odo is None else int(odo),
+                    None if plug is None else int(plug),
+                    None if plug_valid is None else int(plug_valid),
+                    None if plug_det is None else int(plug_det),
+                    None if earth is None else int(earth),
+                    None if charger_bloc is None else int(charger_bloc),
+                    None if chg_set is None else round(float(chg_set), 3),
+                    None if chg_mode_req is None else int(chg_mode_req),
+                    None if chg_mode_status is None else int(chg_mode_status),
+                    None if wait_iso is None else int(wait_iso),
+                    None if jb_fault is None else int(jb_fault),
+                    None if probe_lbc2_awake is None else bool(probe_lbc2_awake),
+                ])
+                csv_file.flush()
+
+                tail = "" if charging else f" Conn: {'yes' if latched_connected else 'no'}"
+                # Append probe state for visibility when known
+                if probe_lbc2_awake is not None:
+                    tail += f" Probe[LBC2]: {'1' if probe_lbc2_awake else '0'}"
+                print(f"{ts} State: {simple_state:<22} Odo: {odo_str:<10} SoC: {soc_str}{tail}")
+                last_simple_state = simple_state
             time.sleep(args.interval)
     except KeyboardInterrupt:
         pass

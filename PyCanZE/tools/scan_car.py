@@ -215,7 +215,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                 print(f" {sid_key:>16} {name} -> {value}{unit}")
             elif not args.only_values:
                 print(f" {sid_key:>16} {name} -> {value}")
-    print(f"-- {ecu_label}: {ok}/{total} values")
+        print(f"-- {ecu_label}: {ok}/{total} values")
 
 
 def main() -> None:

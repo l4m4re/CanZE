@@ -51,3 +51,19 @@ These apply to the Python command‑line tools under `PyCanZE/` and do not affec
 
 These gaps are intentional for now. Primary goal is HA integration and basic diagnostics; there’s no intent to build a live driving dashboard. If needed later, both features can be added behind flags with per‑ECU selection from the CSV database.
 
+
+## ECU responsiveness by state (observed)
+
+Based on four fullscans in `Testing/logs/` (ready, charging, charger‑connected sleep, sleep; 2025‑08‑31/2025‑09‑01), ECU sections are present in all states; practical differences come from which DIDs return sane values. The matrix below summarizes what reliably responds per state and highlights a useful “awake probe”.
+
+| ECU | Ready | Charging | Connected sleep | Sleep | Notes |
+|---|---|---|---|---|---|
+| EVC (0x7EC) | responds | responds | responds | responds | Key signals differ by state: SOC 622002 > 0 when awake; 0 in sleep. SOH 623206 sane (≤100) when awake; 126% in sleep. Charge setpoint 6234AD > 0 only while charging. Mode status 6234DC: 1=ready, 2=charging, 0=sleep. |
+| LBC + LBC2 (0x7BB/0x7B6) | 6180 OK | 6180 OK | header only (no 6180) | header only (no 6180) | Identification DID 0x6180 returns in ready/charging but not in either sleep state. This makes LBC2 6180 a good “ECU‑awake probe.” |
+| BCB‑OBC, DCM, EPS, HVAC, PEB, Parking‑Sonar, TDB, UBP, UCH, USM, VFC | responds | responds | responds | responds | Sections present across states; some modules return fewer/zero meaningful DIDs in sleep (typical). |
+
+Practical takeaways
+- Treat “sleep” and “charger‑connected sleep” as the same for polling: EVC DIDs are reachable but many contents read as “sleep signatures” (e.g., SOC=0, SOH>100). LBC/LBC2 identification 6180 does not respond in sleep.
+- For state detection, prefer DIDs over ECU section presence. The poller brackets each cycle with LBC2 0x6180 identification reads: 7bb.56.6180 at the start and 7bb.200.6180 at the end. If both respond, the car is considered awake; if either is absent, it is sleeping. If the two probes disagree (state changed during the poll), the sample is discarded.
+  Charging is detected via 6234AD/6234DC/6234DD and evaluated only when awake. EVSE presence is inferred from plug 6233EA with validity 6233BD and detected 62339D (earth‑only 623108 ignored). A latched connection flag persists across sleep and resets on offline.
+
