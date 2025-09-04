@@ -1,0 +1,249 @@
+82,83d81
+<     7ec.30.622026 ($2026) Brake pedal _ open active switch state -> 2.0
+<     7ec.24.62202e ($202E) Accelerator pedal position -> 0.0 -
+90a89,90
+>     7ec.31.62203e ($203E) Configuration _ Speed limiter (OnOff button) -> 1.0
+>     7ec.31.62203f ($203F) Speed limiter OnOff button state -> 0.0
+184,189d183
+<     7ec.24.622245 ($2245) Limited electrical motor (EM) effective torque setpoint -> 0.0 N.m
+<     7ec.24.622246 ($2246) Electrical motor (EM) maximum effective torque available -> 0.0 N.m
+<     7ec.24.622247 ($2247) Minimum effective torque that can be requested to the electrical motor (EM) -> 0.0 N.m
+<     7ec.24.622248 ($2248) Force demand (at the wheels) when powertrain setpoint is equal to zero -> 720.0 N
+<     7ec.24.622249 ($2249)Force demand(at the wheels)when PWT setpoint is 0 -> 720.0 N
+<     7ec.24.62224a ($224A) Voltage measure of main relay (VBR) -> 12.426 V
+193a188
+>     7ec.24.622500 DIDs supported in range [$2501 - $2520] -> 80
+290,292c285
+<     7ec.25.623326 ($3326) Driving pump Request -> 10.0 %
+<     7ec.25.623327 ($3327) Charge pump Request -> 10.0 %
+<     7ec.25.623328 ($3328) Heat pump Request -> 10.0 %
+---
+>     7ec.25.623328 ($3328) Heat pump Request -> 0.0 %
+295a289,290
+>     7ec.31.62332d ($332D) 14V Network functioning Authorization -> 0.0
+>     7ec.31.62332e ($332E) PowerTrain functioning Authorization -> 0.0
+308c303
+<     7ec.24.623349 ($3349) Time Counter for the driving WEP in Low Speed -> 25614202.0 -
+---
+>     7ec.24.623349 ($3349) Time Counter for the driving WEP in Low Speed -> 25615020.0 -
+316c311
+<     7ec.24.623353 ($3353) Time Counter for the Cooling fan in High Speed -> 32219070.0 -
+---
+>     7ec.24.623353 ($3353) Time Counter for the Cooling fan in High Speed -> 32219950.0 -
+318c313
+<     7ec.24.623356 ($3356) Time Counter for the PEB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 16658375.0 -
+---
+>     7ec.24.623356 ($3356) Time Counter for the PEB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 16659193.0 -
+327c322
+<     7ec.24.623361 ($3361) Time Counter for the BCB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 20961513.0 -
+---
+>     7ec.24.623361 ($3361) Time Counter for the BCB temperature in driving mode between 40 degrees Celsius and 50 degrees Celsius -> 20962331.0 -
+385a381,384
+>     7ec.99.623382 ($3382) AC compressor Error Bits Recordings.-1.04 Over_heat -> 0.0
+>    7ec.100.623382 ($3382) AC compressor Error Bits Recordings.-1.03 Abnormal_Run_up -> 0.0
+>    7ec.101.623382 ($3382) AC compressor Error Bits Recordings.-1.02 High_Voltage_error -> 0.0
+>    7ec.102.623382 ($3382) AC compressor Error Bits Recordings.-1.00 CI_Error_Status -> 2.0
+387,396d385
+<     7ec.32.623383 ($3383) Reasons of cut off PTCs.-4 -> 0.0
+<     7ec.38.623383 ($3383) Reasons of cut off PTCs.-3 -> 0.0
+<     7ec.44.623383 ($3383) Reasons of cut off PTCs.-2 -> 0.0
+<     7ec.50.623383 ($3383) Reasons of cut off PTCs.-1 -> 0.0
+<     7ec.51.623383 ($3383) Reasons of cut off PTCs.-1.4 Error PTC stage 3 -> 0.0
+<     7ec.52.623383 ($3383) Reasons of cut off PTCs.-1.3 Error PTC stage 2 -> 0.0
+<     7ec.53.623383 ($3383) Reasons of cut off PTCs.-1.2 Error PTC stage 1 -> 0.0
+<     7ec.54.623383 ($3383) Reasons of cut off PTCs.-1.1 Under Voltage -> 0.0
+<     7ec.55.623383 ($3383) Reasons of cut off PTCs.-1.0 Over temperature -> 0.0
+<     7ec.24.623384 ($3384) Mission counter without driver door transition -> 0.0 -
+465c454
+<     7ec.31.6233cd ($33CD) Request of Hvac power Relay -> 0.0
+---
+>     7ec.31.6233cd ($33CD) Request of Hvac power Relay -> 1.0
+489a479,526
+>     7ec.24.6233d5 ($33D5) Reason of end of charge to be read by diag tool.9 -> 1.0
+>     7ec.32.6233d5 ($33D5) Reason of end of charge to be read by diag tool.8 -> 1.0
+>     7ec.40.6233d5 ($33D5) Reason of end of charge to be read by diag tool.7 -> 2.0
+>     7ec.48.6233d5 ($33D5) Reason of end of charge to be read by diag tool.6 -> 2.0
+>     7ec.56.6233d5 ($33D5) Reason of end of charge to be read by diag tool.5 -> 2.0
+>     7ec.64.6233d5 ($33D5) Reason of end of charge to be read by diag tool.4 -> 1.0
+>     7ec.72.6233d5 ($33D5) Reason of end of charge to be read by diag tool.3 -> 1.0
+>     7ec.80.6233d5 ($33D5) Reason of end of charge to be read by diag tool.2 -> 1.0
+>     7ec.88.6233d5 ($33D5) Reason of end of charge to be read by diag tool.1 -> 2.0
+>     7ec.32.6233d6 ($33D6) Type of charge to be read by diag tool.8 -> 0.0
+>     7ec.40.6233d6 ($33D6) Type of charge to be read by diag tool.7 -> 0.0
+>     7ec.48.6233d6 ($33D6) Type of charge to be read by diag tool.6 -> 0.0
+>     7ec.56.6233d6 ($33D6) Type of charge to be read by diag tool.5 -> 0.0
+>     7ec.64.6233d6 ($33D6) Type of charge to be read by diag tool.4 -> 0.0
+>     7ec.72.6233d6 ($33D6) Type of charge to be read by diag tool.3 -> 0.0
+>     7ec.80.6233d6 ($33D6) Type of charge to be read by diag tool.2 -> 0.0
+>     7ec.88.6233d6 ($33D6) Type of charge to be read by diag tool.1 -> 0.0
+>     7ec.96.6233d6 ($33D6) Type of charge to be read by diag tool.0 -> 0.0
+>     7ec.24.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.9 -> 74.6 %
+>     7ec.40.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.8 -> 72.6 %
+>     7ec.56.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.7 -> 53.2 %
+>     7ec.72.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.6 -> 53.8 %
+>     7ec.88.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.5 -> 55.6 %
+>    7ec.104.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.4 -> 60.4 %
+>    7ec.120.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.3 -> 56.6 %
+>    7ec.136.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.2 -> 78.0 %
+>    7ec.152.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.1 -> 45.8 %
+>    7ec.168.6233d7 ($33D7) State of charge (UserSOC) to be read by diag tool.0 -> 47.2 %
+>     7ec.24.6233d8 ($33D8) Battery temperature to be read by diag tool.9 -> 23.0 °C
+>     7ec.32.6233d8 ($33D8) Battery temperature to be read by diag tool.8 -> 23.0 °C
+>     7ec.40.6233d8 ($33D8) Battery temperature to be read by diag tool.7 -> 19.0 °C
+>     7ec.48.6233d8 ($33D8) Battery temperature to be read by diag tool.6 -> 19.0 °C
+>     7ec.56.6233d8 ($33D8) Battery temperature to be read by diag tool.5 -> 19.0 °C
+>     7ec.64.6233d8 ($33D8) Battery temperature to be read by diag tool.4 -> 19.0 °C
+>     7ec.72.6233d8 ($33D8) Battery temperature to be read by diag tool.3 -> 23.0 °C
+>     7ec.80.6233d8 ($33D8) Battery temperature to be read by diag tool.2 -> 23.0 °C
+>     7ec.88.6233d8 ($33D8) Battery temperature to be read by diag tool.1 -> 22.0 °C
+>     7ec.96.6233d8 ($33D8) Battery temperature to be read by diag tool.0 -> 22.0 °C
+>     7ec.24.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.9 -> 472.0 min
+>     7ec.40.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.8 -> 619.0 min
+>     7ec.56.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.7 -> 0.0 min
+>     7ec.72.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.6 -> 12.0 min
+>     7ec.88.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.5 -> 28.0 min
+>    7ec.104.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.4 -> 95.0 min
+>    7ec.120.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.3 -> 197.0 min
+>    7ec.136.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.2 -> 206.0 min
+>    7ec.152.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.1 -> 37.0 min
+>    7ec.168.6233d9 ($33D9) Total duration of the charge sequence to be read by diag tool.0 -> 5.0 min
+491c528
+<     7ec.24.6233dd ($33DD) This variable allows to memorize the reseted energy consumed -> 139.028 kwh
+---
+>     7ec.24.6233dd ($33DD) This variable allows to memorize the reseted energy consumed -> 139.071 kwh
+514c551
+<     7ec.24.6233f7 ($33F7) Counter of Efan speed on Low and very low speed -> 1754.0
+---
+>     7ec.24.6233f7 ($33F7) Counter of Efan speed on Low and very low speed -> 1803.0
+556,574c593,598
+<    7ec.136.623412 Memorized accumulated HV battery output energy for energy consumption journal.2 -> 0.01 kWh
+<    7ec.152.623412 Memorized accumulated HV battery output energy for energy consumption journal.1 -> 14.61 kWh
+<    7ec.168.623412 Memorized accumulated HV battery output energy for energy consumption journal.0 -> 14.61 kWh
+<     7ec.24.623413 Memorized accumulated electrical inverter energy for energy consumption journal.9 -> 36.93 kWh
+<     7ec.40.623413 Memorized accumulated electrical inverter energy for energy consumption journal.8 -> 51.61 kWh
+<     7ec.56.623413 Memorized accumulated electrical inverter energy for energy consumption journal.7 -> 57.53 kWh
+<     7ec.72.623413 Memorized accumulated electrical inverter energy for energy consumption journal.6 -> 57.53 kWh
+<     7ec.88.623413 Memorized accumulated electrical inverter energy for energy consumption journal.5 -> 57.53 kWh
+<    7ec.104.623413 Memorized accumulated electrical inverter energy for energy consumption journal.4 -> 57.53 kWh
+<    7ec.120.623413 Memorized accumulated electrical inverter energy for energy consumption journal.3 -> 65.15 kWh
+<    7ec.136.623413 Memorized accumulated electrical inverter energy for energy consumption journal.2 -> 0.0 kWh
+<    7ec.152.623413 Memorized accumulated electrical inverter energy for energy consumption journal.1 -> 13.09 kWh
+<    7ec.168.623413 Memorized accumulated electrical inverter energy for energy consumption journal.0 -> 13.09 kWh
+<     7ec.24.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.9 -> 1.03 kWh
+<     7ec.40.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.8 -> 1.57 kWh
+<     7ec.56.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.7 -> 2.68 kWh
+<     7ec.72.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.6 -> 2.68 kWh
+<     7ec.88.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.5 -> 2.68 kWh
+<    7ec.104.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.4 -> 2.68 kWh
+---
+>     7ec.24.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.9 -> 0.0 kWh
+>     7ec.40.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.8 -> 0.0 kWh
+>     7ec.56.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.7 -> 0.0 kWh
+>     7ec.72.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.6 -> 0.0 kWh
+>     7ec.88.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.5 -> 0.0 kWh
+>    7ec.104.623414 Memorized accumutation of the energy used by the thermal comfort for energy consumption journal.4 -> 0.0 kWh
+592a617,623
+>     7ec.88.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.5 -> 2.55 kWh
+>    7ec.104.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.4 -> 2.55 kWh
+>    7ec.120.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.3 -> 3.01 kWh
+>    7ec.136.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.2 -> 0.0 kWh
+>    7ec.152.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.1 -> 0.42 kWh
+>    7ec.168.623416 ($3416) Memorization of accumulated electrical DCDC energy for energy consumption journal.0 -> 0.42 kWh
+>     7ec.31.623417 Saving of the NAVL state of the interlocks.8 -> 0.0
+665,666d695
+<     7ec.24.623455 ($3455) Mean eco electrical consumption (if driver has economical driving behavior) -> 0.098 kW
+<     7ec.24.623456 ($3456) Temporary estimated kilometric cruising range sent to MMI (economical driving) -> 1023.0 km
+677c706
+<     7ec.31.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.8 -> 0.0
+---
+>     7ec.31.62345f ($345F) This internal M14N variable is a frame composed of every RTS from all ETS system.8 -> 1.0
+694a724
+>     7ec.29.62346e ($346E) CAN signal for the PEB class of failure status (on charge) -> 0.0
+699c729
+<     7ec.24.623473 ($3473) Lever 2nd track duty cycle -> 0.825
+---
+>     7ec.24.623473 ($3473) Lever 2nd track duty cycle -> 0.826
+725c755
+<     7ec.24.623488 ($3488) Counter of PWM Efan speed on Medium speeds -> 1921301.0
+---
+>     7ec.24.623488 ($3488) Counter of PWM Efan speed on Medium speeds -> 1921304.0
+734c764
+<    7ec.136.62348a ($348A) Current memorized for SOF test.13 -> -79.0 A
+---
+>    7ec.136.62348a ($348A) Current memorized for SOF test.13 -> -78.0 A
+764,790d793
+<    7ec.432.62348b ($348B) Result of measure memorized for SOF test.3 -> 57344.0
+<    7ec.456.62348b ($348B) Result of measure memorized for SOF test.2 -> 57344.0
+<    7ec.480.62348b ($348B) Result of measure memorized for SOF test.1 -> 57344.0
+<     7ec.24.62348c ($348C) Absolut time memorized for SOF test.20 -> 3916353.0 min
+<     7ec.48.62348c ($348C) Absolut time memorized for SOF test.19 -> 3915519.0 min
+<     7ec.72.62348c ($348C) Absolut time memorized for SOF test.18 -> 3915413.0 min
+<     7ec.96.62348c ($348C) Absolut time memorized for SOF test.17 -> 3915335.0 min
+<    7ec.120.62348c ($348C) Absolut time memorized for SOF test.16 -> 3915134.0 min
+<    7ec.144.62348c ($348C) Absolut time memorized for SOF test.15 -> 3915088.0 min
+<    7ec.168.62348c ($348C) Absolut time memorized for SOF test.14 -> 3915025.0 min
+<    7ec.192.62348c ($348C) Absolut time memorized for SOF test.13 -> 3914937.0 min
+<    7ec.216.62348c ($348C) Absolut time memorized for SOF test.12 -> 3918243.0 min
+<    7ec.240.62348c ($348C) Absolut time memorized for SOF test.11 -> 3918011.0 min
+<    7ec.264.62348c ($348C) Absolut time memorized for SOF test.10 -> 3917957.0 min
+<    7ec.288.62348c ($348C) Absolut time memorized for SOF test.9 -> 3917477.0 min
+<    7ec.312.62348c ($348C) Absolut time memorized for SOF test.8 -> 3916885.0 min
+<    7ec.336.62348c ($348C) Absolut time memorized for SOF test.7 -> 3916671.0 min
+<    7ec.360.62348c ($348C) Absolut time memorized for SOF test.6 -> 3916610.0 min
+<    7ec.384.62348c ($348C) Absolut time memorized for SOF test.5 -> 3916504.0 min
+<    7ec.408.62348c ($348C) Absolut time memorized for SOF test.4 -> 3916486.0 min
+<    7ec.432.62348c ($348C) Absolut time memorized for SOF test.3 -> 3916439.0 min
+<    7ec.456.62348c ($348C) Absolut time memorized for SOF test.2 -> 3916395.0 min
+<    7ec.480.62348c ($348C) Absolut time memorized for SOF test.1 -> 3916380.0 min
+<     7ec.24.62348d ($348D) Voltage memorized for SOF test.20 -> 11.418 V
+<     7ec.40.62348d ($348D) Voltage memorized for SOF test.19 -> 11.616 V
+<     7ec.24.62348e ($348E) DCDC voltage control request calculated and used when no default on 14V network is detected -> 13.5 V
+<     7ec.31.62348f ($348F) Boolean Variable : M14N resquest for activation when SOC low -> 0.0
+853c856
+<     7ec.24.6234d1 ($34D1) This variable allows to memorize the reseted energy consumed 2 -> 7398.211 KWh
+---
+>     7ec.24.6234d1 ($34D1) This variable allows to memorize the reseted energy consumed 2 -> 7398.254 KWh
+892,893c895
+<     7ec.24.6234f6 ($34F6) Threshold for HVBattery conditioning received from BMS (02) -> 80.0 °C
+<     7ec.24.6234f7 ($34F7) Threshold for battery thermal management -> 10.0 °C
+---
+>     7ec.24.6234f5 ($34F5) Threshold for HVBattery conditioning received from BMS (01) -> 80.0 °C
+990,994d991
+<    7ec.120.62f804 ($F804) $09 - OBD calibration identifications.4 -> 0.0
+<    7ec.152.62f804 ($F804) $09 - OBD calibration identifications.3 -> 808464432.0
+<    7ec.184.62f804 ($F804) $09 - OBD calibration identifications.2 -> 808464432.0
+<    7ec.216.62f804 ($F804) $09 - OBD calibration identifications.1 -> 808464432.0
+<    7ec.248.62f804 ($F804) $09 - OBD calibration identifications.0 -> 808464432.0
+1041,1042c1038,1039
+<      76d.224.6102 INT_THERMAL_SENSE_MSB -> 0.454
+<      76d.232.6102 INT_THERMAL_SENSE_LSB -> 198.0
+---
+>      76d.224.6102 INT_THERMAL_SENSE_MSB -> 0.455
+>      76d.232.6102 INT_THERMAL_SENSE_LSB -> 199.0
+1155,1159d1151
+<     7ec.24.622005 Battery voltage 14v -> 12.29 V
+<     7ec.24.622006 Total vehicle distance -> 47019.0 km
+<     7ec.24.622247 Minimum effective torque that can be requested to the electrical motor (EM) -> 0.0 N.m
+<     7ec.24.623028 DCDC Load -> 0.0 %
+<     7ec.24.623203 HV LBC voltage measure -> 500.0 V
+1200a1193,1196
+>     7ec.56.6233d7 State of charge 8 -> 53.2 %
+>     7ec.40.6233d7 State of charge 9 -> 72.6 %
+>     7ec.24.6233d7 State of charge 10 -> 74.6 %
+>     7ec.96.6233d8 Battery temperature 1 -> 22.0 °C
+1212c1208
+<     7ec.24.623455 Mean eco electrical consumption (if driver has economical driving behavior) -> 0.098 kW
+---
+>     7ec.24.623455 Mean eco electrical consumption (if driver has economical driving behavior) -> 0.097 kW
+1214c1210
+<     7ec.24.6233dd Trip energy consumed -> 139.028 kwh
+---
+>     7ec.24.6233dd Trip energy consumed -> 139.071 kwh
+1218c1214
+< -- _Fields (generic): 64/302 values
+---
+> -- _Fields (generic): 63/302 values
+1220c1216
+< Scan duration: 00:07:16 (436s)
+---
+> Scan duration: 00:07:13 (433s)

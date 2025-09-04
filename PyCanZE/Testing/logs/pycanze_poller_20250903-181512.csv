@@ -1,0 +1,6 @@
+timestamp,state,charging,connected_inst,connected_lat,soc,soc_mem,soh,odo_km,plug,plug_valid,plug_detected,earth,charger_bloc,chg_set_A,chg_mode_req,chg_mode_status,wait_isolation,jb_fault_type,probe_lbc2_awake
+2025-09-03T18:15:18,charging,True,True,True,27.3,33.64,90.0,47210,2,1,1,1,1,6.7,2,2,0,0,
+2025-09-03T18:15:25,charging,True,True,True,27.32,33.64,90.0,47210,2,1,1,1,1,6.8,2,2,0,0,
+2025-09-03T18:15:32,charging,True,True,True,27.34,33.64,90.0,47210,2,1,1,1,1,6.8,2,2,0,0,
+2025-09-03T18:15:39,charging,True,True,True,27.36,33.64,90.0,47210,2,1,1,1,1,6.8,2,2,0,0,
+2025-09-03T18:15:46,charging,True,True,True,27.36,33.64,90.0,47210,2,1,1,1,1,6.8,2,2,0,0,
