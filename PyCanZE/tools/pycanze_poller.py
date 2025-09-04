@@ -17,6 +17,9 @@ import time
 from pathlib import Path
 import csv
 from typing import Optional
+import json
+from urllib.request import urlopen
+from urllib.error import URLError, HTTPError
 
 # Allow running from repository root without installation
 sys.path.append(str(Path(__file__).resolve().parents[1]))
@@ -108,6 +111,36 @@ def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
         return None
 
 
+def _read_shelly(url: Optional[str], timeout: float = 1.5) -> tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
+    """Fetch Shelly status JSON and extract (tC, apower, voltage, current).
+
+    Returns a tuple of floats or None on failure per field. Safe and non-fatal.
+    """
+    if not url:
+        return (None, None, None, None)
+    try:
+        with urlopen(url, timeout=timeout) as resp:
+            if resp.status != 200:
+                return (None, None, None, None)
+            data = json.loads(resp.read().decode('utf-8', errors='ignore'))
+            sw = data.get('switch:0') or {}
+            temp = (sw.get('temperature') or {}).get('tC')
+            apower = sw.get('apower')
+            voltage = sw.get('voltage')
+            current = sw.get('current')
+            # Normalize to float if present
+            def f(x):
+                try:
+                    return float(x)
+                except Exception:
+                    return None
+            return (f(temp), f(apower), f(voltage), f(current))
+    except (HTTPError, URLError, TimeoutError, socket.timeout, ValueError):
+        return (None, None, None, None)
+    except Exception:
+        return (None, None, None, None)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Poll EV fields via PyCanZE, infer charging/connection, and log CSV"
@@ -121,6 +154,11 @@ def main() -> None:
         help=(
             "Path to CSV log. Defaults to PyCanZE/Testing/logs/pycanze_poller_YYYYMMDD-HHMMSS.csv"
         ),
+    )
+    parser.add_argument(
+        "--shelly-url",
+        default="http://192.168.2.14/rpc/Shelly.GetStatus",
+        help="Optional Shelly status URL to fetch power/voltage/current/temp (empty to disable)",
     )
     # No flag for probes: we always bracket each poll with LBC2 0x6180 probes to detect
     # awakeness and reject samples if a transition occurs during the poll.
@@ -168,6 +206,10 @@ def main() -> None:
                 "wait_isolation",
                 "jb_fault_type",
                 "probe_lbc2_awake",
+                "shelly_temp_c",
+                "shelly_apower_w",
+                "shelly_voltage_v",
+                "shelly_current_a",
             ])
             csv_file.flush()
     except Exception:
@@ -193,10 +235,15 @@ def main() -> None:
                     print()
                     dot_mode = False
                 print(f"{ts} State: offline -> ELM327 init failed: {e}")
+                sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
                 csv_writer.writerow([
                     ts, "offline", False, False, False,
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None,
+                    None if sh_t is None else round(sh_t, 2),
+                    None if sh_p is None else round(sh_p, 2),
+                    None if sh_v is None else round(sh_v, 2),
+                    None if sh_i is None else round(sh_i, 3),
                 ])
                 csv_file.flush()
                 last_simple_state = "offline"
@@ -222,10 +269,15 @@ def main() -> None:
                             print()
                             dot_mode = False
                         print(f"{ts} State: offline -> {e}")
+                        sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
                         csv_writer.writerow([
                             ts, "offline", False, False, False,
                             None, None, None, None, None, None, None, None, None,
                             None, None, None, None, None, None,
+                            None if sh_t is None else round(sh_t, 2),
+                            None if sh_p is None else round(sh_p, 2),
+                            None if sh_v is None else round(sh_v, 2),
+                            None if sh_i is None else round(sh_i, 3),
                         ])
                         csv_file.flush()
                         last_simple_state = "offline"
@@ -276,10 +328,15 @@ def main() -> None:
                         dot_mode = False
                     print(f"{ts} State: offline -> {e}")
                     # Log offline sample once on transition
+                    sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
                     csv_writer.writerow([
                         ts, "offline", False, False, False,
                         None, None, None, None, None, None, None, None, None,
                         None, None, None, None, None, None,
+                        None if sh_t is None else round(sh_t, 2),
+                        None if sh_p is None else round(sh_p, 2),
+                        None if sh_v is None else round(sh_v, 2),
+                        None if sh_i is None else round(sh_i, 3),
                     ])
                     csv_file.flush()
                     last_simple_state = "offline"
@@ -336,6 +393,8 @@ def main() -> None:
                 if dot_mode:
                     print()
                     dot_mode = False
+                # Shelly fetch
+                sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
                 # CSV row
                 csv_writer.writerow([
                     ts,
@@ -358,6 +417,10 @@ def main() -> None:
                     None if wait_iso is None else int(wait_iso),
                     None if jb_fault is None else int(jb_fault),
                     None if probe_lbc2_awake is None else bool(probe_lbc2_awake),
+                    None if sh_t is None else round(sh_t, 2),
+                    None if sh_p is None else round(sh_p, 2),
+                    None if sh_v is None else round(sh_v, 2),
+                    None if sh_i is None else round(sh_i, 3),
                 ])
                 csv_file.flush()
 
@@ -365,6 +428,14 @@ def main() -> None:
                 # Append probe state for visibility when known
                 if probe_lbc2_awake is not None:
                     tail += f" Probe[LBC2]: {'1' if probe_lbc2_awake else '0'}"
+                # Shelly tail
+                if any(v is not None for v in (sh_t, sh_p, sh_v, sh_i)):
+                    tail += (
+                        f" Shelly tC: {('n/a' if sh_t is None else f'{sh_t:.1f}')}"
+                        f" P: {('n/a' if sh_p is None else f'{sh_p:.0f}W')}"
+                        f" V: {('n/a' if sh_v is None else f'{sh_v:.0f}V')}"
+                        f" I: {('n/a' if sh_i is None else f'{sh_i:.2f}A')}"
+                    )
                 print(f"{ts} State: {simple_state:<22} Odo: {odo_str:<10} SoC: {soc_str}{tail}")
                 last_simple_state = simple_state
             time.sleep(args.interval)
