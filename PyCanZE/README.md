@@ -8,8 +8,8 @@ from CanZE to communicate with the car via an ELM327-compatible interface.
 ## Contents
 
 * `pycanze/` – library with parsers and a minimal UDS client
-* `tools/` – command-line utilities such as `scan_car.py` and
-  `battery_health.py`
+* `tools/` – command-line utilities such as `scan_car.py`,
+  `battery_health.py`, and `mqtt_poller.py`
 * `Testing/` – experimental scripts and prototypes including sweep harnesses
 
 ## Goals
@@ -35,6 +35,13 @@ LBC/EVC snapshots run::
 
 Use `--wide-cf-fallback` if your dongle occasionally drops ISO‑TP consecutive
 frames from the LBC.
+
+For periodic MQTT publishing run::
+
+    python tools/mqtt_poller.py --mqtt-host 192.168.1.10 --mqtt-topic canze/zoe
+
+The poller reads SoC, SoH, HV voltage and the odometer every 5 minutes,
+skipping sentinel values based on vehicle state heuristics.
 
 Contributions are welcome!
 
