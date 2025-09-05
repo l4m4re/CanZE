@@ -82,7 +82,8 @@ class UDSClient:
         self.debug = bool(os.environ.get("PYCANZE_DEBUG"))
         # Map CAN IDs (both request and response) to (request_id, response_id)
         try:
-            _ecus = load_ecus()
+            veh = os.environ.get("PYCANZE_VEHICLE", "ZOE")
+            _ecus = load_ecus(vehicle=veh)
         except Exception:
             _ecus = {}
         self._ecu_by_can = {}
@@ -96,11 +97,19 @@ class UDSClient:
         self._last_tuple = None  # type: Optional[tuple[int, int, int]]
         self._last_resp = None  # type: Optional[Sequence[int]]
         self._last_resp_ts = 0.0
-        # Default to 11-bit; only enable 29-bit if explicitly forced via env
+        # Default to 11-bit; 29-bit only if explicitly forced or discovered and not forced-11
         self._use_29bit = False
         # Build ECU maps for header selection and session requirements
+        found_extended = False
         for ecu in _ecus.values():
             try:
+                # Skip virtual/placeholder ECUs that don't exist on the CAN bus
+                if getattr(ecu, "sid", 0) >= 9998:
+                    continue
+                if getattr(ecu, "mnemonic", "").upper() in ("VFC", "FFC"):
+                    continue
+                if (getattr(ecu, "request_id", 0) == 0) or (getattr(ecu, "response_id", 0) == 0):
+                    continue
                 # Parser stores FromID in request_id (ECU->tester) and ToID in response_id (tester->ECU).
                 # Swap to get (req=ToID, resp=FromID) and keep full 29-bit identifiers.
                 req = ecu.response_id & 0x1FFFFFFF
@@ -112,17 +121,27 @@ class UDSClient:
                     getattr(ecu, "session_required", 0)
                 )
                 if req > 0x7FF or resp > 0x7FF:
-                    # Do not auto-switch; only note presence of extended IDs.
-                    pass
+                    found_extended = True
             except Exception:
                 continue
-        # Respect explicit override to force 29-bit; otherwise remain in 11-bit
+    # Respect explicit overrides and discovered capabilities:
+    # - PYCANZE_FORCE_29BIT => force 29-bit
+    # - PYCANZE_FORCE_11BIT (defaults enabled if unset) => keep 11-bit even if extended IDs exist
+        # - Otherwise, if extended IDs are discovered, enable 29-bit automatically
         try:
             v29 = os.environ.get("PYCANZE_FORCE_29BIT")
             if v29 and v29.strip().lower() not in ("0", "false", "no", ""):
                 self._use_29bit = True
         except Exception:
             pass
+        try:
+            v11 = os.environ.get("PYCANZE_FORCE_11BIT")
+            # Default to True when unset so Zoe stays on 11-bit without needing an env var
+            force11 = True if v11 is None else v11.strip().lower() not in ("0", "false", "no", "")
+        except Exception:
+            force11 = True
+        if not self._use_29bit and found_extended and not force11:
+            self._use_29bit = True
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
         # Track currently selected CAN request id (11- or 29-bit)
@@ -832,9 +851,9 @@ class UDSClient:
             raise RuntimeError("connect() must be called before reading fields")
         if self._current_req_id == req_id:
             return
-        ext = self._use_29bit or req_id > 0x7FF or (
-            resp_id is not None and resp_id > 0x7FF
-        )
+        # Only use extended headers when the adapter is initialized for 29-bit.
+        # Avoid mixing header formats based on id magnitude alone.
+        ext = self._use_29bit
         if ext:
             rid = f"{req_id & 0x1FFFFFFF:08X}"
             rpid = (

@@ -41,7 +41,7 @@ def _auto_int(value: str) -> int:
 
   
 @lru_cache()
-def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
+def load_ecus(base_dir: Path = DATA_DIR, *, vehicle: str | None = None) -> Dict[int, Ecu]:
     """Parse all ``_Ecus.csv`` files found in *base_dir*.
 
     Returns a mapping of SID to :class:`Ecu`.
@@ -49,6 +49,8 @@ def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
 
     ecus: Dict[int, Ecu] = {}
     for vehicle_dir in base_dir.iterdir():
+        if vehicle and vehicle_dir.name != vehicle:
+            continue
         csv_file = vehicle_dir / "_Ecus.csv"
         if not csv_file.exists():
             continue
