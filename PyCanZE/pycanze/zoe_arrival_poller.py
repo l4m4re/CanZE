@@ -28,6 +28,8 @@ import os
 import argparse
 from datetime import datetime, timedelta
 
+from pycanze import UDSClient  # type: ignore
+
 # ----------------- Configuration -----------------
 ELM_HOST = "192.168.2.21"   # IP of your WiFi ELM327 dongle
 ELM_PORT = 35000            # Typical ports: 35000, 3501, 23
@@ -46,6 +48,10 @@ DID_SOC = (0x20, 0x02)
 DID_ODO = (0x20, 0x06)
 # SOH from EVC (0x3206)
 DID_SOH = (0x32, 0x06)
+
+# Lightweight LBC2 probes to detect wake/sleep transitions around each poll.
+PROBE_LBC2_BEGIN = "7bb.56.6180"   # DiagnosticIdentificationCode -> 35 when awake
+PROBE_LBC2_END   = "7bb.200.6180"  # ManufacturerIdentificationCode -> 136.0 when awake
 
 HEX2 = re.compile(r"[0-9A-Fa-f]{2}")
 DIGIT_HEX = set("0123456789abcdefABCDEF")
@@ -229,9 +235,33 @@ def decode_soh(payload):
     except Exception:
         return None
 
+
+def _probe_lbc2(sid: str) -> bool:
+    """Return True if LBC2 probe ``sid`` responds with data."""
+
+    client = UDSClient(ELM_HOST, port=ELM_PORT)
+    try:
+        val = client.read_field(sid)
+        return val is not None
+    except Exception:
+        return False
+    finally:
+        try:
+            client.close()
+        except Exception:
+            pass
+
 # ----------------- Poll cycles -----------------
 def try_poll_once():
-    """Connects to ELM, tries to read SoC and Odo once. Returns tuple (soc, km). Each request uses a fresh connection, matching selftest."""
+    """Connects to ELM, reads SoC/Odo once with LBC2 probes to ensure stable state."""
+
+    pre_awake = _probe_lbc2(PROBE_LBC2_BEGIN)
+    if not pre_awake:
+        post_awake_quick = _probe_lbc2(PROBE_LBC2_END)
+        if post_awake_quick != pre_awake:
+            return None, None
+        return None, None
+
     # Poll SoC
     with socket.create_connection((ELM_HOST, ELM_PORT), timeout=ELM_TIMEOUT_S) as s:
         elm_init(s)
@@ -244,6 +274,10 @@ def try_poll_once():
     with socket.create_connection((ELM_HOST, ELM_PORT), timeout=ELM_TIMEOUT_S) as s:
         elm_init(s)
         soh_p = uds_rdbi(s, *DID_SOH)
+
+    post_awake = _probe_lbc2(PROBE_LBC2_END)
+    if post_awake != pre_awake:
+        return None, None
 
     soc = decode_soc(soc_p) if soc_p is not None else None
     km  = decode_odo(odo_p) if odo_p is not None else None
