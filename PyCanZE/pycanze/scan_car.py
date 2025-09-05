@@ -15,14 +15,12 @@ import time
 import socket
 from pathlib import Path
 
-# Allow running from repository root without installation
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 from pycanze import UDSClient  # type: ignore
 from pycanze.parser import _read_csv  # type: ignore
 from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
 
 # Directory containing copied asset CSV files
-DATA_DIR = Path(__file__).resolve().parent.parent / "pycanze" / "data"
+DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def list_cars() -> list[str]:

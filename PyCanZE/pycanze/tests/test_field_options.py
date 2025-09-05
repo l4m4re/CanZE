@@ -1,10 +1,3 @@
-from pathlib import Path
-import sys
-
-
-# Ensure package imports work when tests run from repo root
-sys.path.append(str(Path(__file__).resolve().parents[2]))
-
 from pycanze.parser import load_fields
 
 

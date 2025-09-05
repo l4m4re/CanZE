@@ -16,11 +16,8 @@ import argparse
 import json
 import re
 from pathlib import Path
-import sys
 from typing import Dict, List
 
-
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pycanze.replay_client import ReplayClient as ReplayUDSClient
 
 
