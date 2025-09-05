@@ -1,5 +1,7 @@
 # CanZE
 
+[![CI](https://github.com/CanZE/CanZE/actions/workflows/ci.yml/badge.svg)](https://github.com/CanZE/CanZE/actions/workflows/ci.yml)
+
 You have to read and agree to the informal warning and the formal disclaimer at the end of this readme.md file!
 
 CanZE is an Android App that allows you to read out some useful information out of your Renault ZE car (actually Zoe,
