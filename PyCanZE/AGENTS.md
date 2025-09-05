@@ -16,6 +16,12 @@ values over MQTT. A GUI similar to the original app may be built later.
 
 Contributions are welcome as this module is under active development.
 
+## Contributing
+
+- Documentation for this Python tooling lives in `PyCanZE/README.md`. Do not
+  modify the repository root `README.md` or other files outside `PyCanZE/`
+  when making changes here.
+
 ## Non-modifying policy
 
 PyCanZE tooling is strictly read-only. UDS services and ELM327 sequences in
@@ -23,6 +29,14 @@ this directory must not issue write or actuation commands to any ECU. Future
 contributions must preserve this behaviour. If write access is ever explored,
 it needs to live behind explicit safeguards, require whitelists, and undergo
 careful review before enabling any modification on a vehicle.
+
+### Read-only SID audit
+
+The repository ships a helper `tools/audit_readonly.py` that scans the
+``pycanze/data`` CSVs and Python sources for diagnostic services. CI runs this
+audit and fails the build if a SID uses a non read-only service. Run
+``python tools/audit_readonly.py`` from the repository root before submitting
+changes.
 
 ## Handling vehicle states and sentinel values (2025-09-01)
 
