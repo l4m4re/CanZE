@@ -16,6 +16,14 @@ values over MQTT. A GUI similar to the original app may be built later.
 
 Contributions are welcome as this module is under active development.
 
+## Non-modifying policy
+
+PyCanZE tooling is strictly read-only. UDS services and ELM327 sequences in
+this directory must not issue write or actuation commands to any ECU. Future
+contributions must preserve this behaviour. If write access is ever explored,
+it needs to live behind explicit safeguards, require whitelists, and undergo
+careful review before enabling any modification on a vehicle.
+
 ## Handling vehicle states and sentinel values (2025-09-01)
 
 When agents/pollers consume PyCanZE, decide what to read/publish based on vehicle state. Some EVC/LBC values are unavailable or placeholders while the car sleeps, especially with the charger plugged but inactive.

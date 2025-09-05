@@ -6,7 +6,10 @@ it is used to manage the underlying connection; otherwise a small set of
 socket helpers derived from ``Testing/zoe_arrival_poller.py`` is employed.
 The client can query diagnostic data identifiers (DIDs) defined in the CanZE
 database and decode the returned payload using the field's bit positions,
-resolution and offset.
+resolution and offset.  It is intentionally limited to read-only diagnostics;
+write or actuation services (e.g. UDS 0x2E/0x31) are deliberately not
+implemented.  Any future write support must be gated behind explicit
+whitelists and safety checks.
 
 The default initialisation mirrors the Android driver's AT sequence::
 
@@ -42,8 +45,14 @@ class UDSClient:
     """Simple UDS client for querying diagnostic fields.
 
     Parameters mirror those used in the poller script. By default the CanZE
-    database is loaded so fields can be looked up by SID.
-    """
+    database is loaded so fields can be looked up by SID. The client only
+    issues read-oriented UDS services (0x21/0x22 along with session control and
+    tester-present keep-alives)."""
+
+    # Future write support, if ever implemented, should live in dedicated
+    # helpers (e.g. ``write_by_id``) that validate identifiers against a
+    # whitelist and require explicit user confirmation or safeguards before
+    # sending any UDS commands that could alter ECU state.
 
     def __init__(
         self,

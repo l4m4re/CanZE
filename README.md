@@ -15,6 +15,13 @@ The website can be found at http://canze.fisch.lu
 We strongly urge you to report bugs, issues and requests here on github using the issue system. You have to have a github account for that, but it offloads the team from an awful lot of administrative tasks, wasting valuable time that would better be spent on more productive work. You can report in English (preferred, and really, we don't mind language errors, NONE of the team members are native speakers!), German, French, Portuguese, Dutch and Danish, as long as you don't mind us answering in English, to keep things coordinated.
 
 
+# Non-modifying only
+
+CanZE and the companion PyCanZE tools are intended for passive, read-only
+diagnostics. Write or actuation commands over OBD/UDS are intentionally not
+supported and must not be added without explicit review and robust safety
+mechanisms.
+
 # Informal warning
 
 Before you download and use this software consider the following:
