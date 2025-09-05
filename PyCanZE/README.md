@@ -19,6 +19,13 @@ app's AT initialisation sequence and offers tuning knobs for flow-control and
 timing. An optional *wide CF fallback* widens receive filters and enables
 ``ATH1`` when LBC 0x21 pages miss consecutive frames.
 
+## Non-modifying policy
+
+All PyCanZE libraries and tools operate in a read-only manner. UDS services or
+other commands that could alter vehicle state are intentionally excluded. Any
+future write capability would need explicit safety mechanisms and review before
+being enabled.
+
 ## Build
 
 From this directory install the package with `pip`::
