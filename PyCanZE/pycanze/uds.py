@@ -22,7 +22,8 @@ from __future__ import annotations
 import socket
 import os
 import time
-from typing import Dict, Optional, Sequence, Union
+import threading
+from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, Union
 
 try:  # optional dependency for proper ELM327 management
     from obd_wifi.elm327 import ELM327  # type: ignore
@@ -110,6 +111,9 @@ class UDSClient:
         self.cf_read_timeout_s = 1.2  # per read timeout while collecting CFs
         # Optional per-ECU first-0x21 delay (currently used for LBC 0x7BB)
         self.first_21_delay_by_req = {}
+        # Sniffing state
+        self._sniffing = False
+        self._sniff_thread: Optional[threading.Thread] = None
 
     # sleep hook -------------------------------------------------------------
     def _sleep(self, duration: float) -> None:
@@ -388,6 +392,88 @@ class UDSClient:
         if self.sock is not None:
             self.sock.close()
             self.sock = None
+
+    # ------------------------------------------------------------------
+    def _sniff_loop(self) -> Iterator[Tuple[int, bytes]]:
+        """Internal generator yielding ``(frame_id, payload)`` tuples."""
+
+        assert self.sock is not None
+        self._sniffing = True
+        self._send("ATMA", wait=0.0)
+        self.sock.settimeout(0.2)
+        buf = b""
+        while self._sniffing:
+            try:
+                chunk = self.sock.recv(4096)
+            except Exception:
+                continue
+            if not chunk:
+                continue
+            buf += chunk
+            while b"\r" in buf or b"\n" in buf:
+                for sep in (b"\r", b"\n"):
+                    if sep in buf:
+                        line, buf = buf.split(sep, 1)
+                        break
+                text = line.decode(errors="ignore").strip()
+                if not text or text == ">" or "STOPPED" in text:
+                    continue
+                parts = text.split()
+                try:
+                    fid = int(parts[0], 16)
+                    payload = bytes(int(p, 16) for p in parts[1:])
+                except Exception:
+                    continue
+                yield fid, payload
+        try:
+            self.sock.settimeout(self.timeout)
+        except Exception:
+            pass
+
+    def start_sniffing(
+        self, callback: Optional[Callable[[int, bytes], None]] = None
+    ) -> Iterator[Tuple[int, bytes]] | None:
+        """Start ``ATMA`` sniffing.
+
+        If ``callback`` is provided, frames are delivered via the function in a
+        background thread and the method returns ``None``. Otherwise an iterator
+        yielding ``(frame_id, payload)`` tuples is returned and should be
+        consumed by the caller. Call :meth:`stop_sniffing` to stop.
+        """
+
+        if self.sock is None:
+            raise RuntimeError("connect() must be called before sniffing")
+        if callback is None:
+            return self._sniff_loop()
+
+        def _run() -> None:
+            for fid, payload in self._sniff_loop():
+                callback(fid, payload)
+
+        self._sniff_thread = threading.Thread(target=_run, daemon=True)
+        self._sniff_thread.start()
+        return None
+
+    def stop_sniffing(self) -> None:
+        """Stop active ``ATMA`` sniffing."""
+
+        if not self._sniffing:
+            return
+        self._sniffing = False
+        if self.sock is not None:
+            try:
+                self.sock.sendall(b"\x03")  # Ctrl+C abort
+                # Flush any remaining lines including the prompt
+                self.sock.settimeout(0.2)
+                try:
+                    self.sock.recv(4096)
+                except Exception:
+                    pass
+            except Exception:
+                pass
+        if self._sniff_thread is not None:
+            self._sniff_thread.join(timeout=1.0)
+            self._sniff_thread = None
 
     # ------------------------------------------------------------------
     def _read_by_id(
