@@ -97,18 +97,16 @@ class UDSClient:
         self._last_tuple = None  # type: Optional[tuple[int, int, int]]
         self._last_resp = None  # type: Optional[Sequence[int]]
         self._last_resp_ts = 0.0
-        # Default to 11-bit; 29-bit only if explicitly forced or discovered and not forced-11
+        # Default to 11-bit; 29-bit only if explicitly forced via env at init.
+        # Per-ECU switching is handled in _select_frame.
         self._use_29bit = False
         # Build ECU maps for header selection and session requirements
-        found_extended = False
         for ecu in _ecus.values():
             try:
-                # Skip virtual/placeholder ECUs that don't exist on the CAN bus
-                if getattr(ecu, "sid", 0) >= 9998:
-                    continue
-                if getattr(ecu, "mnemonic", "").upper() in ("VFC", "FFC"):
-                    continue
-                if (getattr(ecu, "request_id", 0) == 0) or (getattr(ecu, "response_id", 0) == 0):
+                # Skip entries with invalid CAN ids (0/0 placeholders)
+                if (getattr(ecu, "request_id", 0) == 0) or (
+                    getattr(ecu, "response_id", 0) == 0
+                ):
                     continue
                 # Parser stores FromID in request_id (ECU->tester) and ToID in response_id (tester->ECU).
                 # Swap to get (req=ToID, resp=FromID) and keep full 29-bit identifiers.
@@ -120,28 +118,16 @@ class UDSClient:
                 self._session_required_by_req[req] = bool(
                     getattr(ecu, "session_required", 0)
                 )
-                if req > 0x7FF or resp > 0x7FF:
-                    found_extended = True
             except Exception:
                 continue
-    # Respect explicit overrides and discovered capabilities:
-    # - PYCANZE_FORCE_29BIT => force 29-bit
-    # - PYCANZE_FORCE_11BIT (defaults enabled if unset) => keep 11-bit even if extended IDs exist
-        # - Otherwise, if extended IDs are discovered, enable 29-bit automatically
+        # Respect explicit 29-bit override at init; otherwise start in 11-bit and
+        # let _select_frame switch per ECU as needed.
         try:
             v29 = os.environ.get("PYCANZE_FORCE_29BIT")
             if v29 and v29.strip().lower() not in ("0", "false", "no", ""):
                 self._use_29bit = True
         except Exception:
             pass
-        try:
-            v11 = os.environ.get("PYCANZE_FORCE_11BIT")
-            # Default to True when unset so Zoe stays on 11-bit without needing an env var
-            force11 = True if v11 is None else v11.strip().lower() not in ("0", "false", "no", "")
-        except Exception:
-            force11 = True
-        if not self._use_29bit and found_extended and not force11:
-            self._use_29bit = True
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
         # Track currently selected CAN request id (11- or 29-bit)
@@ -851,9 +837,30 @@ class UDSClient:
             raise RuntimeError("connect() must be called before reading fields")
         if self._current_req_id == req_id:
             return
-        # Only use extended headers when the adapter is initialized for 29-bit.
-        # Avoid mixing header formats based on id magnitude alone.
-        ext = self._use_29bit
+        # Decide header format per ECU: prefer env overrides, otherwise by id size
+        needed_ext = False
+        try:
+            v29 = os.environ.get("PYCANZE_FORCE_29BIT")
+            if v29 and v29.strip().lower() not in ("0", "false", "no", ""):
+                needed_ext = True
+        except Exception:
+            pass
+        # If not explicitly forced, infer from id magnitude
+        if not needed_ext:
+            needed_ext = (req_id > 0x7FF) or (resp_id is not None and resp_id > 0x7FF)
+        # Never downforce 11-bit for truly extended IDs: ignore FORCE_11BIT here
+        if needed_ext != self._use_29bit:
+            # Switch CAN protocol on the adapter
+            self._send("ATSP7" if needed_ext else "ATSP6")
+            self._read_lines(3.0)
+            if needed_ext:
+                # Required for extended addressing on some ELMs
+                self._send("ATCP 00")
+                self._read_lines(3.0)
+            self._use_29bit = needed_ext
+            # Invalidate previously selected header
+            self._current_req_id = None
+        ext = needed_ext
         if ext:
             rid = f"{req_id & 0x1FFFFFFF:08X}"
             rpid = (
