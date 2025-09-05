@@ -18,6 +18,13 @@ from pycanze.config import load_config  # type: ignore
 from pycanze.parser import load_fields  # type: ignore
 from pycanze.state import POLL_SIDS, build_payload, detect_state
 
+# Lightweight ECU-awake probes to bracket each poll. If the LBC2 0x6180
+# diagnostic identifier reports inconsistent values between the start and
+# end of a polling cycle, the sample is discarded to avoid mixing sleep and
+# awake data.
+PROBE_LBC2_BEGIN = "7bb.56.6180"
+PROBE_LBC2_END = "7bb.200.6180"
+
 
 def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
     """Read a SID; return None on benign errors."""
@@ -83,13 +90,34 @@ def main() -> None:
 
     try:
         while True:
-            vals = {sid: _safe_read(client, sid) for sid in poll_sids}
-            state = detect_state(vals)
-            payload = build_payload(vals, state)
-            payload["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
-            if logger:
-                logger.log(payload)
-            mqtt_client.publish(args.mqtt_topic, json.dumps(payload))
+            try:
+                pre_probe_val = _safe_read(client, PROBE_LBC2_BEGIN)
+                pre_awake = pre_probe_val is not None
+
+                if not pre_awake:
+                    post_probe_quick = _safe_read(client, PROBE_LBC2_END)
+                    post_awake_quick = post_probe_quick is not None
+                    if post_awake_quick != pre_awake:
+                        time.sleep(0.2)
+                        continue
+                    vals: dict[str, Optional[float]] = {}
+                else:
+                    vals = {sid: _safe_read(client, sid) for sid in poll_sids}
+                    post_probe_val = _safe_read(client, PROBE_LBC2_END)
+                    post_awake = post_probe_val is not None
+                    if post_awake != pre_awake:
+                        time.sleep(0.2)
+                        continue
+
+                state = detect_state(vals) if vals else "sleep"
+                payload = build_payload(vals, state)
+                payload["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+                if logger:
+                    logger.log(payload)
+                mqtt_client.publish(args.mqtt_topic, json.dumps(payload))
+            except (OSError, ConnectionError, TimeoutError, socket.timeout):
+                # Skip this cycle if the ELM327 is unreachable or times out
+                pass
             time.sleep(args.interval)
     finally:
         try:
