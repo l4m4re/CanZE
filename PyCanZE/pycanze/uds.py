@@ -68,7 +68,17 @@ class UDSClient:
         self.sock = None  # type: Optional[socket.socket]
         self.elm = None
         self.use_obdwifi = use_obdwifi and ELM327 is not None
-        self.fields = fields if fields is not None else load_fields()[0]
+        if fields is not None:
+            self.fields = fields
+        else:
+            # Default to classic ZOE dataset to avoid mixing 11/29-bit ECUs by default.
+            # Can be overridden via PYCANZE_VEHICLE.
+            try:
+                veh = os.environ.get("PYCANZE_VEHICLE", "ZOE")
+                self.fields = load_fields(vehicle=veh)[0]
+            except Exception:
+                # Fallback to all fields if specific dataset load fails
+                self.fields = load_fields()[0]
         self.debug = bool(os.environ.get("PYCANZE_DEBUG"))
         # Map CAN IDs (both request and response) to (request_id, response_id)
         try:
@@ -86,7 +96,9 @@ class UDSClient:
         self._last_tuple = None  # type: Optional[tuple[int, int, int]]
         self._last_resp = None  # type: Optional[Sequence[int]]
         self._last_resp_ts = 0.0
+        # Default to 11-bit; only enable 29-bit if explicitly forced via env
         self._use_29bit = False
+        # Build ECU maps for header selection and session requirements
         for ecu in _ecus.values():
             try:
                 # Parser stores FromID in request_id (ECU->tester) and ToID in response_id (tester->ECU).
@@ -100,9 +112,17 @@ class UDSClient:
                     getattr(ecu, "session_required", 0)
                 )
                 if req > 0x7FF or resp > 0x7FF:
-                    self._use_29bit = True
+                    # Do not auto-switch; only note presence of extended IDs.
+                    pass
             except Exception:
                 continue
+        # Respect explicit override to force 29-bit; otherwise remain in 11-bit
+        try:
+            v29 = os.environ.get("PYCANZE_FORCE_29BIT")
+            if v29 and v29.strip().lower() not in ("0", "false", "no", ""):
+                self._use_29bit = True
+        except Exception:
+            pass
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
         # Track currently selected CAN request id (11- or 29-bit)
@@ -521,7 +541,10 @@ class UDSClient:
         else:
             raise ValueError("Unsupported identifier length")
         if self.debug:
-            print(f"[PYCANZE DEBUG] UDS READ: {cmd}")
+            hdr = self._current_req_id
+            proto = "29bit" if (self._use_29bit or (hdr is not None and hdr > 0x7FF)) else "11bit"
+            hdr_str = f"0x{hdr:x}" if isinstance(hdr, int) else "None"
+            print(f"[PYCANZE DEBUG] UDS READ: {cmd} (hdr={hdr_str} proto={proto})")
         # Optional delay just before the first 0x21 after switching headers
         if (
             service == 0x21
