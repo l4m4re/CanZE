@@ -9,37 +9,13 @@ import os
 import socket
 import time
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import paho.mqtt.client as mqtt
 
 from pycanze import UDSClient  # type: ignore
 from pycanze.parser import load_fields  # type: ignore
-
-# Core SIDs
-SID_SOC = "7ec.24.622002"
-SID_SOC_MEM = "7ec.168.623415"
-SID_SOH = "7ec.24.623206"
-SID_HV_V = "7ec.24.623203"
-SID_ODO = "7ec.24.623200"  # some datasets use 7ec.24.622006
-SID_CHG_MODE = "7ec.30.6234dd"
-SID_CHG_SET = "7ec.24.6234ad"
-SID_HVAC_REQ = "7ec.31.6233cd"
-SID_HEAT_REQ = "7ec.25.623328"
-SID_KEY_STATE = "7ec.31.62200e"
-
-POLL_SIDS = [
-    SID_SOC,
-    SID_SOC_MEM,
-    SID_SOH,
-    SID_HV_V,
-    SID_ODO,
-    SID_CHG_MODE,
-    SID_CHG_SET,
-    SID_HVAC_REQ,
-    SID_HEAT_REQ,
-    SID_KEY_STATE,
-]
+from pycanze.state import POLL_SIDS, build_payload, detect_state
 
 
 def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
@@ -58,52 +34,6 @@ def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
         return None
 
 
-def detect_state(vals: Dict[str, Optional[float]]) -> str:
-    """Return vehicle state based on heuristic signals."""
-
-    key = vals.get(SID_KEY_STATE)
-    chg_mode = vals.get(SID_CHG_MODE)
-    chg_set = vals.get(SID_CHG_SET)
-    soc = vals.get(SID_SOC)
-    hvac = vals.get(SID_HVAC_REQ)
-    heat = vals.get(SID_HEAT_REQ)
-
-    if key == 1:
-        return "ready"
-    if chg_mode == 2 or (chg_set is not None and chg_set > 0):
-        return "charging"
-    if soc == 0:
-        if hvac == 1 or heat == 0:
-            return "charger_connected_sleep"
-        return "parked_sleep"
-    return "parked"
-
-
-def build_payload(vals: Dict[str, Optional[float]], state: str) -> Dict[str, object]:
-    """Filter sentinel values and construct payload."""
-
-    soc = vals.get(SID_SOC)
-    soc_mem = vals.get(SID_SOC_MEM)
-    if soc in (None, 0) and soc_mem not in (None, 0):
-        soc = soc_mem
-
-    soh = vals.get(SID_SOH)
-    hv = vals.get(SID_HV_V)
-    odo = vals.get(SID_ODO)
-
-    data: Dict[str, object] = {"state": state}
-    if soc not in (None, 0):
-        data["soc"] = round(float(soc), 3)
-    if soh is not None and soh <= 100:
-        data["soh"] = round(float(soh), 3)
-    if hv is not None and hv < 500:
-        data["hv_voltage"] = round(float(hv), 3)
-    if odo is not None:
-        try:
-            data["odometer"] = int(odo)
-        except Exception:
-            pass
-    return data
 
 
 def parse_args() -> argparse.Namespace:
