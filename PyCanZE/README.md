@@ -88,6 +88,22 @@ For standalone logging of arbitrary fields use the helper in `tools/`::
 
 Use `--sqlite` instead of `--csv` to write into a SQLite database.
 
+### Web log dashboard
+
+`tools/log_dashboard.py` exposes recent samples and simple charts over HTTP.
+It reads the rotating CSV/SQLite logs produced by `logger.py` and does not send
+any commands to the vehicle.
+
+Install dependencies and start the logger and dashboard::
+
+    pip install flask
+    python PyCanZE/tools/logger.py --fields 7ec.24.622002 7ec.24.623203 \
+        --csv ev.csv --rotate 1024
+    python PyCanZE/tools/log_dashboard.py --csv ev.csv --host 0.0.0.0 --port 8000
+
+Open ``http://localhost:8000/`` for charts of SOC and HV voltage. The server is
+read‑only and should run on a trusted network.
+
 Contributions are welcome!
 
 ## PyCanZE (Python tools) roadmap
