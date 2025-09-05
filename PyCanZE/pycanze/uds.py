@@ -80,8 +80,8 @@ class UDSClient:
             try:
                 # Parser stores FromID in request_id (ECU->tester) and ToID in response_id (tester->ECU).
                 # Swap to get (req=ToID, resp=FromID).
-                req = ecu.response_id & 0x7FF
-                resp = ecu.request_id & 0x7FF
+                req = ecu.response_id & 0x1FFFFFFF
+                resp = ecu.request_id & 0x1FFFFFFF
                 self._ecu_by_can[req] = (req, resp)
                 self._ecu_by_can[resp] = (req, resp)
                 self._net_by_req[req] = ecu.networks
@@ -92,8 +92,10 @@ class UDSClient:
                 continue
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
-        # Track currently selected CAN request id (11-bit)
+        # Track currently selected CAN request id and protocol
         self._current_req_id = None
+        self._current_protocol = None  # 6 (11-bit) or 7 (29-bit)
+        self._current_cp = None  # CAN priority byte for extended frames
         # Tunables (can be overridden by tools)
         self.caf = None  # 0 or 1 for ATCAF
         self.fc_stmin_ms = None  # STmin ms for ATFCSD 3000xx
@@ -120,12 +122,12 @@ class UDSClient:
         time.sleep(duration)
 
     def _pair_for_frame(self, fid: int):
-        """Return (req_id, resp_id) for a given 11-bit CAN id.
+        """Return ``(req_id, resp_id)`` for a given CAN id (11‑ or 29‑bit).
 
         Tries direct lookup; if missing, searches by matching response id in
         the known pairs; finally falls back to standard +8 mapping.
         """
-        fid &= 0x7FF
+        fid &= 0x1FFFFFFF
         pair = self._ecu_by_can.get(fid)
         if pair is not None:
             return pair
@@ -137,7 +139,7 @@ class UDSClient:
             except Exception:
                 continue
         # Fallback to standard UDS addressing heuristic (req = resp - 0x8)
-        return ((fid - 0x8) & 0x7FF, fid)
+        return ((fid - 0x8) & 0x1FFFFFFF, fid)
 
     # ------------------------------------------------------------------
     def _ensure_session(self, req_id: int, force: bool = False) -> None:
@@ -347,6 +349,8 @@ class UDSClient:
         for cmd in init_cmds:
             self._send(cmd)
             self._read_lines(3.0)
+        self._current_protocol = 6
+        self._current_cp = None
         # Optional: adjust ELM response timeout via ATST
         # Accept either hex byte (PYCANZE_ATST) or milliseconds (PYCANZE_ATST_MS, rounded to 4ms units)
         atst_cmd = None
@@ -550,15 +554,24 @@ class UDSClient:
                 resp_id = 0
                 if self._current_req_id is not None:
                     resp_id = self._pair_for_frame(self._current_req_id)[1]
-                resp_hex = f"{resp_id & 0x7FF:03X}"
+                extended = resp_id > 0x7FF
+                resp_hex = (
+                    f"{resp_id & 0x1FFFFFFF:08X}" if extended else f"{resp_id & 0x7FF:03X}"
+                )
                 try:
                     self._send("ATH1")
                     self._read_lines(1.0)
                     # Always use mask filtering for a true wildcard
-                    self._send("ATCM 000")
-                    self._read_lines(1.0)
-                    self._send("ATCF 000")
-                    self._read_lines(1.0)
+                    if extended:
+                        self._send("ATCM 00000000")
+                        self._read_lines(1.0)
+                        self._send("ATCF 00000000")
+                        self._read_lines(1.0)
+                    else:
+                        self._send("ATCM 000")
+                        self._read_lines(1.0)
+                        self._send("ATCF 000")
+                        self._read_lines(1.0)
                     self._sleep(0.02)
                     # Resend the original request under widened filters
                     self._send(cmd)
@@ -598,10 +611,16 @@ class UDSClient:
                 finally:
                     # Restore exact filter and headers
                     try:
-                        self._send("ATCM 7FF")
-                        self._read_lines(1.0)
-                        self._send(f"ATCF {resp_hex}")
-                        self._read_lines(1.0)
+                        if extended:
+                            self._send("ATCM 1FFFFFFF")
+                            self._read_lines(1.0)
+                            self._send(f"ATCF {resp_hex}")
+                            self._read_lines(1.0)
+                        else:
+                            self._send("ATCM 7FF")
+                            self._read_lines(1.0)
+                            self._send(f"ATCF {resp_hex}")
+                            self._read_lines(1.0)
                     except Exception:
                         pass
                     try:
@@ -690,36 +709,64 @@ class UDSClient:
 
     # ------------------------------------------------------------------
     def _select_frame(self, req_id: int, resp_id: Optional[int] = None) -> None:
-        """Ensure ELM headers/filters are set for the given 11-bit CAN request id.
+        """Ensure ELM headers/filters are set for the given CAN request id."""
 
-        Sets request header (ATSH/ATFCSH) to ``req_id`` and response filter
-        (ATCRA) to ``resp_id`` if provided, otherwise ``req_id + 8`` which
-        matches standard UDS addressing.
-        """
-
-        # Only handle 11-bit IDs here. Extended (29-bit) support is out of scope for now.
-        if req_id <= 0 or req_id > 0x7FF:
+        if req_id <= 0:
             return
         if self.sock is None:
             raise RuntimeError("connect() must be called before reading fields")
-        if self._current_req_id == req_id:
+        rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x1FFFFFFF
+        extended = req_id > 0x7FF or rpid > 0x7FF
+        if (
+            self._current_req_id == req_id
+            and ((extended and self._current_protocol == 7) or (not extended and self._current_protocol == 6))
+        ):
             return
-        rid = f"{req_id & 0x7FF:03X}"
-        rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x7FF
-        resp = f"{rpid:03X}"
-        self._send(f"ATSH{rid}")
-        self._read_lines(3.0)
-        self._send(f"ATFCSH{rid}")
-        self._read_lines(3.0)
-        if self.use_mask_filter:
-            # Use filter/mask pair instead of ATCRA (some clones handle CFs better)
-            self._send(f"ATCF {resp}")
+        if extended:
+            # Switch protocol if needed
+            if self._current_protocol != 7:
+                self._send("ATSP7")
+                self._read_lines(3.0)
+                self._current_protocol = 7
+            rid = req_id & 0x1FFFFFFF
+            cp = (rid >> 24) & 0xFF
+            if self._current_cp != cp:
+                self._send(f"ATCP{cp:02X}")
+                self._read_lines(3.0)
+                self._current_cp = cp
+            rid_low = f"{rid & 0xFFFFFF:06X}"
+            self._send(f"ATSH{rid_low}")
             self._read_lines(3.0)
-            self._send("ATCM 7FF")
+            self._send(f"ATFCSH{rid_low}")
             self._read_lines(3.0)
+            resp = rpid & 0x1FFFFFFF
+            if self.use_mask_filter:
+                self._send(f"ATCF {resp:08X}")
+                self._read_lines(3.0)
+                self._send("ATCM 1FFFFFFF")
+                self._read_lines(3.0)
+            else:
+                self._send(f"ATCRA {resp:08X}")
+                self._read_lines(3.0)
         else:
-            self._send(f"ATCRA {resp}")
+            if self._current_protocol != 6:
+                self._send("ATSP6")
+                self._read_lines(3.0)
+                self._current_protocol = 6
+            rid = f"{req_id & 0x7FF:03X}"
+            resp = f"{rpid & 0x7FF:03X}"
+            self._send(f"ATSH{rid}")
             self._read_lines(3.0)
+            self._send(f"ATFCSH{rid}")
+            self._read_lines(3.0)
+            if self.use_mask_filter:
+                self._send(f"ATCF {resp}")
+                self._read_lines(3.0)
+                self._send("ATCM 7FF")
+                self._read_lines(3.0)
+            else:
+                self._send(f"ATCRA {resp}")
+                self._read_lines(3.0)
         self._current_req_id = req_id
         # Give the ELM/adapter a short settle time after header switch if configured
         if self.header_settle_ms and self.header_settle_ms > 0:
@@ -727,10 +774,10 @@ class UDSClient:
                 print(
                     f"[PYCANZE DEBUG] header_settle_ms={self.header_settle_ms} ms after ATSH/ATCRA"
                 )
-                try:
-                    self._sleep(self.header_settle_ms / 1000.0)
-                except Exception:
-                    pass
+            try:
+                self._sleep(self.header_settle_ms / 1000.0)
+            except Exception:
+                pass
         # Mark that we've just switched to allow an optional delay before next 0x21
         self._just_switched = True
         # If a per-ECU first-0x21 delay is configured for this req id, override the generic one
@@ -740,7 +787,7 @@ class UDSClient:
         except Exception:
             pass
 
-    # Public helper to attempt a diagnostic session for a given field frame id (11-bit CAN)
+    # Public helper to attempt a diagnostic session for a given field frame id
     def ensure_session(self, frame_id: int, force: bool = False) -> None:
         """Best-effort session start for the ECU associated with frame_id.
 
@@ -748,7 +795,7 @@ class UDSClient:
         marked as requiring one in the database. Useful for ECUs like LBC
         when accessing certain local identifiers (0x21).
         """
-        fid = frame_id & 0x7FF
+        fid = frame_id & 0x1FFFFFFF
         req_id, resp_id = self._pair_for_frame(fid)
         self._select_frame(req_id, resp_id)
         self._ensure_session(req_id, force=force)
@@ -785,7 +832,7 @@ class UDSClient:
         # Switch to the ECU for this field if needed.
         # Select ECU headers for this field
         try:
-            fid = field.frame_id & 0x7FF
+            fid = field.frame_id & 0x1FFFFFFF
             req_id, resp_id = self._pair_for_frame(fid)
             self._select_frame(req_id, resp_id)
             self._ensure_session(req_id)

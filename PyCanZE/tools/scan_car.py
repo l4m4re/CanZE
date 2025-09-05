@@ -78,6 +78,11 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         help="File to store raw ELM327 traffic for offline tests",
     )
+    parser.add_argument(
+        "--extended",
+        action="store_true",
+        help="Initialise ELM327 for 29-bit CAN (ATSP7)",
+    )
     return parser.parse_args()
 
 
@@ -253,6 +258,13 @@ def main() -> None:
         except Exception as e:
             print(f"ELM327 initialization failed -> {e}")
             sys.exit(3)
+        if getattr(args, "extended", False):
+            try:
+                client._send("ATSP7")  # type: ignore[attr-defined]
+                client._read_lines(3.0)  # type: ignore[attr-defined]
+                client._current_protocol = 7  # type: ignore[attr-defined]
+            except Exception:
+                pass
         scan_car(car, client)
     finally:
         if log_fh:

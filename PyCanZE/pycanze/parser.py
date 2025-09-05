@@ -53,8 +53,9 @@ def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
             name = row[0]
             sid = int(row[1])
             networks = row[2].split(";") if len(row) > 2 and row[2] else []
-            request_id = _auto_int(row[3])
-            response_id = _auto_int(row[4])
+            # Preserve up to 29-bit CAN ids from the CSV
+            request_id = _auto_int(row[3]) & 0x1FFFFFFF
+            response_id = _auto_int(row[4]) & 0x1FFFFFFF
             mnemonic = row[5]
             aliases = row[6].split(";") if len(row) > 6 and row[6] else []
             dtc_response_ids = [
