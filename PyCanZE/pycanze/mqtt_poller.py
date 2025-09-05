@@ -45,6 +45,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--mqtt-topic", default=os.environ.get("MQTT_TOPIC", "canze/metrics"))
     p.add_argument("--vehicle", default=os.environ.get("PYCANZE_VEHICLE"))
     p.add_argument("--interval", type=int, default=300, help="Polling interval in seconds")
+    p.add_argument("--log-csv", type=Path, help="Optional CSV log file")
+    p.add_argument("--log-sqlite", type=Path, help="Optional SQLite log database")
+    p.add_argument(
+        "--log-rotate",
+        type=int,
+        help="Rotate logs when files exceed this size in kB",
+    )
     return p.parse_args()
 
 
@@ -55,6 +62,11 @@ def main() -> None:
     mqtt_client = mqtt.Client()
     mqtt_client.connect(args.mqtt_host, args.mqtt_port)
     mqtt_client.loop_start()
+    logger = None
+    if args.log_csv or args.log_sqlite:
+        from tools.logger import Logger  # type: ignore
+
+        logger = Logger(args.log_csv, args.log_sqlite, args.log_rotate)
 
     try:
         while True:
@@ -62,6 +74,8 @@ def main() -> None:
             state = detect_state(vals)
             payload = build_payload(vals, state)
             payload["timestamp"] = time.strftime("%Y-%m-%dT%H:%M:%S")
+            if logger:
+                logger.log(payload)
             mqtt_client.publish(args.mqtt_topic, json.dumps(payload))
             time.sleep(args.interval)
     finally:
@@ -73,6 +87,9 @@ def main() -> None:
                 mqtt_client.disconnect()
             except Exception:
                 pass
+            finally:
+                if logger:
+                    logger.close()
 
 
 if __name__ == "__main__":
