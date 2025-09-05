@@ -108,34 +108,36 @@ def _safe_read(client: UDSClient, sid: str) -> Optional[float]:
         return None
 
 
-def _read_shelly(url: Optional[str], timeout: float = 1.5) -> tuple[Optional[float], Optional[float], Optional[float], Optional[float]]:
-    """Fetch Shelly status JSON and extract (tC, apower, voltage, current).
+def _read_shelly(url: Optional[str], timeout: float = 1.5) -> tuple[Optional[float], Optional[float], Optional[float], Optional[float], Optional[float]]:
+    """Fetch Shelly status JSON and extract (tC, apower, voltage, current, aenergy.total).
 
     Returns a tuple of floats or None on failure per field. Safe and non-fatal.
+    Note: aenergy.total is reported in Wh by Shelly Gen2 devices.
     """
     if not url:
-        return (None, None, None, None)
+        return (None, None, None, None, None)
     try:
         with urlopen(url, timeout=timeout) as resp:
             if resp.status != 200:
-                return (None, None, None, None)
+                return (None, None, None, None, None)
             data = json.loads(resp.read().decode('utf-8', errors='ignore'))
             sw = data.get('switch:0') or {}
             temp = (sw.get('temperature') or {}).get('tC')
             apower = sw.get('apower')
             voltage = sw.get('voltage')
             current = sw.get('current')
+            aenergy_total = (sw.get('aenergy') or {}).get('total')
             # Normalize to float if present
             def f(x):
                 try:
                     return float(x)
                 except Exception:
                     return None
-            return (f(temp), f(apower), f(voltage), f(current))
+            return (f(temp), f(apower), f(voltage), f(current), f(aenergy_total))
     except (HTTPError, URLError, TimeoutError, socket.timeout, ValueError):
-        return (None, None, None, None)
+        return (None, None, None, None, None)
     except Exception:
-        return (None, None, None, None)
+        return (None, None, None, None, None)
 
 
 def main() -> None:
@@ -207,6 +209,7 @@ def main() -> None:
                 "shelly_apower_w",
                 "shelly_voltage_v",
                 "shelly_current_a",
+                "shelly_aenergy_total_Wh",
             ])
             csv_file.flush()
     except Exception:
@@ -232,7 +235,7 @@ def main() -> None:
                     print()
                     dot_mode = False
                 print(f"{ts} State: offline -> ELM327 init failed: {e}")
-                sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
+                sh_t, sh_p, sh_v, sh_i, sh_e = _read_shelly(args.shelly_url)
                 csv_writer.writerow([
                     ts, "offline", False, False, False,
                     None, None, None, None, None, None, None, None, None,
@@ -241,6 +244,7 @@ def main() -> None:
                     None if sh_p is None else round(sh_p, 2),
                     None if sh_v is None else round(sh_v, 2),
                     None if sh_i is None else round(sh_i, 3),
+                    None if sh_e is None else round(sh_e, 3),
                 ])
                 csv_file.flush()
                 last_simple_state = "offline"
@@ -266,7 +270,7 @@ def main() -> None:
                             print()
                             dot_mode = False
                         print(f"{ts} State: offline -> {e}")
-                        sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
+                        sh_t, sh_p, sh_v, sh_i, sh_e = _read_shelly(args.shelly_url)
                         csv_writer.writerow([
                             ts, "offline", False, False, False,
                             None, None, None, None, None, None, None, None, None,
@@ -275,6 +279,7 @@ def main() -> None:
                             None if sh_p is None else round(sh_p, 2),
                             None if sh_v is None else round(sh_v, 2),
                             None if sh_i is None else round(sh_i, 3),
+                            None if sh_e is None else round(sh_e, 3),
                         ])
                         csv_file.flush()
                         last_simple_state = "offline"
@@ -325,7 +330,7 @@ def main() -> None:
                         dot_mode = False
                     print(f"{ts} State: offline -> {e}")
                     # Log offline sample once on transition
-                    sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
+                    sh_t, sh_p, sh_v, sh_i, sh_e = _read_shelly(args.shelly_url)
                     csv_writer.writerow([
                         ts, "offline", False, False, False,
                         None, None, None, None, None, None, None, None, None,
@@ -334,6 +339,7 @@ def main() -> None:
                         None if sh_p is None else round(sh_p, 2),
                         None if sh_v is None else round(sh_v, 2),
                         None if sh_i is None else round(sh_i, 3),
+                        None if sh_e is None else round(sh_e, 3),
                     ])
                     csv_file.flush()
                     last_simple_state = "offline"
@@ -391,7 +397,7 @@ def main() -> None:
                     print()
                     dot_mode = False
                 # Shelly fetch
-                sh_t, sh_p, sh_v, sh_i = _read_shelly(args.shelly_url)
+                sh_t, sh_p, sh_v, sh_i, sh_e = _read_shelly(args.shelly_url)
                 # CSV row
                 csv_writer.writerow([
                     ts,
@@ -418,6 +424,7 @@ def main() -> None:
                     None if sh_p is None else round(sh_p, 2),
                     None if sh_v is None else round(sh_v, 2),
                     None if sh_i is None else round(sh_i, 3),
+                    None if sh_e is None else round(sh_e, 3),
                 ])
                 csv_file.flush()
 
@@ -433,6 +440,8 @@ def main() -> None:
                         f" V: {('n/a' if sh_v is None else f'{sh_v:.0f}V')}"
                         f" I: {('n/a' if sh_i is None else f'{sh_i:.2f}A')}"
                     )
+                if sh_e is not None:
+                    tail += f" EΣ: {sh_e:.0f}Wh"
                 print(f"{ts} State: {simple_state:<22} Odo: {odo_str:<10} SoC: {soc_str}{tail}")
                 last_simple_state = simple_state
             time.sleep(args.interval)

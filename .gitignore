@@ -53,3 +53,17 @@ obj/
 *.jks
 
 compiler.xml
+
+# Python (tools, tests)
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.venv/
+
+# Tool logs and data
+PyCanZE/Testing/logs/
+*.log
+*.diff
+*.csv
