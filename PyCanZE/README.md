@@ -7,10 +7,8 @@ from CanZE to communicate with the car via an ELM327-compatible interface.
 
 ## Contents
 
-* `pycanze/` – library with parsers and a minimal UDS client
-* `tools/` – command-line utilities such as `scan_car.py`,
-  `battery_health.py`, and `mqtt_poller.py`
-* `Testing/` – experimental scripts and prototypes including sweep harnesses
+* `pycanze/` – library with parsers, a minimal UDS client, and CLI tools
+* `Testing/` – experimental logs and prototypes including sweep harnesses
 
 ## Goals
 
@@ -21,24 +19,34 @@ app's AT initialisation sequence and offers tuning knobs for flow-control and
 timing. An optional *wide CF fallback* widens receive filters and enables
 ``ATH1`` when LBC 0x21 pages miss consecutive frames.
 
+## Build
+
+From this directory install the package with `pip`::
+
+    pip install .
+
+Add WiFi dongle support (``python-OBD-wifi``) via the optional ``wifi`` extra::
+
+    pip install .[wifi]
+
 ## Usage
 
 Example: scan all fields for a ZOE using a WiFi ELM327 dongle at the default
 address::
 
-    python tools/scan_car.py ZOE
+    python -m pycanze.scan_car ZOE
 
 Specify `--host` and `--port` if your dongle uses different settings. For
 LBC/EVC snapshots run::
 
-    python tools/battery_health.py ZOE
+    python -m pycanze.battery_health ZOE
 
 Use `--wide-cf-fallback` if your dongle occasionally drops ISO‑TP consecutive
 frames from the LBC.
 
 For periodic MQTT publishing run::
 
-    python tools/mqtt_poller.py --mqtt-host 192.168.1.10 --mqtt-topic canze/zoe
+    python -m pycanze.mqtt_poller --mqtt-host 192.168.1.10 --mqtt-topic canze/zoe
 
 The poller reads SoC, SoH, HV voltage and the odometer every 5 minutes,
 skipping sentinel values based on vehicle state heuristics.

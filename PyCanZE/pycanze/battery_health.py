@@ -24,8 +24,6 @@ import time
 import sys
 from pathlib import Path
 
-# Allow running from repository root without installation
-sys.path.append(str(Path(__file__).resolve().parent.parent))
 from pycanze import UDSClient  # type: ignore
 from pycanze.parser import load_fields  # type: ignore
 

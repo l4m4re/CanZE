@@ -1,13 +1,10 @@
 import json
 import math
 import re
-import sys
 from pathlib import Path
 
 import pytest
 
-# Ensure package imports work when tests run from repo root
-sys.path.append(str(Path(__file__).resolve().parents[2]))
 from pycanze.uds import UDSClient, ELM_CMD_SLEEP
 from pycanze.replay_client import ReplayClient as ReplayUDSClient
 
@@ -121,7 +118,7 @@ def _clean_json(path: Path):
 
 
 def _collect_cases(limit_per_file: int = 10):
-    root = Path(__file__).resolve().parents[2] / "Testing" / "logs"
+    root = Path(__file__).resolve().parents[3] / "Testing" / "logs"
     fields = FIELDS
     cases: dict[str, tuple[float, str | None, dict[str, list[str]]]] = {}
     missing_from_logs: dict[str, str] = {}

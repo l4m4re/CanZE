@@ -7,15 +7,12 @@ import argparse
 import json
 import os
 import socket
-import sys
 import time
 from pathlib import Path
 from typing import Dict, Optional
 
 import paho.mqtt.client as mqtt
 
-# Allow running from repository root without installation
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pycanze import UDSClient  # type: ignore
 from pycanze.parser import load_fields  # type: ignore
 
