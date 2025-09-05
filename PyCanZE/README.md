@@ -26,6 +26,14 @@ other commands that could alter vehicle state are intentionally excluded. Any
 future write capability would need explicit safety mechanisms and review before
 being enabled.
 
+### Read-only SID audit
+
+The repository includes `tools/audit_readonly.py` which scans the
+`pycanze/data` CSVs and Python sources for diagnostic services. CI runs this
+audit and fails the build if a non read-only service is introduced. Run
+`python tools/audit_readonly.py` from the repository root before submitting
+changes.
+
 ## Build
 
 From this directory install the package with `pip`::
