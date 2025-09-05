@@ -3,6 +3,11 @@
 This directory documents a quick workflow for investigating decoding issues
 using the captured vehicle logs.
 
+> **Limitation**: The replay data originates from a classic Zoe and only
+> includes 11-bit CAN identifiers. Support for 29-bit headers has been added
+> in the tooling, but it has not been verified against real vehicle logs. Any
+> 29-bit test cases are synthetic and serve only to exercise the code paths.
+
 1. **Regenerate per-SID tests**
    ```bash
    python PyCanZE/tools/generate_sid_tests.py --overwrite

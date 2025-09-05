@@ -32,6 +32,9 @@ def _read_csv(path: Path) -> Iterator[List[str]]:
 
             
 def _auto_int(value: str) -> int:
+    value = value.strip()
+    if value.lower().startswith("0x"):
+        return int(value, 16)
     base = 16 if any(c in "abcdefABCDEF" for c in value) else 10
     return int(value, base)
 
@@ -51,14 +54,14 @@ def load_ecus(base_dir: Path = DATA_DIR) -> Dict[int, Ecu]:
             continue
         for row in _read_csv(csv_file):
             name = row[0]
-            sid = int(row[1])
+            sid = _auto_int(row[1])
             networks = row[2].split(";") if len(row) > 2 and row[2] else []
-            request_id = _auto_int(row[3])
-            response_id = _auto_int(row[4])
+            request_id = _auto_int(row[3]) & 0x1FFFFFFF
+            response_id = _auto_int(row[4]) & 0x1FFFFFFF
             mnemonic = row[5]
             aliases = row[6].split(";") if len(row) > 6 and row[6] else []
             dtc_response_ids = [
-                _auto_int(x) for x in row[7].split(";") if x
+                _auto_int(x) & 0x1FFFFFFF for x in row[7].split(";") if x
             ] if len(row) > 7 else []
             start_diag = _auto_int(row[8]) if len(row) > 8 and row[8] else None
             session_required = int(row[9]) if len(row) > 9 and row[9] else 0
