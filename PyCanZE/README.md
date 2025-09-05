@@ -49,7 +49,18 @@ For periodic MQTT publishing run::
     python -m pycanze.mqtt_poller --mqtt-host 192.168.1.10 --mqtt-topic canze/zoe
 
 The poller reads SoC, SoH, HV voltage and the odometer every 5 minutes,
-skipping sentinel values based on vehicle state heuristics.
+skipping sentinel values based on vehicle state heuristics.  To persist each
+payload before publishing, supply a CSV or SQLite target::
+
+    python -m pycanze.mqtt_poller --mqtt-host 192.168.1.10 \
+        --log-csv metrics.csv --log-rotate 1024
+
+For standalone logging of arbitrary fields use the helper in `tools/`::
+
+    python PyCanZE/tools/logger.py --fields 7ec.24.622002 7ec.24.623206 \
+        --csv ev.csv --rotate 1024
+
+Use `--sqlite` instead of `--csv` to write into a SQLite database.
 
 Contributions are welcome!
 
