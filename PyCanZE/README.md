@@ -62,6 +62,25 @@ payload before publishing, supply a CSV or SQLite target::
     python -m pycanze.mqtt_poller --mqtt-host 192.168.1.10 \
         --log-csv metrics.csv --log-rotate 1024
 
+Settings can also be supplied in a YAML or JSON file via ``--config``::
+
+    # mqtt.yml
+    interval: 60
+    mqtt_host: broker.local
+    mqtt_topic: canze/zoe
+    fields:
+      - 7ec.24.622002  # SOC
+      - 7ec.24.623206  # SOH
+      - 7ec.24.623203  # HV voltage
+      - 7ec.24.623200  # odometer
+    log_csv: metrics.csv
+
+Then run::
+
+    python -m pycanze.mqtt_poller --config mqtt.yml
+
+Command-line options override values from the configuration file.
+
 For standalone logging of arbitrary fields use the helper in `tools/`::
 
     python PyCanZE/tools/logger.py --fields 7ec.24.622002 7ec.24.623206 \
