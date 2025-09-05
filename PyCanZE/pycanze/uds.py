@@ -86,23 +86,26 @@ class UDSClient:
         self._last_tuple = None  # type: Optional[tuple[int, int, int]]
         self._last_resp = None  # type: Optional[Sequence[int]]
         self._last_resp_ts = 0.0
+        self._use_29bit = False
         for ecu in _ecus.values():
             try:
                 # Parser stores FromID in request_id (ECU->tester) and ToID in response_id (tester->ECU).
-                # Swap to get (req=ToID, resp=FromID).
-                req = ecu.response_id & 0x7FF
-                resp = ecu.request_id & 0x7FF
+                # Swap to get (req=ToID, resp=FromID) and keep full 29-bit identifiers.
+                req = ecu.response_id & 0x1FFFFFFF
+                resp = ecu.request_id & 0x1FFFFFFF
                 self._ecu_by_can[req] = (req, resp)
                 self._ecu_by_can[resp] = (req, resp)
                 self._net_by_req[req] = ecu.networks
                 self._session_required_by_req[req] = bool(
                     getattr(ecu, "session_required", 0)
                 )
+                if req > 0x7FF or resp > 0x7FF:
+                    self._use_29bit = True
             except Exception:
                 continue
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
-        # Track currently selected CAN request id (11-bit)
+        # Track currently selected CAN request id (11- or 29-bit)
         self._current_req_id = None
         # Tunables (can be overridden by tools)
         self.caf = None  # 0 or 1 for ATCAF
@@ -133,12 +136,13 @@ class UDSClient:
         time.sleep(duration)
 
     def _pair_for_frame(self, fid: int):
-        """Return (req_id, resp_id) for a given 11-bit CAN id.
+        """Return ``(req_id, resp_id)`` for a given CAN id.
 
         Tries direct lookup; if missing, searches by matching response id in
-        the known pairs; finally falls back to standard +8 mapping.
+        the known pairs; finally falls back to standard +8 mapping. Supports
+        both 11‑bit and 29‑bit identifiers.
         """
-        fid &= 0x7FF
+        fid &= 0x1FFFFFFF
         pair = self._ecu_by_can.get(fid)
         if pair is not None:
             return pair
@@ -150,7 +154,8 @@ class UDSClient:
             except Exception:
                 continue
         # Fallback to standard UDS addressing heuristic (req = resp - 0x8)
-        return ((fid - 0x8) & 0x7FF, fid)
+        mask = 0x1FFFFFFF if fid > 0x7FF else 0x7FF
+        return ((fid - 0x8) & mask, fid)
 
     # ------------------------------------------------------------------
     def _ensure_session(self, req_id: int, force: bool = False) -> None:
@@ -345,6 +350,7 @@ class UDSClient:
         stmin = (
             0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
         )
+        proto_cmd = "ATSP7" if self._use_29bit else "ATSP6"
         init_cmds = [
             "ATE0",
             "ATS0",
@@ -355,8 +361,10 @@ class UDSClient:
             "ATFCSH77B",
             f"ATFCSD 3000{stmin:02X}",
             "ATFCSM1",
-            "ATSP6",
+            proto_cmd,
         ]
+        if self._use_29bit:
+            init_cmds.append("ATCP 00")
         for cmd in init_cmds:
             self._send(cmd)
             self._read_lines(3.0)
@@ -386,12 +394,20 @@ class UDSClient:
         # Flow control retry is handled later if needed; no ATCFC1/ATST issued
         self.last_status = None
         # Default header (ZE/EVC): request 0x7E4, response 0x7EC
-        self._send("ATSH7E4")
-        self._read_lines(3.0)
-        self._send("ATFCSH7E4")
-        self._read_lines(3.0)
-        self._send("ATCRA 7EC")
-        self._read_lines(3.0)
+        if self._use_29bit:
+            self._send("ATSH000007E4")
+            self._read_lines(3.0)
+            self._send("ATFCSH000007E4")
+            self._read_lines(3.0)
+            self._send("ATCRA 000007EC")
+            self._read_lines(3.0)
+        else:
+            self._send("ATSH7E4")
+            self._read_lines(3.0)
+            self._send("ATFCSH7E4")
+            self._read_lines(3.0)
+            self._send("ATCRA 7EC")
+            self._read_lines(3.0)
         self._current_req_id = 0x7E4
         self._just_switched = False
 
@@ -785,23 +801,27 @@ class UDSClient:
 
     # ------------------------------------------------------------------
     def _select_frame(self, req_id: int, resp_id: Optional[int] = None) -> None:
-        """Ensure ELM headers/filters are set for the given 11-bit CAN request id.
+        """Ensure ELM headers/filters are set for the given CAN request id."""
 
-        Sets request header (ATSH/ATFCSH) to ``req_id`` and response filter
-        (ATCRA) to ``resp_id`` if provided, otherwise ``req_id + 8`` which
-        matches standard UDS addressing.
-        """
-
-        # Only handle 11-bit IDs here. Extended (29-bit) support is out of scope for now.
-        if req_id <= 0 or req_id > 0x7FF:
+        if req_id <= 0 or req_id > 0x1FFFFFFF:
             return
         if self.sock is None:
             raise RuntimeError("connect() must be called before reading fields")
         if self._current_req_id == req_id:
             return
-        rid = f"{req_id & 0x7FF:03X}"
-        rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x7FF
-        resp = f"{rpid:03X}"
+        ext = self._use_29bit or req_id > 0x7FF or (
+            resp_id is not None and resp_id > 0x7FF
+        )
+        if ext:
+            rid = f"{req_id & 0x1FFFFFFF:08X}"
+            rpid = (
+                resp_id if resp_id is not None else (req_id + 0x8)
+            ) & 0x1FFFFFFF
+            resp = f"{rpid:08X}"
+        else:
+            rid = f"{req_id & 0x7FF:03X}"
+            rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x7FF
+            resp = f"{rpid:03X}"
         self._send(f"ATSH{rid}")
         self._read_lines(3.0)
         self._send(f"ATFCSH{rid}")
@@ -810,7 +830,7 @@ class UDSClient:
             # Use filter/mask pair instead of ATCRA (some clones handle CFs better)
             self._send(f"ATCF {resp}")
             self._read_lines(3.0)
-            self._send("ATCM 7FF")
+            self._send("ATCM 7FF" if not ext else "ATCM 1FFFFFFF")
             self._read_lines(3.0)
         else:
             self._send(f"ATCRA {resp}")
@@ -835,7 +855,7 @@ class UDSClient:
         except Exception:
             pass
 
-    # Public helper to attempt a diagnostic session for a given field frame id (11-bit CAN)
+    # Public helper to attempt a diagnostic session for a given field frame id
     def ensure_session(self, frame_id: int, force: bool = False) -> None:
         """Best-effort session start for the ECU associated with frame_id.
 
@@ -843,7 +863,7 @@ class UDSClient:
         marked as requiring one in the database. Useful for ECUs like LBC
         when accessing certain local identifiers (0x21).
         """
-        fid = frame_id & 0x7FF
+        fid = frame_id & 0x1FFFFFFF
         req_id, resp_id = self._pair_for_frame(fid)
         self._select_frame(req_id, resp_id)
         self._ensure_session(req_id, force=force)
@@ -880,7 +900,7 @@ class UDSClient:
         # Switch to the ECU for this field if needed.
         # Select ECU headers for this field
         try:
-            fid = field.frame_id & 0x7FF
+            fid = field.frame_id & 0x1FFFFFFF
             req_id, resp_id = self._pair_for_frame(fid)
             self._select_frame(req_id, resp_id)
             self._ensure_session(req_id)
