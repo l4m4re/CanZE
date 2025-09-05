@@ -20,7 +20,14 @@ import json
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 
-from pycanze import UDSClient  # type: ignore
+# Allow running as a module (python -m pycanze.pycanze_poller) or directly as a script
+try:
+    from pycanze import UDSClient  # type: ignore
+except ModuleNotFoundError:  # direct script execution without installing the package
+    import sys as _sys
+    from pathlib import Path as _Path
+    _sys.path.append(str(_Path(__file__).resolve().parents[1]))  # add PyCanZE/ to path
+    from pycanze import UDSClient  # type: ignore
 
 # Core context SIDs
 SID_SOC = "7ec.24.622002"            # SoC (may be None asleep)

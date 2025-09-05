@@ -88,6 +88,20 @@ For standalone logging of arbitrary fields use the helper in `tools/`::
 
 Use `--sqlite` instead of `--csv` to write into a SQLite database.
 
+### Lean EV poller with Shelly energy
+
+The lean poller logs SoC/SoH/odo and robust charge/connection states at short intervals, and optionally fetches Shelly power metrics. It now also logs the Shelly cumulative wall energy as `shelly_aenergy_total_Wh` (Wh), which the analyzer prefers for accurate kWh.
+
+Run it either as a module or directly:
+
+    python -m pycanze.pycanze_poller --shelly-url http://192.168.2.14/rpc/Shelly.GetStatus
+
+or from its folder:
+
+    python PyCanZE/pycanze/pycanze_poller.py --shelly-url http://192.168.2.14/rpc/Shelly.GetStatus
+
+CSV logs are written under `PyCanZE/Testing/logs/` by default. The `tools/analyze_charge_rates.py` script will auto‑use the cumulative energy column when present.
+
 ### Web log dashboard
 
 `tools/log_dashboard.py` exposes recent samples and simple charts over HTTP.
