@@ -11,7 +11,6 @@ compact summary: timestamp, inferred state, odometer, and SoC.
 from __future__ import annotations
 
 import argparse
-import sys
 import socket
 import time
 from pathlib import Path
@@ -21,8 +20,6 @@ import json
 from urllib.request import urlopen
 from urllib.error import URLError, HTTPError
 
-# Allow running from repository root without installation
-sys.path.append(str(Path(__file__).resolve().parents[1]))
 from pycanze import UDSClient  # type: ignore
 
 # Core context SIDs

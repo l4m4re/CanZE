@@ -1,11 +1,8 @@
 import os
-import sys
 import tempfile
 import unittest
-from pathlib import Path
 
-sys.path.append(str(Path(__file__).parent))
-from log_parser import parse_log
+from pycanze.log_parser import parse_log
 
 class LogParserTest(unittest.TestCase):
     def test_multiframe_assembly(self) -> None:
