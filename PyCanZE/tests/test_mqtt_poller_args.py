@@ -1,5 +1,10 @@
 import sys
 import types
+import json
+try:
+    import yaml  # type: ignore
+except Exception:  # pragma: no cover - optional dependency
+    yaml = None
 
 # Stub paho.mqtt.client before importing mqtt_poller
 mqtt_client_stub = types.SimpleNamespace(Client=lambda *args, **kwargs: None)
@@ -74,9 +79,10 @@ def test_cli_overrides_env(monkeypatch, tmp_path):
 
 
 def test_config_file(monkeypatch, tmp_path):
-    cfg = tmp_path / "cfg.yaml"
-    cfg.write_text(
-        """
+    cfg = tmp_path / ("cfg.yaml" if yaml else "cfg.json")
+    if yaml:
+        cfg.write_text(
+            """
 interval: 10
 mqtt_host: cfg.example
 mqtt_topic: cfg/topic
@@ -85,7 +91,19 @@ fields:
   - b
 log_csv: metrics.csv
 """
-    )
+        )
+    else:
+        cfg.write_text(
+            json.dumps(
+                {
+                    "interval": 10,
+                    "mqtt_host": "cfg.example",
+                    "mqtt_topic": "cfg/topic",
+                    "fields": ["a", "b"],
+                    "log_csv": "metrics.csv",
+                }
+            )
+        )
     monkeypatch.setattr(sys, "argv", ["mqtt_poller", "--config", str(cfg)])
     args = mqtt_poller.parse_args()
     assert args.interval == 10
