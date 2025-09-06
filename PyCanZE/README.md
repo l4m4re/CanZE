@@ -28,11 +28,15 @@ being enabled.
 
 ### Read-only SID audit
 
-The repository includes `tools/audit_readonly.py` which scans the
-`pycanze/data` CSVs and Python sources for diagnostic services. CI runs this
-audit and fails the build if a non read-only service is introduced. Run
-`python tools/audit_readonly.py` from the repository root before submitting
-changes.
+PyCanZE includes an audit that scans the `pycanze/data` CSVs and Python
+sources for diagnostic services to enforce a read-only policy. Run it via
+pytest (recommended) or directly:
+
+- As a unit test (CI enforces this): `pytest PyCanZE/pycanze/tests/test_audit_readonly.py`
+- Directly as a module: `python -m pycanze.tools.audit_readonly`
+
+Both methods only operate within the `PyCanZE/pycanze/` tree, keeping files
+outside `PyCanZE/` untouched.
 
 ## Build
 

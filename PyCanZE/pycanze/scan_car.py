@@ -1,82 +1,53 @@
 #!/usr/bin/env python3
 """Scan all diagnostic fields for a selected car model using PyCanZE.
 
-The script lists available vehicles based on the CSV database copied from the
-original CanZE Android project. For each ECU field definition it attempts to
-query the connected vehicle via a WiFi ELM327 dongle using the :class:`UDSClient`
-from :mod:`pycanze`. Retrieved values are printed to stdout.
+Lists available vehicles based on the CSV database from the CanZE Android
+project. For each ECU field definition it attempts to query the connected
+vehicle via a WiFi ELM327 dongle using UDSClient. Retrieved values are printed
+to stdout.
 """
 
 from __future__ import annotations
 
 import argparse
+import socket
 import sys
 import time
-import socket
 from pathlib import Path
 
-from pycanze import UDSClient  # type: ignore
-from pycanze.parser import _read_csv  # type: ignore
-from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
+try:
+    from pycanze import UDSClient  # type: ignore
+    from pycanze.parser import _read_csv, load_frames  # type: ignore
+    from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
+except ModuleNotFoundError:
+    # Allow running directly from the repo without installing the package
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
+    from pycanze import UDSClient  # type: ignore
+    from pycanze.parser import _read_csv, load_frames  # type: ignore
+    from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
 
 # Directory containing copied asset CSV files
 DATA_DIR = Path(__file__).resolve().parent / "data"
 
 
 def list_cars() -> list[str]:
-    """Return the list of available car directories."""
-
     return sorted([d.name for d in DATA_DIR.iterdir() if d.is_dir()])
 
 
 def parse_args() -> argparse.Namespace:
     cars = list_cars()
-    parser = argparse.ArgumentParser(
-        description="Scan ECU data points for a car",
-    )
-    parser.add_argument("car", nargs="?", choices=cars, help="Car model to scan")
-    parser.add_argument("--host", default="192.168.2.21", help="ELM327 host")
-    parser.add_argument("--port", type=int, default=35000, help="ELM327 TCP port")
-    parser.add_argument(
-        "--ecu",
-        action="append",
-        help="Limit scan to ECUs whose file name contains this token (can be repeated)",
-    )
-    parser.add_argument(
-        "--only-values",
-        action="store_true",
-        help="Only print fields that returned a value",
-    )
-    parser.add_argument(
-        "--elm-timeout",
-        type=float,
-        default=3.0,
-        help="Socket timeout when waiting for the ELM prompt (seconds)",
-    )
-    parser.add_argument(
-        "--skip-nodata",
-        type=int,
-        default=50,
-        help="Skip the rest of an ECU after this many consecutive NO_DATA responses (0 = disable)",
-    )
-    parser.add_argument(
-        "--per-ecu-limit",
-        type=int,
-        default=0,
-        help="Maximum number of fields to try per ECU (0 = no limit)",
-    )
-    parser.add_argument(
-        "--max-secs-per-ecu",
-        type=float,
-        default=600.0,
-        help="Stop scanning an ECU after this many seconds (0 = no limit)",
-    )
-    parser.add_argument(
-        "--raw-log",
-        type=Path,
-        help="File to store raw ELM327 traffic for offline tests",
-    )
-    return parser.parse_args()
+    p = argparse.ArgumentParser(description="Scan ECU data points for a car")
+    p.add_argument("car", nargs="?", choices=cars, help="Car model to scan")
+    p.add_argument("--host", default="192.168.2.21", help="ELM327 host")
+    p.add_argument("--port", type=int, default=35000, help="ELM327 TCP port")
+    p.add_argument("--ecu", action="append", help="Filter to ECUs (repeatable)")
+    p.add_argument("--only-values", action="store_true", help="Print only values")
+    p.add_argument("--elm-timeout", type=float, default=3.0, help="ELM prompt timeout (s)")
+    p.add_argument("--skip-nodata", type=int, default=50, help="Skip ECU after this many NO_DATA in a row (0=disable)")
+    p.add_argument("--per-ecu-limit", type=int, default=0, help="Max fields per ECU (0=no limit)")
+    p.add_argument("--max-secs-per-ecu", type=float, default=600.0, help="Max seconds per ECU (0=no limit)")
+    p.add_argument("--raw-log", type=Path, help="File to store raw ELM327 traffic")
+    return p.parse_args()
 
 
 def prompt_for_car() -> str:
@@ -97,13 +68,6 @@ def prompt_for_car() -> str:
 
 
 def _sid_for_row(row: list[str]) -> str | None:
-    """Return the field SID matching parser logic or ``None`` to skip.
-
-    Follows the same column layout used in ``pycanze.parser.load_fields``.
-    If the CSV provides an explicit SID (col 0), it is returned. Otherwise a
-    fallback SID of ``f"{frame_id}.{start_bit}.{response_id}"`` is generated.
-    """
-
     # Normalize row length like the parser
     row = (row + [""] * 13)[:13]
     sid, frame_id_s, start_bit_s, _end_bit_s, _resolution_s, _offset_s, _decimals_s, _unit, _request_id, response_id, _options_s, _name, _raw_values = row
@@ -122,10 +86,14 @@ def scan_car(car: str, client: UDSClient) -> None:
         print(f"No field definitions found for {car}")
         return
 
-    args = parse_args()  # reuse same args for filters when invoked as module
+    args = parse_args()
     filters = [t.lower() for t in (args.ecu or [])]
-    # Full-scan mode when explicitly requested: skip-nodata=0 and/or raw logging enabled
     full_scan = (getattr(args, "skip_nodata", 50) == 0) or bool(getattr(args, "raw_log", None))
+
+    try:
+        frames = load_frames(DATA_DIR)
+    except Exception:
+        frames = {}
 
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
@@ -133,34 +101,76 @@ def scan_car(car: str, client: UDSClient) -> None:
             continue
         ecu_label = ecu if ecu else "_Fields (generic)"
         print(f"\nECU: {ecu_label}")
+        try:
+            client.gateway_poke()
+        except Exception:
+            pass
+        try:
+            client.use_mask_filter = True
+            # Some ELM clones drop CFs for LBC/LBC2 when using ATCF/ATCM.
+            # Prefer exact ATCRA filtering for these ECUs to improve reliability.
+            if ecu.upper() in ("LBC", "LBC2"):
+                client.use_mask_filter = False
+                try:
+                    # Increase header settle and first-0x21 delays for LBC/LBC2
+                    client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 45.0)
+                    # LBC req=0x79B, LBC2 req=0x796
+                    client.first_21_delay_by_req[0x79B] = max(
+                        client.first_21_delay_by_req.get(0x79B, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
+                        150.0,
+                    )
+                    client.first_21_delay_by_req[0x796] = max(
+                        client.first_21_delay_by_req.get(0x796, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
+                        120.0,
+                    )
+                    # Warm-up probe: read a couple robust identifiers to ensure header switch
+                    probe_sids = [
+                        "7bb.56.6180",
+                        "7bb.200.6180",
+                        "7bb.16.6101",
+                        "7bb.192.6103",
+                        "7bb.32.6104",
+                    ] if ecu.upper() == "LBC" else [
+                        "7b6.56.6180",
+                    ]
+                    for ps in probe_sids:
+                        try:
+                            _ = client.read_field(ps)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
         ok = 0
         total = 0
         nodata_streak = 0
         start_ecu_ts = time.time()
-        # Cache request IDs that already returned NO_DATA for this ECU
+        reason_counts: dict[str, int] = {}
+        nrc_seen: set[int] = set()
         nodata_reqs: set[str] = set()
+        neg_reqs: set[str] = set()
+        ensured_session = False
+
         for row in _read_csv(field_file):
-            # ECU-level guards: time budget and max items
             if (not full_scan) and getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
                 print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu_label}")
                 break
             if (not full_scan) and getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
                 print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu_label}")
                 break
-            # Build SID compatible with the in-memory database
+
             sid = _sid_for_row(row)
             if not sid:
                 continue
-            # Normalise SID case for lookup (parser lowercases SIDs)
             sid_key = sid.lower()
-            # Only attempt UDS read queries: 0x22 (DID) and 0x21 (local id)
             req = (row + [""] * 13)[8]
             if not req or not (req.startswith("22") or req.startswith("21")):
                 continue
             name = (row + [""] * 12)[11]
-            # If the exact SID is unknown, try the generated fallback form
+
             if sid_key not in client.fields:
-                # Attempt swapping when CSV uses frame.response.startbit
                 try:
                     parts = sid_key.split(".")
                     if len(parts) == 3 and all(parts):
@@ -169,57 +179,145 @@ def scan_car(car: str, client: UDSClient) -> None:
                             sid_key = alt
                 except Exception:
                     pass
-            # Avoid re-sending the same request when we already saw NO_DATA for it
-            if req and req in nodata_reqs:
+
+            if not ensured_session and sid_key in client.fields:
+                try:
+                    f = client.fields[sid_key]
+                    same_ecu = True
+                    try:
+                        fr = frames.get(getattr(f, "frame_id", 0))
+                        if fr and ecu:
+                            same_ecu = (fr.ecu.lower() == ecu.lower())
+                    except Exception:
+                        same_ecu = True
+                    if same_ecu:
+                        try:
+                            req_id, _resp_id = client._pair_for_frame(getattr(f, "frame_id", 0))  # type: ignore[attr-defined]
+                            client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 35.0)
+                            client.first_21_delay_by_req[req_id] = max(
+                                client.first_21_delay_by_req.get(req_id, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
+                                80.0,
+                            )
+                            client.use_mask_filter = bool(req_id > 0x7FF)
+                            if req_id in (0x7CA, 0x18DAF110):
+                                client.header_settle_ms = max(client.header_settle_ms, 45.0)
+                                client.first_21_delay_by_req[req_id] = max(
+                                    client.first_21_delay_by_req.get(req_id, 0.0), 120.0
+                                )
+                                try:
+                                    client.prime_ecu(getattr(f, "frame_id", 0))
+                                except Exception:
+                                    pass
+                            if req_id in (0x79B,):
+                                client.header_settle_ms = max(client.header_settle_ms, 40.0)
+                                client.first_21_delay_by_req[req_id] = max(
+                                    client.first_21_delay_by_req.get(req_id, 0.0), 100.0
+                                )
+                                try:
+                                    client.prime_ecu(getattr(f, "frame_id", 0))
+                                except Exception:
+                                    pass
+                        except Exception:
+                            pass
+                        client.ensure_session(f.frame_id, force=True)
+                        ensured_session = True
+                except Exception:
+                    pass
+
+            if req and (req in nodata_reqs or req in neg_reqs) and ecu.upper() not in ("LBC", "LBC2"):
                 value = None
-                client.last_status = "NO_DATA"  # mimic last status to drive streak logic
+                client.last_status = "NEG" if req in neg_reqs else "NO_DATA"
             else:
                 try:
-                    value = client.read_field(sid_key)
+                    fld = client.fields.get(sid_key)
+                    if fld is not None:
+                        fr = frames.get(getattr(fld, "frame_id", 0)) if frames else None
+                        if fr and ecu and fr.ecu.lower() != ecu.lower():
+                            value = None
+                        else:
+                            value = client.read_field(sid_key)
+                            if getattr(client, "last_status", None) == "NEG":
+                                try:
+                                    code = getattr(client, "last_nrc_code", None)
+                                    if isinstance(code, int):
+                                        nrc_seen.add(code & 0xFF)
+                                except Exception:
+                                    pass
+                    else:
+                        value = None
                 except BrokenPipeError:
-                    # Allow graceful exit when piped to head
                     return
                 except Exception:
                     value = None
-            # Detect sleeping bus / CAN error and skip to next ECU instead of exiting
+
+            # Treat a transport-positive response (bytes came back) as success
+            transport_ok = bool(getattr(client, "last_positive", False))
             if getattr(client, "last_status", None) == "CAN_ERROR":
+                reason_counts["CAN_ERROR"] = reason_counts.get("CAN_ERROR", 0) + 1
                 if not full_scan:
                     print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
                     break
-                # In full-scan mode, do not skip the ECU; proceed to next field
-            # Skip ECU after repeated NO_DATA to avoid long stalls
             if getattr(client, "last_status", None) == "NO_DATA":
+                reason_counts["NO_DATA"] = reason_counts.get("NO_DATA", 0) + 1
                 nodata_streak += 1
                 threshold = getattr(args, "skip_nodata", 50)
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
-                # Remember this request id had NO_DATA so we won't retry for subsequent fields
                 if req:
                     nodata_reqs.add(req)
+            elif getattr(client, "last_status", None) == "ELM_ERROR":
+                reason_counts["ELM_ERROR"] = reason_counts.get("ELM_ERROR", 0) + 1
+            elif getattr(client, "last_status", None) == "NEG":
+                reason_counts["NEG"] = reason_counts.get("NEG", 0) + 1
+                if req:
+                    neg_reqs.add(req)
             else:
                 nodata_streak = 0
+
             total += 1
-            if value is not None:
+            if value is not None or transport_ok:
                 ok += 1
-                # Include unit if available from the loaded field database
                 unit = ""
                 try:
-                    fld = client.fields.get(sid_key)
-                    if fld and fld.unit:
-                        unit = f" {fld.unit}"
+                    fld2 = client.fields.get(sid_key)
+                    if fld2 and fld2.unit:
+                        unit = f" {fld2.unit}"
                 except Exception:
                     pass
-                print(f" {sid_key:>16} {name} -> {value}{unit}")
+                # Prefer showing the decoded value; if None but transport OK, hint with "<bytes>"
+                shown = value if value is not None else f"<{getattr(client, 'last_raw_len', 0)}B>"
+                print(f" {sid_key:>16} {name} -> {shown}{unit}")
             elif not args.only_values:
                 print(f" {sid_key:>16} {name} -> {value}")
-        print(f"-- {ecu_label}: {ok}/{total} values")
+
+        if reason_counts:
+            parts: list[str] = []
+            for k in ("NO_DATA", "NEG", "CAN_ERROR", "ELM_ERROR"):
+                if k in reason_counts:
+                    if k == "NEG" and nrc_seen:
+                        nrcs = ",".join(f"0x{c:02X}" for c in sorted(nrc_seen))
+                        parts.append(f"{k}={reason_counts[k]} (NRCs: {nrcs})")
+                    else:
+                        parts.append(f"{k}={reason_counts[k]}")
+            suffix = f"; reasons: {'; '.join(parts)}" if parts else ""
+        else:
+            suffix = ""
+        print(f"-- {ecu_label}: {ok}/{total} values{suffix}")
 
 
 def main() -> None:
     args = parse_args()
     car = args.car or prompt_for_car()
     client = UDSClient(args.host, port=args.port, timeout=args.elm_timeout)
+    try:
+        client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 10.0)
+        client.delay_before_21_ms = max(getattr(client, "delay_before_21_ms", 0.0) or 0.0, 10.0)
+        client.wide_cf_fallback = True
+        client.use_mask_filter = True
+    except Exception:
+        pass
+
     log_fh = None
     if getattr(args, "raw_log", None):
         log_fh = open(args.raw_log, "w", encoding="utf-8")
@@ -258,6 +356,7 @@ def main() -> None:
         client.close()
 
     print(f"Finished scanning {car}")
+
 
 if __name__ == "__main__":
     main()

@@ -27,6 +27,11 @@ import os
 import time
 import threading
 from typing import Callable, Dict, Iterator, Optional, Sequence, Tuple, Union
+import os
+import socket
+import time
+import tempfile
+import fcntl
 
 try:  # optional dependency for proper ELM327 management
     from obd_wifi.elm327 import ELM327  # type: ignore
@@ -68,6 +73,12 @@ class UDSClient:
         self.sock = None  # type: Optional[socket.socket]
         self.elm = None
         self.use_obdwifi = use_obdwifi and ELM327 is not None
+        # Global process lock to prevent concurrent sessions on one ELM
+        self._lock_fh = None  # type: Optional[object]
+        self._lock_path = os.environ.get(
+            "PYCANZE_LOCK_PATH",
+            os.path.join(tempfile.gettempdir(), "pycanze_elm.lock"),
+        )
         if fields is not None:
             self.fields = fields
         else:
@@ -91,11 +102,31 @@ class UDSClient:
         self._session_required_by_req = {}  # req_id -> bool
         self._session_started = set()  # req_ids with active session
         self._last_tp = 0.0
-        # Android schedules TesterPresent every 1500 ms
-        self._tp_interval = 1.5  # seconds between TesterPresent keep-alives
+        # Last UDS negative response code (e.g. 0x22 ConditionsNotCorrect)
+        self.last_nrc_code = None
+        # Keep the EVC (0x7E4/0x7EC) session alive as a gateway keep-alive when
+        # talking to other ECUs. Some ZOE variants appear to require periodic
+        # TesterPresent to the EVC to allow bridging to V/E networks.
+        self._evc_req_id = 0x7E4
+        self._evc_resp_id = 0x7EC
+        self._last_evc_tp = 0.0
+        self._evc_tp_interval = 1.2  # seconds between EVC TesterPresent
+        # Use a slightly shorter TesterPresent cadence to keep ECUs lively
+        self._tp_interval = 1.2  # seconds between TesterPresent keep-alives
+        # Base read timeout for a single UDS request-prompt cycle (socket level)
+        # This is distinct from the TCP connect timeout; it is intentionally
+        # short and will be scaled adaptively similar to the Android app.
+        self.read_timeout_s = 0.8
+        # Adaptive timeout controls (Android-like intervalMultiplicator)
+        self.adaptive_timeouts = True
+        self._interval_multiplier = 1.6
+        self._interval_min = 1.3
+        self._interval_max = 2.5
+        self._interval_step_up = 0.10   # on failure
+        self._interval_step_down = 0.01 # on success
         # Short-lived cache for repeated 0x21 page reads: (req_id, service, ident) -> response bytes
-        self._last_tuple = None  # type: Optional[tuple[int, int, int]]
-        self._last_resp = None  # type: Optional[Sequence[int]]
+        self._last_tuple = None
+        self._last_resp = None
         self._last_resp_ts = 0.0
         # Default to 11-bit; 29-bit only if explicitly forced via env at init.
         # Per-ECU switching is handled in _select_frame.
@@ -130,6 +161,12 @@ class UDSClient:
             pass
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
+        # Whether the last read had any positive UDS response bytes
+        # (useful for scanners to count transport successes even if decoding
+        # yields a sentinel/invalid value and returns None)
+        self.last_positive = False
+        # Length of the last raw positive response (bytes)
+        self.last_raw_len = 0
         # Track currently selected CAN request id (11- or 29-bit)
         self._current_req_id = None
         # Tunables (can be overridden by tools)
@@ -150,7 +187,27 @@ class UDSClient:
         self.first_21_delay_by_req = {}
         # Sniffing state
         self._sniffing = False
-        self._sniff_thread: Optional[threading.Thread] = None
+        self._sniff_thread = None
+
+    # ------------------------------------------------------------------
+    @staticmethod
+    def _nrc_text(code: int) -> str:
+        mapping = {
+            0x10: "GeneralReject",
+            0x11: "ServiceNotSupported",
+            0x12: "SubFunctionNotSupportedInvalidFormat",
+            0x13: "IncorrectMessageLengthOrInvalidFormat",
+            0x22: "ConditionsNotCorrect",
+            0x31: "RequestOutOfRange",
+            0x33: "SecurityAccessDenied",
+            0x35: "InvalidKey",
+            0x36: "ExceededNumberOfAttempts",
+            0x37: "RequiredTimeDelayNotExpired",
+            0x78: "ResponsePending",
+            0x7E: "SubFunctionNotSupportedInActiveSession",
+            0x7F: "ServiceNotSupportedInActiveSession",
+        }
+        return mapping.get(code & 0xFF, f"NRC_0x{code:02X}")
 
     # sleep hook -------------------------------------------------------------
     def _sleep(self, duration: float) -> None:
@@ -194,12 +251,15 @@ class UDSClient:
                 return
             if req_id in self._session_started:
                 return
-            # Try common sessions: Extended (0xC0), Renault (0xF2), LGChem (0xF3), then Default (0x81)
+            # Try common sessions: Extended (0xC0), EPS-specific (0xFA), Renault (0xF2), LGChem (0xF3),
+            # followed by default sessions (0x81 and 0x00). Some ECUs like DCM only accept 0x1000.
             for mode, expect in (
                 ("0210C0", "50C0"),
+                ("0210FA", "50FA"),
                 ("0210F2", "50F2"),
                 ("0210F3", "50F3"),
                 ("021081", "5081"),
+                ("021000", "5000"),
             ):
                 self._send(mode)
                 lines = self._read_lines()
@@ -215,13 +275,98 @@ class UDSClient:
         try:
             now = time.time()
             if now - self._last_tp < self._tp_interval:
+                # Even if we skip current ECU TP due to interval throttling,
+                # still consider keeping the EVC session alive.
+                self._evc_keepalive(now)
                 return
-            # 0x3E 0x00 (TesterPresent)
-            self._send("023E00")
+            # 0x3E 0x01 (TesterPresent, with response)
+            self._send("023E01")
             _ = self._read_lines(1.0)
             self._last_tp = now
+            # Also keep the EVC gateway session alive
+            self._evc_keepalive(now)
         except Exception:
             return
+
+    # ------------------------------------------------------------------
+    def _evc_keepalive(self, now_ts: Optional[float] = None) -> None:
+        """Periodically send TesterPresent to the EVC (0x7E4/0x7EC).
+
+        Some vehicles require the EVC to stay in a diagnostic session for
+        other ECUs to reliably respond. We briefly switch headers to EVC,
+        send a TesterPresent, then restore the previous headers.
+        """
+        try:
+            now = time.time() if now_ts is None else now_ts
+            if now - self._last_evc_tp < self._evc_tp_interval:
+                return
+            # Save current header
+            prev_req = self._current_req_id
+            prev_resp = None
+            if prev_req is not None:
+                try:
+                    prev_req, prev_resp = self._pair_for_frame(prev_req)
+                except Exception:
+                    prev_resp = None
+            # Switch to EVC header
+            self._select_frame(self._evc_req_id, self._evc_resp_id)
+            # TesterPresent to EVC
+            self._send("023E01")
+            _ = self._read_lines(1.0)
+            self._last_evc_tp = now
+            # Restore previous header if any
+            if prev_req is not None:
+                try:
+                    self._select_frame(prev_req, prev_resp)
+                except Exception:
+                    pass
+        except Exception:
+            return
+
+    # ------------------------------------------------------------------
+    def gateway_poke(self) -> None:
+        """Best-effort EVC poke to encourage gateway bridging.
+
+        Starts/refreshes a session on EVC (0x7E4) and queries configuration
+        DIDs that are safe and read-only. Then restores the previous header.
+        Non-fatal on failure.
+        """
+        try:
+            # Save current selection
+            prev_req = self._current_req_id
+            prev_resp = None
+            if prev_req is not None:
+                try:
+                    prev_req, prev_resp = self._pair_for_frame(prev_req)
+                except Exception:
+                    prev_resp = None
+            # Switch to EVC
+            self._select_frame(self._evc_req_id, self._evc_resp_id)
+            # Default session (ignore failure)
+            try:
+                self._send("021081")
+                self._read_lines(1.5)
+            except Exception:
+                pass
+            # Read two benign DIDs that list networks/ECUs
+            for cmd in ("0221B7", "0221B8"):
+                try:
+                    self._send(cmd)
+                    self._read_lines(1.0)
+                except Exception:
+                    pass
+            # TesterPresent (no response) to leave EVC quiet but alive
+            try:
+                self._send("023E00")
+                self._read_lines(0.5)
+            except Exception:
+                pass
+        finally:
+            if prev_req is not None:
+                try:
+                    self._select_frame(prev_req, prev_resp)
+                except Exception:
+                    pass
 
     # ------------------------------------------------------------------
     # Socket helpers (straight from ``zoe_arrival_poller.py``)
@@ -234,8 +379,14 @@ class UDSClient:
 
     def _read_lines(self, timeout: float | None = None) -> Sequence[str]:
         assert self.sock is not None
-        # Use provided timeout or fall back to the client's configured timeout
-        t = self.timeout if timeout is None else timeout
+        # Prefer adaptive per-read timeout over the global connect timeout
+        t = self.read_timeout_s if timeout is None else float(timeout)
+        if getattr(self, "adaptive_timeouts", True):
+            try:
+                mult = float(getattr(self, "_interval_multiplier", 1.6) or 1.6)
+            except Exception:
+                mult = 1.6
+            t = max(0.05, t * mult)
         self.sock.settimeout(t)
         buf = b""
         while True:
@@ -267,6 +418,29 @@ class UDSClient:
             out.extend(int(only_hex[i : i + 2], 16) for i in range(0, len(only_hex), 2))
         return out
 
+    # Simple adaptive timeout adjustment inspired by Android driver
+    def _adapt_on_success(self) -> None:
+        try:
+            if not getattr(self, "adaptive_timeouts", True):
+                return
+            cur = float(self._interval_multiplier)
+            lo = float(self._interval_min)
+            step = float(self._interval_step_down)
+            self._interval_multiplier = max(lo, cur - step)
+        except Exception:
+            pass
+
+    def _adapt_on_failure(self) -> None:
+        try:
+            if not getattr(self, "adaptive_timeouts", True):
+                return
+            cur = float(self._interval_multiplier)
+            hi = float(self._interval_max)
+            step = float(self._interval_step_up)
+            self._interval_multiplier = min(hi, cur + step)
+        except Exception:
+            pass
+
     # ------------------------------------------------------------------
     def connect(self) -> None:
         """Open the connection to the ELM327 dongle."""
@@ -281,6 +455,80 @@ class UDSClient:
             self.sock = socket.create_connection(
                 (self.host, self.port), timeout=self.timeout
             )
+        # Try to acquire non-blocking exclusive lock with stale-PID check
+        def _pid_alive(pid: int) -> bool:
+            try:
+                if pid <= 0:
+                    return False
+                os.kill(pid, 0)
+                return True
+            except ProcessLookupError:
+                return False
+            except PermissionError:
+                return True
+            except Exception:
+                return True
+
+        try:
+            # Do not truncate before taking the lock
+            self._lock_fh = open(self._lock_path, "a+")
+            fcntl.flock(self._lock_fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # We own the lock: write our PID atomically
+            try:
+                self._lock_fh.seek(0)
+                self._lock_fh.truncate(0)
+                self._lock_fh.write(f"pid={os.getpid()}\n")
+                self._lock_fh.flush()
+            except Exception:
+                pass
+        except BlockingIOError:
+            # Someone holds the lock: inspect the recorded PID
+            stale_pid = None
+            try:
+                with open(self._lock_path, "r") as _fh:
+                    first = _fh.readline().strip()
+                    if first.lower().startswith("pid="):
+                        stale_pid = int(first.split("=", 1)[1] or "0")
+            except Exception:
+                stale_pid = None
+            # If the recorded PID is not alive, retry to take over the lock briefly
+            if stale_pid is not None and not _pid_alive(stale_pid):
+                for _ in range(20):  # ~2s total
+                    try:
+                        # Reopen fresh handle each attempt
+                        fh = open(self._lock_path, "a+")
+                        try:
+                            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                            self._lock_fh = fh
+                            # Write our PID
+                            try:
+                                self._lock_fh.seek(0)
+                                self._lock_fh.truncate(0)
+                                self._lock_fh.write(f"pid={os.getpid()}\n")
+                                self._lock_fh.flush()
+                            except Exception:
+                                pass
+                            break
+                        except BlockingIOError:
+                            fh.close()
+                            time.sleep(0.1)
+                    except Exception:
+                        time.sleep(0.1)
+                if self._lock_fh is None:
+                    raise RuntimeError(
+                        f"Stale PyCanZE lock detected (pid={stale_pid}) but still locked (lock: {self._lock_path})."
+                        " Please wait a moment or remove the stale process."
+                    )
+            else:
+                # Active holder present
+                holder = f" pid={stale_pid}" if stale_pid else ""
+                raise RuntimeError(
+                    f"Another PyCanZE session is active{holder} (lock: {self._lock_path}). "
+                    "Please stop it before starting a new scan."
+                )
+        except Exception:
+            # Best-effort: continue even if lock cannot be taken due to filesystem issues
+            self._lock_fh = None
 
     def initialize(self) -> None:
         """Send a standard AT init sequence to the dongle."""
@@ -355,6 +603,38 @@ class UDSClient:
         except Exception:
             pass
         try:
+            v = os.environ.get("PYCANZE_EVC_TP_INTERVAL_MS")
+            if v:
+                self._evc_tp_interval = float(v) / 1000.0
+        except Exception:
+            pass
+        # Adaptive timeout environment overrides
+        try:
+            v = os.environ.get("PYCANZE_READ_TIMEOUT_S")
+            if v:
+                self.read_timeout_s = float(v)
+        except Exception:
+            pass
+        try:
+            v = os.environ.get("PYCANZE_ADAPTIVE_TIMEOUTS")
+            if v is not None:
+                self.adaptive_timeouts = v.strip() not in ("0", "false", "False", "")
+        except Exception:
+            pass
+        for key, attr in (
+            ("PYCANZE_INTERVAL_MULT", "_interval_multiplier"),
+            ("PYCANZE_INTERVAL_MIN", "_interval_min"),
+            ("PYCANZE_INTERVAL_MAX", "_interval_max"),
+            ("PYCANZE_INTERVAL_STEP_UP", "_interval_step_up"),
+            ("PYCANZE_INTERVAL_STEP_DOWN", "_interval_step_down"),
+        ):
+            try:
+                v = os.environ.get(key)
+                if v:
+                    setattr(self, attr, float(v))
+            except Exception:
+                pass
+        try:
             v = os.environ.get("PYCANZE_FC_RETRY")
             if v is not None:
                 self.fc_retry_enabled = v.strip() not in ("0", "false", "False", "")
@@ -364,8 +644,8 @@ class UDSClient:
         try:
             v = os.environ.get("PYCANZE_FIRST_21_DELAY_LBC_MS")
             if v:
-                # LBC request id is 0x7BB
-                self.first_21_delay_by_req[0x7BB] = float(v)
+                # LBC request id (tester->ECU) is 0x79B; response is 0x7BB
+                self.first_21_delay_by_req[0x79B] = float(v)
         except Exception:
             pass
         # Reset and basic config mirroring Android's sequence
@@ -382,6 +662,7 @@ class UDSClient:
             "ATH0",
             "ATL0",
             "ATAL",
+            "ATAT1",  # auto timing like Android app
             f"ATCAF{caf_mode}",
             "ATFCSH77B",
             f"ATFCSD 3000{stmin:02X}",
@@ -393,6 +674,12 @@ class UDSClient:
         for cmd in init_cmds:
             self._send(cmd)
             self._read_lines(3.0)
+        # Some ELM 1.5 clones require explicit CFC enable
+        try:
+            self._send("ATCFC1")
+            self._read_lines(3.0)
+        except Exception:
+            pass
         # Optional: adjust ELM response timeout via ATST
         # Accept either hex byte (PYCANZE_ATST) or milliseconds (PYCANZE_ATST_MS, rounded to 4ms units)
         atst_cmd = None
@@ -435,6 +722,19 @@ class UDSClient:
             self._read_lines(3.0)
         self._current_req_id = 0x7E4
         self._just_switched = False
+        # Start a basic session on EVC and seed a TesterPresent to keep the
+        # gateway alive. Ignore failures as not all adapters/variants need it.
+        try:
+            self._send("021081")  # Default session
+            self._read_lines(1.5)
+        except Exception:
+            pass
+        try:
+            self._send("023E00")  # TesterPresent
+            self._read_lines(1.0)
+            self._last_evc_tp = time.time()
+        except Exception:
+            pass
 
     def close(self) -> None:
         """Close the TCP connection."""
@@ -442,6 +742,17 @@ class UDSClient:
         if self.sock is not None:
             self.sock.close()
             self.sock = None
+        # Release lock last
+        if self._lock_fh is not None:
+            try:
+                fcntl.flock(self._lock_fh.fileno(), fcntl.LOCK_UN)
+            except Exception:
+                pass
+            try:
+                self._lock_fh.close()
+            except Exception:
+                pass
+            self._lock_fh = None
 
     # ------------------------------------------------------------------
     def _sniff_loop(self) -> Iterator[Tuple[int, bytes]]:
@@ -531,12 +842,13 @@ class UDSClient:
     ) -> Optional[Sequence[int]]:
         """Send a generic read-by-identifier request and return raw response bytes.
 
-        - For service 0x22 (ReadDataByIdentifier), ``ident_len`` is 2 (16-bit DID).
-        - For service 0x21 (ReadDataByLocalIdentifier), ``ident_len`` is 1 (8-bit LID).
-        Returns bytes starting from the positive response SID (service+0x40) or ``None``.
+    - For service 0x22 (ReadDataByIdentifier), ``ident_len`` is 2 (16-bit DID).
+    Returns bytes starting from the positive response SID (service+0x40) or ``None``.
         """
-
         resp_sid = (service + 0x40) & 0xFF
+        # Reset positive flags for this request
+        self.last_positive = False
+        self.last_raw_len = 0
         if ident_len == 2:
             hi = (ident >> 8) & 0xFF
             lo = ident & 0xFF
@@ -575,7 +887,10 @@ class UDSClient:
             and (time.time() - self._last_resp_ts) < 1.0
             and self._last_resp is not None
         ):
+            self._adapt_on_success()
             return list(self._last_resp)
+        # Clear last NRC before issuing request
+        self.last_nrc_code = None
         self._send(cmd)
         lines = self._read_lines()
         # Detect common ELM/CAN error statuses early
@@ -587,30 +902,31 @@ class UDSClient:
         elif any("ERROR" in ln for ln in up):
             self.last_status = "ELM_ERROR"
         b = self._only_hex_bytes(lines)
+        # If adapter reported an error and we did not receive any hex bytes, adapt as failure
+        if getattr(self, "last_status", None) in {"CAN_ERROR", "NO_DATA", "ELM_ERROR"} and not b:
+            self._adapt_on_failure()
+            self.last_positive = False
+            self.last_raw_len = 0
+            return None
         expected_len = b[0] if b and b[0] < 0x10 else 0
         if self.debug:
             print(f"[PYCANZE DEBUG] PARSED HEX: {b}")
         # Manual ISO-TP reassembly fallback (without sending our own Flow Control)
-        # Detect First Frame (0x10 ..) and then continue reading Consecutive Frames
-        # until the total length is satisfied. We rely on ATCFC1 so the ELM327 sends
-        # Flow Control frames automatically; sending a manual FC as a normal request
-        # (e.g. "03300000") is incorrect and can lead to "NO DATA" responses.
         if len(b) >= 3 and (b[0] >> 4) == 0x1:
             total_len = ((b[0] & 0x0F) << 8) | (b[1] & 0xFF)
             collected: list[int] = []
-            # Payload included in First Frame (starts at index 2)
             take = min(6, len(b) - 2)
             if take > 0:
                 collected.extend(b[2 : 2 + take])
             j = 2 + take
             expected_sn = 1
-            # Consume any Consecutive Frames already present in ``b``
             while len(collected) < total_len and j < len(b):
                 pci = b[j]
                 if (pci >> 4) != 0x2:
                     break
                 sn = pci & 0x0F
                 if sn != (expected_sn & 0x0F):
+                    self._adapt_on_failure()
                     return None
                 expected_sn = (expected_sn + 1) & 0x0F
                 take = min(7, len(b) - (j + 1), total_len - len(collected))
@@ -626,7 +942,6 @@ class UDSClient:
                         float(getattr(self, "cf_read_timeout_s", 1.2) or 1.2)
                     )
                 except Exception:
-                    # No more data arrived within timeout
                     break
                 bb = self._only_hex_bytes(more)
                 if not bb:
@@ -634,10 +949,10 @@ class UDSClient:
                 j = 0
                 while j < len(bb):
                     pci = bb[j]
-                    if (pci >> 4) == 0x2:  # Consecutive Frame
+                    if (pci >> 4) == 0x2:
                         sn = pci & 0x0F
                         if sn != (expected_sn & 0x0F):
-                            return None  # sequence error
+                            return None
                         expected_sn = (expected_sn + 1) & 0x0F
                         take = min(7, len(bb) - (j + 1), total_len - len(collected))
                         if take > 0:
@@ -645,16 +960,16 @@ class UDSClient:
                         j += 1 + take
                     else:
                         j += 1
-            # Build response bytes starting at positive response SID
             out = collected[:total_len]
             if out and out[0] == resp_sid and len(out) >= total_len:
                 self.last_status = None
+                self.last_positive = True
+                self.last_raw_len = len(out)
                 if self._current_req_id is not None and service == 0x21:
                     self._last_tuple = (self._current_req_id, service, ident)
                     self._last_resp = list(out)
                     self._last_resp_ts = time.time()
                 return out
-            # If we only received a First Frame and no CFs, try reasserting FC once
             if (
                 len(collected) < total_len
                 and self.fc_retry_enabled
@@ -662,14 +977,8 @@ class UDSClient:
             ):
                 try:
                     setattr(self, "_fc_retry_active", True)
-                    # Reassert flow control settings and allow long messages
                     stmin = 0 if self.fc_stmin_ms is None else max(0, min(255, int(self.fc_stmin_ms)))
-                    for cmd_fc in (
-                        "ATFCSM1",                      # match Android app
-                        f"ATFCSD 3000{stmin:02X}",     # CTS, BS=0, STmin
-                        "ATCFC1",                      # compatibility with clones
-                        "ATAL",
-                    ):
+                    for cmd_fc in ("ATFCSM1", f"ATFCSD 3000{stmin:02X}", "ATCFC1", "ATAL"):
                         try:
                             self._send(cmd_fc)
                             self._read_lines(1.0)
@@ -678,11 +987,9 @@ class UDSClient:
                     if self.debug:
                         print("[PYCANZE DEBUG] ISO-TP FF without CFs; reasserted FC, retrying once")
                     self._sleep(0.05)
-                    # Retry the same request once
                     return self._read_by_id(service, ident, ident_len)
                 finally:
                     setattr(self, "_fc_retry_active", False)
-            # Wide CF fallback: widen filters, enable ATH1, and resend the request
             if len(collected) < total_len and getattr(self, "wide_cf_fallback", False):
                 if self.debug:
                     print("[PYCANZE DEBUG] WIDE-CF fallback: ATH1 + ATCM/ATCF=000, resending request")
@@ -693,16 +1000,13 @@ class UDSClient:
                 try:
                     self._send("ATH1")
                     self._read_lines(1.0)
-                    # Always use mask filtering for a true wildcard
                     self._send("ATCM 000")
                     self._read_lines(1.0)
                     self._send("ATCF 000")
                     self._read_lines(1.0)
                     self._sleep(0.02)
-                    # Resend the original request under widened filters
                     self._send(cmd)
                     self._read_lines(self.timeout)
-                    # Collect any CFs that follow
                     while len(collected) < total_len and time.time() < deadline:
                         try:
                             more = self._read_lines(
@@ -714,9 +1018,7 @@ class UDSClient:
                             up = ln.upper().replace(" ", "")
                             if not up.startswith(resp_hex):
                                 continue
-                            hex_part = "".join(
-                                ch for ch in up[len(resp_hex) :] if ch in "0123456789ABCDEF"
-                            )
+                            hex_part = "".join(ch for ch in up[len(resp_hex) :] if ch in "0123456789ABCDEF")
                             bb = [int(hex_part[i : i + 2], 16) for i in range(0, len(hex_part), 2)]
                             j = 0
                             while j < len(bb):
@@ -726,16 +1028,13 @@ class UDSClient:
                                     if sn != (expected_sn & 0x0F):
                                         break
                                     expected_sn = (expected_sn + 1) & 0x0F
-                                    take = min(
-                                        7, len(bb) - (j + 1), total_len - len(collected)
-                                    )
+                                    take = min(7, len(bb) - (j + 1), total_len - len(collected))
                                     if take > 0:
                                         collected.extend(bb[j + 1 : j + 1 + take])
                                     j += 1 + take
                                 else:
                                     j += 1
                 finally:
-                    # Restore exact filter and headers
                     try:
                         self._send("ATCM 7FF")
                         self._read_lines(1.0)
@@ -756,39 +1055,41 @@ class UDSClient:
                             self._last_tuple = (self._current_req_id, service, ident)
                             self._last_resp = list(out)
                             self._last_resp_ts = time.time()
+                        self.last_positive = True
+                        self.last_raw_len = len(out)
+                        self._adapt_on_success()
                         return out
-            # Do not fall back to segment concatenation for First Frame cases
-            # to avoid returning partial payloads.
+            self._adapt_on_failure()
+            self.last_positive = False
+            self.last_raw_len = 0
             return None
-        # Some ECUs (e.g., LBC) may page multi-frame responses where lines can
-        # be delivered in chunks. Try to collect segments that start with the
-        # expected positive response and concatenate until we either see a
-        # different SID or run out of data. The ELM with ATCFC1 should already
-        # assemble frames, but some clones leak multiple lines.
+        # Segment concatenation path
         segments: list[Sequence[int]] = []
         i = 0
-        # Robust iteration that tolerates empty buffers and short lines
         while i < len(b):
-            # Negative response guard (0x7F <SID> <code>) when enough bytes remain
             if b[i] == 0x7F:
                 if (i + 2) < len(b):
+                    try:
+                        self.last_nrc_code = b[i + 2] & 0xFF
+                        self.last_status = "NEG"
+                    except Exception:
+                        self.last_status = "NEG"
+                    self._adapt_on_failure()
+                    self.last_positive = False
+                    self.last_raw_len = 0
                     return None
-                # Incomplete 0x7F at end -> stop parsing
                 break
             if b[i] == resp_sid:
-                # For 0x22, ensure DID matches when available
                 if ident_len == 2 and (i + 2) < len(b):
                     did_hi = (ident >> 8) & 0xFF
                     did_lo = ident & 0xFF
                     if b[i + 1] != did_hi or b[i + 2] != did_lo:
                         i += 1
                         continue
-                # For 0x21, ensure LID matches when available
                 if ident_len == 1 and (i + 1) < len(b):
                     if b[i + 1] != (ident & 0xFF):
                         i += 1
                         continue
-                # Capture this segment until the next marker (0x7F or resp_sid) or end
                 j = i + 1
                 while j < len(b) and b[j] not in (0x7F, resp_sid):
                     j += 1
@@ -797,18 +1098,14 @@ class UDSClient:
             else:
                 i += 1
         if segments:
-            # Flatten segments, removing repeated headers after the first
             out: list[int] = []
             for idx, seg in enumerate(segments):
                 if idx == 0:
                     out.extend(seg)
                 else:
-                    # Drop header bytes: resp_sid + ident (2 for 0x22, 1 for 0x21)
                     drop = 1 + (2 if ident_len == 2 else 1)
                     payload = seg[drop:] if len(seg) > drop else []
                     out.extend(payload)
-            # Normalize: strip trailing pad bytes (AA/FF/00) that some adapters append
-            # while ensuring we keep at least SID + ident + 1 data byte
             min_len = 1 + (2 if ident_len == 2 else 1) + 1
             if expected_len:
                 min_len = max(min_len, expected_len)
@@ -816,15 +1113,21 @@ class UDSClient:
             while j > min_len and out[j - 1] in (0xAA, 0xFF, 0x00):
                 j -= 1
             out = out[:j]
-            # Sanity: ensure header still present
             if not out or out[0] != resp_sid or len(out) < min_len:
+                self._adapt_on_failure()
                 return None
             self.last_status = None
+            self.last_positive = True
+            self.last_raw_len = len(out)
             if self._current_req_id is not None and service == 0x21:
                 self._last_tuple = (self._current_req_id, service, ident)
                 self._last_resp = list(out)
                 self._last_resp_ts = time.time()
+            self._adapt_on_success()
             return out
+        self._adapt_on_failure()
+        self.last_positive = False
+        self.last_raw_len = 0
         return None
 
     # ------------------------------------------------------------------
@@ -891,16 +1194,78 @@ class UDSClient:
                 print(
                     f"[PYCANZE DEBUG] header_settle_ms={self.header_settle_ms} ms after ATSH/ATCRA"
                 )
-                try:
-                    self._sleep(self.header_settle_ms / 1000.0)
-                except Exception:
-                    pass
+            try:
+                self._sleep(self.header_settle_ms / 1000.0)
+            except Exception:
+                pass
         # Mark that we've just switched to allow an optional delay before next 0x21
         self._just_switched = True
         # If a per-ECU first-0x21 delay is configured for this req id, override the generic one
         try:
             if req_id in self.first_21_delay_by_req:
                 self.delay_before_21_ms = self.first_21_delay_by_req[req_id]
+        except Exception:
+            pass
+        # DCM/LBC priming: some ECUs respond better when first pinged
+        try:
+            if req_id in (0x7CA, 0x18DAF110):  # DCM (tester->ECU: 11-bit and a common 29-bit)
+                # Increase settle and first-0x21 delays slightly for DCM
+                self.header_settle_ms = max(getattr(self, "header_settle_ms", 0.0) or 0.0, 40.0)
+                self.delay_before_21_ms = max(getattr(self, "delay_before_21_ms", 0.0) or 0.0, 100.0)
+                # Send a TesterPresent (no response) to wake DCM, ignore errors
+                try:
+                    self._send("023E00")
+                    self._read_lines(0.8)
+                except Exception:
+                    pass
+                # Follow up with a TesterPresent expecting a response
+                try:
+                    self._send("023E01")
+                    self._read_lines(1.0)
+                except Exception:
+                    pass
+                # Additionally try a functional broadcast prime (7DF -> expect 7DA)
+                try:
+                    # Remember current header strings to restore exactly
+                    ext_now = ext
+                    rid_now = f"{(req_id & 0x1FFFFFFF):08X}" if ext_now else f"{(req_id & 0x7FF):03X}"
+                    resp_now = (
+                        (resp_id if resp_id is not None else (req_id + 0x8)) & (0x1FFFFFFF if ext_now else 0x7FF)
+                    )
+                    resp_now_s = f"{resp_now:08X}" if ext_now else f"{resp_now:03X}"
+                    # Switch to functional broadcast (11-bit only), filter DCM response, send TP
+                    self._send("ATSH7DF")
+                    self._read_lines(0.6)
+                    self._send("ATCRA 7DA")
+                    self._read_lines(0.6)
+                    self._send("023E01")
+                    self._read_lines(1.0)
+                except Exception:
+                    pass
+                finally:
+                    # Restore previous header/filter unconditionally
+                    try:
+                        self._send(f"ATSH{rid_now}")
+                        self._read_lines(0.6)
+                        if self.use_mask_filter:
+                            self._send(f"ATCF {resp_now_s}")
+                            self._read_lines(0.6)
+                            self._send("ATCM 7FF" if not ext_now else "ATCM 1FFFFFFF")
+                            self._read_lines(0.6)
+                        else:
+                            self._send(f"ATCRA {resp_now_s}")
+                            self._read_lines(0.6)
+                    except Exception:
+                        pass
+            if req_id in (0x79B, 0x796):  # LBC (0x79B) and LBC2 (0x796)
+                # LBC/LBC2 often benefit from a short pre-delay and ping when switching
+                self.header_settle_ms = max(getattr(self, "header_settle_ms", 0.0) or 0.0, 35.0)
+                self.delay_before_21_ms = max(getattr(self, "delay_before_21_ms", 0.0) or 0.0, 80.0)
+                try:
+                    self._send("023E00")
+                    self._read_lines(0.6)
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -915,7 +1280,24 @@ class UDSClient:
         fid = frame_id & 0x1FFFFFFF
         req_id, resp_id = self._pair_for_frame(fid)
         self._select_frame(req_id, resp_id)
-        self._ensure_session(req_id, force=force)
+        # If the ECU is marked as requiring a session in the dataset, force attempts
+        try:
+            force_needed = bool(self._session_required_by_req.get(req_id))
+        except Exception:
+            force_needed = False
+        self._ensure_session(req_id, force=(force or force_needed))
+
+    # Public helper to prime/wake an ECU (TesterPresent without response)
+    def prime_ecu(self, frame_id: int) -> None:
+        try:
+            fid = frame_id & 0x1FFFFFFF
+            req_id, resp_id = self._pair_for_frame(fid)
+            self._select_frame(req_id, resp_id)
+            # TesterPresent with no response, then a short wait
+            self._send("023E00")
+            self._read_lines(0.8)
+        except Exception:
+            return
 
     @staticmethod
     def _extract_bits(data: bytes, start_bit: int, end_bit: int) -> int:
@@ -960,6 +1342,9 @@ class UDSClient:
         id_hex = rid[2:]
         ident = int(id_hex, 16)
         ident_len = 2 if len(id_hex) == 4 else 1
+        # Reset positive marker for this field read
+        self.last_positive = False
+        self.last_raw_len = 0
         resp = self._read_by_id(service, ident, ident_len)
         # Best-effort keep-alive while scanning
         self._tester_present()

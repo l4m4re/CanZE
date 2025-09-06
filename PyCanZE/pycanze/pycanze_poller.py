@@ -50,6 +50,18 @@ SID_JB_FAULT = "7ec.29.62346f"       # Synthesis of JB charger fault type
 # Minimal key state to detect "ready"
 SID_KEY_STATE = "7ec.31.62200e"
 
+# Pre-conditioning SIDs (read-only, minimal testing set)
+# - EVC $33AB: user-facing pre-heat state (OFF/requested/in-progress/finished)
+# - EVC $33AC: ETS status (available/running/refused/waiting)
+# - HVAC $2144: timer selection (none/H1/H2) and minutes left until scheduled time
+# - EVC $34C3/$34C4: absolute scheduled times (minutes since midnight)
+SID_PC_STATE_DISPLAY = "7ec.29.6233ab"       # ($33AB) State of PreHeating to display
+SID_PC_STATUS_ETS    = "7ec.30.6233ac"       # ($33AC) Status of pre_heating sent to Manage ETS
+SID_PC_TIMER_SEL     = "764.131.6144"        # HVAC IH_ClimProgrammedPCDisplay (0:none,1:H1,2:H2)
+SID_PC_LEFT_TIME_MIN = "764.80.6144"         # HVAC IH_LeftTimeToScheduledTime (minutes)
+SID_PC_SCHED1_MIN    = "7ec.24.6234c3"       # ($34C3) Scheduled time 1 requested (min)
+SID_PC_SCHED2_MIN    = "7ec.24.6234c4"       # ($34C4) Scheduled time 2 requested (min)
+
 POLL_SIDS = [
     SID_SOC,
     SID_SOC_MEM,
@@ -66,6 +78,13 @@ POLL_SIDS = [
     SID_WAIT_ISO,
     SID_JB_FAULT,
     SID_KEY_STATE,
+    # Pre-conditioning (awake-only)
+    SID_PC_STATE_DISPLAY,
+    SID_PC_STATUS_ETS,
+    SID_PC_TIMER_SEL,
+    SID_PC_LEFT_TIME_MIN,
+    SID_PC_SCHED1_MIN,
+    SID_PC_SCHED2_MIN,
 ]
  
 # Lightweight ECU-awake probes (identification DIDs) to bracket each poll.
@@ -73,6 +92,19 @@ POLL_SIDS = [
 PROBE_LBC2_BEGIN = "7bb.56.6180"   # DiagnosticIdentificationCode -> 35 when awake
 PROBE_LBC2_END   = "7bb.200.6180"  # ManufacturerIdentificationCode -> 136.0 when awake
   
+# --- Pre-conditioning quick reference (all read-only) ---
+# EVC (0x7EC, service 0x22):
+#  - 0x33AB (SID 7ec.29.6233ab) State of PreHeating to display:
+#      0 OFF; 1 requested for H1; 2 requested for H2; 3 Not available;
+#      4 In progress; 5 Finished OK; 6 Finished not OK
+#  - 0x33AC (SID 7ec.30.6233ac) Status to Manage ETS:
+#      0 available; 1 running; 2 refused; 3 waiting
+#  - 0x34C3/0x34C4 (SIDs 7ec.24.6234c3 / 7ec.24.6234c4)
+#      Scheduled time 1/2 requested by customer (minutes since midnight)
+# HVAC (0x764, service 0x21, group 0x2144):
+#  - IH_ClimProgrammedPCDisplay (SID 764.131.6144): 0 none; 1 time1; 2 time2
+#  - IH_LeftTimeToScheduledTime (SID 764.80.6144): minutes to scheduled time
+
 
 def _is_charging(vals: dict[str, float | None]) -> bool:
     """Charging when charge mode request/status indicate active or set current > 0."""
@@ -211,6 +243,13 @@ def main() -> None:
                 "chg_mode_status",
                 "wait_isolation",
                 "jb_fault_type",
+                # Pre-conditioning
+                "pc_state_display",
+                "pc_status_ets",
+                "pc_timer_sel",
+                "pc_time_left_min",
+                "pc_sched1_min",
+                "pc_sched2_min",
                 "probe_lbc2_awake",
                 "shelly_temp_c",
                 "shelly_apower_w",
@@ -247,6 +286,8 @@ def main() -> None:
                     ts, "offline", False, False, False,
                     None, None, None, None, None, None, None, None, None,
                     None, None, None, None, None, None,
+                    # Pre-conditioning columns
+                    None, None, None, None, None, None,
                     None if sh_t is None else round(sh_t, 2),
                     None if sh_p is None else round(sh_p, 2),
                     None if sh_v is None else round(sh_v, 2),
@@ -281,6 +322,8 @@ def main() -> None:
                         csv_writer.writerow([
                             ts, "offline", False, False, False,
                             None, None, None, None, None, None, None, None, None,
+                            None, None, None, None, None, None,
+                            # Pre-conditioning columns
                             None, None, None, None, None, None,
                             None if sh_t is None else round(sh_t, 2),
                             None if sh_p is None else round(sh_p, 2),
@@ -342,6 +385,8 @@ def main() -> None:
                         ts, "offline", False, False, False,
                         None, None, None, None, None, None, None, None, None,
                         None, None, None, None, None, None,
+                        # Pre-conditioning columns
+                        None, None, None, None, None, None,
                         None if sh_t is None else round(sh_t, 2),
                         None if sh_p is None else round(sh_p, 2),
                         None if sh_v is None else round(sh_v, 2),
@@ -373,6 +418,13 @@ def main() -> None:
             chg_mode_status = vals.get(SID_CHG_MODE_STATUS) if vals else None
             wait_iso = vals.get(SID_WAIT_ISO) if vals else None
             jb_fault = vals.get(SID_JB_FAULT) if vals else None
+            # Pre-conditioning values (awake only)
+            pc_state_display = vals.get(SID_PC_STATE_DISPLAY) if vals else None
+            pc_status_ets = vals.get(SID_PC_STATUS_ETS) if vals else None
+            pc_timer_sel = vals.get(SID_PC_TIMER_SEL) if vals else None
+            pc_time_left = vals.get(SID_PC_LEFT_TIME_MIN) if vals else None
+            pc_sched1 = vals.get(SID_PC_SCHED1_MIN) if vals else None
+            pc_sched2 = vals.get(SID_PC_SCHED2_MIN) if vals else None
 
             ts = time.strftime('%Y-%m-%dT%H:%M:%S')
 
@@ -426,6 +478,13 @@ def main() -> None:
                     None if chg_mode_status is None else int(chg_mode_status),
                     None if wait_iso is None else int(wait_iso),
                     None if jb_fault is None else int(jb_fault),
+                    # Pre-conditioning
+                    None if pc_state_display is None else int(pc_state_display),
+                    None if pc_status_ets is None else int(pc_status_ets),
+                    None if pc_timer_sel is None else int(pc_timer_sel),
+                    None if pc_time_left is None else int(pc_time_left),
+                    None if pc_sched1 is None else int(pc_sched1),
+                    None if pc_sched2 is None else int(pc_sched2),
                     None if probe_lbc2_awake is None else bool(probe_lbc2_awake),
                     None if sh_t is None else round(sh_t, 2),
                     None if sh_p is None else round(sh_p, 2),
@@ -449,6 +508,26 @@ def main() -> None:
                     )
                 if sh_e is not None:
                     tail += f" EΣ: {sh_e:.0f}Wh"
+                # Pre-conditioning tail (compact)
+                if any(v is not None for v in (pc_state_display, pc_timer_sel, pc_time_left)):
+                    def _pc_state_to_str(v: Optional[float]) -> str:
+                        try:
+                            m = int(v) if v is not None else None
+                        except Exception:
+                            m = None
+                        return {
+                            0: "OFF",
+                            1: "H1",
+                            2: "H2",
+                            3: "N/A",
+                            4: "RUN",
+                            5: "OK",
+                            6: "NOK",
+                        }.get(m, "?") if m is not None else "n/a"
+                    state_s = _pc_state_to_str(pc_state_display)
+                    sel_s = {0: "none", 1: "H1", 2: "H2"}.get(int(pc_timer_sel) if pc_timer_sel is not None else -1, "n/a")
+                    tleft_s = "n/a" if pc_time_left is None else f"{int(pc_time_left)}m"
+                    tail += f" PC: {state_s}, sel {sel_s}, left {tleft_s}"
                 print(f"{ts} State: {simple_state:<22} Odo: {odo_str:<10} SoC: {soc_str}{tail}")
                 last_simple_state = simple_state
             time.sleep(args.interval)

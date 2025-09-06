@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 LOG_DIR="$SCRIPT_DIR/logs"
-TOOLS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/tools"
+TOOLS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)/pycanze"
 
 mkdir -p "$LOG_DIR"
 

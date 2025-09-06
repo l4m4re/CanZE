@@ -58,8 +58,9 @@ def load_ecus(base_dir: Path = DATA_DIR, *, vehicle: str | None = None) -> Dict[
             name = row[0]
             sid = _auto_int(row[1])
             networks = row[2].split(";") if len(row) > 2 and row[2] else []
-            request_id = _auto_int(row[3]) & 0x1FFFFFFF
-            response_id = _auto_int(row[4]) & 0x1FFFFFFF
+            # CAN IDs are in hex in the dataset, even when digits-only
+            request_id = (int(row[3], 16) if row[3] else 0) & 0x1FFFFFFF
+            response_id = (int(row[4], 16) if row[4] else 0) & 0x1FFFFFFF
             mnemonic = row[5]
             aliases = row[6].split(";") if len(row) > 6 and row[6] else []
             dtc_response_ids = [
@@ -96,7 +97,8 @@ def load_frames(base_dir: Path = DATA_DIR) -> Dict[int, Frame]:
         if not csv_file.exists():
             continue
         for row in _read_csv(csv_file):
-            frame_id = _auto_int(row[0])
+            # Frame IDs are hex-coded in the dataset
+            frame_id = int(row[0], 16)
             interval_zoe = int(row[1])
             interval_flukan = int(row[2])
             ecu = row[3]
@@ -166,7 +168,8 @@ def load_fields(
                     raw_values,
                 ) = row[:13]
 
-                frame_id = _auto_int(frame_id_s) if frame_id_s else 0
+                # Frame id is hex-coded in CSV, even if digits-only
+                frame_id = int(frame_id_s, 16) if frame_id_s else 0
                 start_bit = int(start_bit_s)
                 end_bit = int(end_bit_s)
                 resolution = float(resolution_s) if resolution_s else 1.0
