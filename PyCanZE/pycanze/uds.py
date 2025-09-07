@@ -167,6 +167,8 @@ class UDSClient:
         self.last_positive = False
         # Length of the last raw positive response (bytes)
         self.last_raw_len = 0
+        # Buffer of the last positive response (full positive buffer: SID+echoed ID+data)
+        self.last_resp_buf = None
         # Track currently selected CAN request id (11- or 29-bit)
         self._current_req_id = None
         # Tunables (can be overridden by tools)
@@ -188,6 +190,12 @@ class UDSClient:
         # Sniffing state
         self._sniffing = False
         self._sniff_thread = None
+        # Decoding controls
+        self.disable_all_ones_sentinel = False
+        # Decode reference: by default bit offsets are relative to the full
+        # positive response (SID+echoed ID+data). Set via env to payload-only
+        # to test datasets that define offsets excluding the UDS header bytes.
+        self.decode_against_full_response = True
 
     # ------------------------------------------------------------------
     @staticmethod
@@ -640,6 +648,19 @@ class UDSClient:
                 self.fc_retry_enabled = v.strip() not in ("0", "false", "False", "")
         except Exception:
             pass
+        try:
+            v = os.environ.get("PYCANZE_DISABLE_ALL_ONES_SENTINEL")
+            if v is not None:
+                self.disable_all_ones_sentinel = v.strip() not in ("0", "false", "False", "")
+        except Exception:
+            pass
+        try:
+            v = os.environ.get("PYCANZE_DECODE_PAYLOAD_ONLY")
+            if v is not None:
+                # If set truthy, decode against payload only (exclude SID+ID)
+                self.decode_against_full_response = v.strip() in ("0", "false", "False", "")
+        except Exception:
+            pass
         # Per-ECU first-0x21 delay: allow targeting LBC specifically
         try:
             v = os.environ.get("PYCANZE_FIRST_21_DELAY_LBC_MS")
@@ -849,6 +870,7 @@ class UDSClient:
         # Reset positive flags for this request
         self.last_positive = False
         self.last_raw_len = 0
+        self.last_resp_buf = None
         if ident_len == 2:
             hi = (ident >> 8) & 0xFF
             lo = ident & 0xFF
@@ -965,6 +987,7 @@ class UDSClient:
                 self.last_status = None
                 self.last_positive = True
                 self.last_raw_len = len(out)
+                self.last_resp_buf = list(out)
                 if self._current_req_id is not None and service == 0x21:
                     self._last_tuple = (self._current_req_id, service, ident)
                     self._last_resp = list(out)
@@ -1057,6 +1080,7 @@ class UDSClient:
                             self._last_resp_ts = time.time()
                         self.last_positive = True
                         self.last_raw_len = len(out)
+                        self.last_resp_buf = list(out)
                         self._adapt_on_success()
                         return out
             self._adapt_on_failure()
@@ -1106,19 +1130,20 @@ class UDSClient:
                     drop = 1 + (2 if ident_len == 2 else 1)
                     payload = seg[drop:] if len(seg) > drop else []
                     out.extend(payload)
+            # Do not trim trailing bytes. Some ECUs legitimately end pages
+            # with 0x00/0xFF padding or zero-valued data, and trimming here
+            # can shorten the buffer below CSV-defined bit ranges causing
+            # decoders to return None. Keep the full concatenated response.
             min_len = 1 + (2 if ident_len == 2 else 1) + 1
             if expected_len:
                 min_len = max(min_len, expected_len)
-            j = len(out)
-            while j > min_len and out[j - 1] in (0xAA, 0xFF, 0x00):
-                j -= 1
-            out = out[:j]
             if not out or out[0] != resp_sid or len(out) < min_len:
                 self._adapt_on_failure()
                 return None
             self.last_status = None
             self.last_positive = True
             self.last_raw_len = len(out)
+            self.last_resp_buf = list(out)
             if self._current_req_id is not None and service == 0x21:
                 self._last_tuple = (self._current_req_id, service, ident)
                 self._last_resp = list(out)
@@ -1128,6 +1153,7 @@ class UDSClient:
         self._adapt_on_failure()
         self.last_positive = False
         self.last_raw_len = 0
+        self.last_resp_buf = None
         return None
 
     # ------------------------------------------------------------------
@@ -1341,50 +1367,114 @@ class UDSClient:
         service = int(rid[:2], 16)
         id_hex = rid[2:]
         ident = int(id_hex, 16)
-        ident_len = 2 if len(id_hex) == 4 else 1
+        # Identifier length differs per service:
+        # - 0x21 (ReadDataByLocalIdentifier) -> 1 byte local ID
+        # - 0x22 (ReadDataByIdentifier) -> typically 2 bytes (DID)
+        if service == 0x21:
+            ident_len = 1
+        else:
+            ident_len = 2 if len(id_hex) >= 4 else 1
         # Reset positive marker for this field read
         self.last_positive = False
         self.last_raw_len = 0
         resp = self._read_by_id(service, ident, ident_len)
+        # If we received a buffer (including from cache), mark transport-positive
+        if resp:
+            try:
+                self.last_positive = True
+                self.last_raw_len = len(resp)
+                # Keep a copy so callers can attempt fallback decoding
+                self.last_resp_buf = list(resp)
+            except Exception:
+                pass
         # Best-effort keep-alive while scanning
         self._tester_present()
         if not resp:
             return None
-        # Ensure we have enough bytes to extract the requested bit range
-        total_bits = len(resp) * 8
+        return self.decode_value_from_response(field, resp)
+
+    # ------------------------------------------------------------------
+    def decode_value_from_response(self, field: Field, resp: Sequence[int]) -> Optional[Union[float, str]]:
+        """Decode a field value from a full positive response buffer.
+
+        The buffer must start with the positive response SID (0x61/0x62)
+        followed by the echoed identifier bytes and data. Bit offsets in the
+        CanZE CSV are defined over this entire buffer.
+        """
+        data = bytes(resp)
+        # Optionally decode relative to payload only (exclude SID + echoed ID)
+        try:
+            if not getattr(self, "decode_against_full_response", True):
+                rid = (field.request_id or "").upper()
+                if rid and (rid.startswith("21") or rid.startswith("22")):
+                    service = int(rid[:2], 16)
+                    ident_len = 1 if service == 0x21 else (2 if len(rid[2:]) >= 4 else 1)
+                    header_bytes = 1 + ident_len
+                    if len(data) > header_bytes:
+                        data = data[header_bytes:]
+        except Exception:
+            pass
+        total_bits = len(data) * 8
         if total_bits <= field.end_bit:
             return None
-        data = bytes(resp)
         width = max(1, int(field.end_bit) - int(field.start_bit) + 1)
         start_byte = int(field.start_bit) // 8
         end_byte = int(field.end_bit) // 8
         raw = data[start_byte : end_byte + 1]
         raw_value = self._extract_bits(data, field.start_bit, field.end_bit)
-        if width >= 5 and raw_value == (1 << width) - 1:
+        # Treat all-ones for wider fields as invalid (common sentinel)
+        if (not getattr(self, "disable_all_ones_sentinel", False)) and width >= 5 and raw_value == (1 << width) - 1:
             return None
-        # String / hex-string fields return decoded text or hex
+        # String / hex-string
         if field.is_string() or field.is_hex_string():
             if field.is_string():
                 return raw.rstrip(b"\x00").decode("latin-1", errors="ignore")
             return raw.hex()
-        # Signed fields use two's complement
+        # Two's complement for signed
         if field.is_signed():
             sign_bit = 1 << (width - 1)
             if raw_value & sign_bit:
                 raw_value -= 1 << width
-        # Apply Android semantics: value = (raw - offset) * resolution
+        # Scale and offset (Android semantics)
         try:
             value = (raw_value - float(field.offset)) * float(field.resolution)
         except Exception:
             value = (raw_value - (field.offset or 0.0)) * (field.resolution or 1.0)
-    # Note: state-dependent sentinels/invalids are intentionally not handled
-    # here. Applications (pollers/agents) should decide when to discard
-    # values based on vehicle state.
-        # Mirror Android's formatted output by rounding to the defined number
-        # of decimals. Java's ``String.format`` rounds half away from zero which
-        # matches Python's :func:`round` for positive numbers used here.
+        # Round like Android UI
         try:
             decimals = int(field.decimals)
         except Exception:
             decimals = 0
         return round(value, decimals) if decimals > 0 else value
+
+    # ------------------------------------------------------------------
+    def explain_decode_none(self, field: Field, resp: Sequence[int]) -> str:
+        """Explain common reasons a decode yielded None for a field.
+
+        Returns one of:
+        - 'OUT_OF_RANGE' if the CSV bit range exceeds the available data
+        - 'ALL_ONES' if the selected bit range is all 1s (sentinel) and the
+          sentinel invalidation is enabled
+        - 'UNKNOWN' otherwise
+        """
+        try:
+            data = bytes(resp)
+            # Align with the same reference used by the decoder
+            if not getattr(self, "decode_against_full_response", True):
+                rid = (field.request_id or "").upper()
+                if rid and (rid.startswith("21") or rid.startswith("22")):
+                    service = int(rid[:2], 16)
+                    ident_len = 1 if service == 0x21 else (2 if len(rid[2:]) >= 4 else 1)
+                    header_bytes = 1 + ident_len
+                    if len(data) > header_bytes:
+                        data = data[header_bytes:]
+            total_bits = len(data) * 8
+            if total_bits <= field.end_bit:
+                return "OUT_OF_RANGE"
+            width = max(1, int(field.end_bit) - int(field.start_bit) + 1)
+            raw_value = self._extract_bits(data, field.start_bit, field.end_bit)
+            if (not getattr(self, "disable_all_ones_sentinel", False)) and width >= 5 and raw_value == (1 << width) - 1:
+                return "ALL_ONES"
+        except Exception:
+            return "UNKNOWN"
+        return "UNKNOWN"

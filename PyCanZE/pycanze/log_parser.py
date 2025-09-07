@@ -34,14 +34,34 @@ def parse_log(path: str) -> Dict[str, List[int]]:
                     expected_len = None
             elif line.startswith('<') and current_req:
                 content = line[1:].strip()
+                # Support both header+spaced bytes (e.g. "7BB 10 1A 61 ...") and
+                # payload-only contiguous hex (e.g. "101A6180...") with ATH0.
                 parts = content.split()
-                try:
-                    values = [int(p, 16) for p in parts]
-                except ValueError:
+                can_id_ok = True
+                data: List[int] = []
+                if len(parts) > 1:
+                    # Attempt header+bytes mode
+                    try:
+                        # First token could be 11-bit (3 hex) or 29-bit (8 hex) CAN id
+                        maybe_can = int(parts[0], 16)
+                        # If a filter is active, ensure the header matches
+                        if active_id and f"{maybe_can:03X}" != active_id and f"{maybe_can:08X}" != active_id:
+                            can_id_ok = False
+                        else:
+                            data = [int(p, 16) for p in parts[1:]]
+                    except ValueError:
+                        can_id_ok = True
+                        # Fall back to payload-only parsing below
+                if not data and can_id_ok:
+                    # Payload-only or single-token reply: strip non-hex and parse as contiguous bytes
+                    hex_only = ''.join(ch for ch in content if ch.upper() in '0123456789ABCDEF')
+                    if len(hex_only) >= 2 and len(hex_only) % 2 == 0:
+                        try:
+                            data = [int(hex_only[i:i+2], 16) for i in range(0, len(hex_only), 2)]
+                        except ValueError:
+                            data = []
+                if not data or not can_id_ok:
                     continue
-                if active_id and f"{values[0]:03X}" != active_id:
-                    continue
-                data = values[1:]
                 if expected_len is None:
                     if not data:
                         continue

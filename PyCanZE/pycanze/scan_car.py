@@ -10,6 +10,7 @@ to stdout.
 from __future__ import annotations
 
 import argparse
+import os
 import socket
 import sys
 import time
@@ -88,7 +89,9 @@ def scan_car(car: str, client: UDSClient) -> None:
 
     args = parse_args()
     filters = [t.lower() for t in (args.ecu or [])]
-    full_scan = (getattr(args, "skip_nodata", 50) == 0) or bool(getattr(args, "raw_log", None))
+    # Treat raw logging as orthogonal to scan limits; honor per-ECU limits even when
+    # skip-nodata is 0. A "full scan" only relaxes NO_DATA streak behavior.
+    full_scan = False
 
     try:
         frames = load_frames(DATA_DIR)
@@ -97,7 +100,7 @@ def scan_car(car: str, client: UDSClient) -> None:
 
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
-        if filters and not any(tok in ecu.lower() for tok in filters):
+        if filters and not any(tok == ecu.lower() for tok in filters):
             continue
         ecu_label = ecu if ecu else "_Fields (generic)"
         print(f"\nECU: {ecu_label}")
@@ -123,6 +126,16 @@ def scan_car(car: str, client: UDSClient) -> None:
                         client.first_21_delay_by_req.get(0x796, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
                         120.0,
                     )
+                    # Bigger ISO-TP CF window and slightly longer per-CF timeout for long LBC pages
+                    # For PH2 (LBC2), use even larger windows to accommodate consistently longer pages
+                    if ecu.upper() == "LBC2":
+                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 6.0)
+                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 2.2)
+                    else:
+                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 4.5)
+                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 1.7)
+                    # Allow wide-CF fallback (ATH1 + ATCF/ATCM 000) if CFs are lost
+                    client.wide_cf_fallback = True
                     # Warm-up probe: read a couple robust identifiers to ensure header switch
                     probe_sids = [
                         "7bb.56.6180",
@@ -154,10 +167,18 @@ def scan_car(car: str, client: UDSClient) -> None:
         ensured_session = False
 
         for row in _read_csv(field_file):
-            if (not full_scan) and getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
+            # Reset per-iteration transport flags to avoid stale placeholders
+            try:
+                client.last_positive = False
+                client.last_raw_len = 0
+                client.last_resp_buf = None
+                client.last_status = None
+            except Exception:
+                pass
+            if getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
                 print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu_label}")
                 break
-            if (not full_scan) and getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
+            if getattr(args, "max_secs_per_ecu", 0.0) and (time.time() - start_ecu_ts) > args.max_secs_per_ecu:
                 print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu_label}")
                 break
 
@@ -179,6 +200,10 @@ def scan_car(car: str, client: UDSClient) -> None:
                             sid_key = alt
                 except Exception:
                     pass
+            # If still unknown to the active dataset, skip this row to avoid
+            # printing placeholders based on a previous request buffer.
+            if sid_key not in client.fields:
+                continue
 
             if not ensured_session and sid_key in client.fields:
                 try:
@@ -244,14 +269,19 @@ def scan_car(car: str, client: UDSClient) -> None:
                                 except Exception:
                                     pass
                     else:
+                        # Not expected due to earlier guard; keep explicit reset
+                        client.last_positive = False
+                        client.last_raw_len = 0
                         value = None
                 except BrokenPipeError:
                     return
                 except Exception:
                     value = None
 
-            # Treat a transport-positive response (bytes came back) as success
-            transport_ok = bool(getattr(client, "last_positive", False))
+            # Treat a transport-positive response (bytes came back) as success.
+            # Prefer the presence of a fresh response buffer which is stable across
+            # keep-alive calls that may follow inside read_field.
+            transport_ok = bool(getattr(client, "last_resp_buf", None))
             if getattr(client, "last_status", None) == "CAN_ERROR":
                 reason_counts["CAN_ERROR"] = reason_counts.get("CAN_ERROR", 0) + 1
                 if not full_scan:
@@ -285,11 +315,101 @@ def scan_car(car: str, client: UDSClient) -> None:
                         unit = f" {fld2.unit}"
                 except Exception:
                     pass
-                # Prefer showing the decoded value; if None but transport OK, hint with "<bytes>"
-                shown = value if value is not None else f"<{getattr(client, 'last_raw_len', 0)}B>"
+                # Prefer showing the decoded value; if None but transport OK, try to decode
+                # again from the last positive response buffer before falling back to <bytes>.
+                shown = value
+                if shown is None:
+                    try:
+                        fld2 = client.fields.get(sid_key)
+                        buf = getattr(client, 'last_resp_buf', None)
+                        if fld2 is not None and buf:
+                            # Try decoding again from the raw buffer
+                            shown = client.decode_value_from_response(fld2, buf)
+                            if shown is None:
+                                why = getattr(client, 'explain_decode_none', lambda f, r: 'UNKNOWN')(fld2, buf)
+                                if why == 'ALL_ONES':
+                                    shown = 'n/a'
+                                elif why == 'OUT_OF_RANGE':
+                                    # One targeted retry with extended timeouts and wide-CF fallback for long pages
+                                    # Avoid tight loops by limiting to LBC/LBC2 and large local IDs
+                                    try:
+                                        ecu_name = ecu.upper() if isinstance(ecu, str) else ""
+                                        if ecu_name in ("LBC", "LBC2"):
+                                            old_window = getattr(client, 'isotp_collect_timeout_s', 2.5)
+                                            old_cf = getattr(client, 'cf_read_timeout_s', 1.2)
+                                            old_wide = getattr(client, 'wide_cf_fallback', False)
+                                            client.isotp_collect_timeout_s = max(old_window, 5.5)
+                                            client.cf_read_timeout_s = max(old_cf, 1.9)
+                                            client.wide_cf_fallback = True
+                                            try:
+                                                retry_val = client.read_field(sid_key)
+                                            finally:
+                                                client.isotp_collect_timeout_s = old_window
+                                                client.cf_read_timeout_s = old_cf
+                                                client.wide_cf_fallback = old_wide
+                                            if retry_val is not None:
+                                                shown = retry_val
+                                        if shown is None:
+                                            shown = f"<{getattr(client, 'last_raw_len', 0)}B,oor>"
+                                    except Exception:
+                                        shown = f"<{getattr(client, 'last_raw_len', 0)}B,oor>"
+                    except Exception:
+                        shown = None
+                if shown is None:
+                    shown = f"<{getattr(client, 'last_raw_len', 0)}B>"
                 print(f" {sid_key:>16} {name} -> {shown}{unit}")
             elif not args.only_values:
-                print(f" {sid_key:>16} {name} -> {value}")
+                # Show a clearer reason instead of printing raw None
+                status = getattr(client, "last_status", None)
+                if status in {"NO_DATA", "NEG", "CAN_ERROR", "ELM_ERROR"}:
+                    extra = ""
+                    if status == "NEG":
+                        try:
+                            code = getattr(client, "last_nrc_code", None)
+                            if isinstance(code, int):
+                                extra = f" (NRC 0x{code & 0xFF:02X})"
+                        except Exception:
+                            pass
+                    print(f" {sid_key:>16} {name} -> ({status}){extra}")
+                else:
+                    # One-time forced reread for LBC/LBC2 to recover cached page and decode
+                    recovered = None
+                    try:
+                        ecu_name = ecu.upper() if isinstance(ecu, str) else ""
+                        if ecu_name in ("LBC", "LBC2"):
+                            old_win = getattr(client, 'isotp_collect_timeout_s', 2.5)
+                            old_cf = getattr(client, 'cf_read_timeout_s', 1.2)
+                            client.isotp_collect_timeout_s = max(old_win, 4.5)
+                            client.cf_read_timeout_s = max(old_cf, 1.7)
+                            try:
+                                _ = client.read_field(sid_key)
+                                fld2 = client.fields.get(sid_key)
+                                buf = getattr(client, 'last_resp_buf', None)
+                                if fld2 is not None and buf:
+                                    recovered = client.decode_value_from_response(fld2, buf)
+                                    if recovered is None:
+                                        why = getattr(client, 'explain_decode_none', lambda f, r: 'UNKNOWN')(fld2, buf)
+                                        if why == 'ALL_ONES':
+                                            recovered = 'n/a'
+                                        elif why == 'OUT_OF_RANGE':
+                                            recovered = f"<{getattr(client, 'last_raw_len', 0)}B,oor>"
+                            finally:
+                                client.isotp_collect_timeout_s = old_win
+                                client.cf_read_timeout_s = old_cf
+                    except Exception:
+                        recovered = None
+                    if recovered is not None:
+                        ok += 1
+                        unit = ""
+                        try:
+                            fld2 = client.fields.get(sid_key)
+                            if fld2 and fld2.unit:
+                                unit = f" {fld2.unit}"
+                        except Exception:
+                            pass
+                        print(f" {sid_key:>16} {name} -> {recovered}{unit}")
+                    else:
+                        print(f" {sid_key:>16} {name} -> {value}")
 
         if reason_counts:
             parts: list[str] = []
@@ -309,6 +429,11 @@ def scan_car(car: str, client: UDSClient) -> None:
 def main() -> None:
     args = parse_args()
     car = args.car or prompt_for_car()
+    # Align the UDS dataset with the selected car for accurate field maps
+    try:
+        os.environ["PYCANZE_VEHICLE"] = car
+    except Exception:
+        pass
     client = UDSClient(args.host, port=args.port, timeout=args.elm_timeout)
     try:
         client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 10.0)
