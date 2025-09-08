@@ -102,7 +102,21 @@ def scan_car(car: str, client: UDSClient) -> None:
         ecu = field_file.stem.replace("_Fields", "")
         if filters and not any(tok == ecu.lower() for tok in filters):
             continue
+
         ecu_label = ecu if ecu else "_Fields (generic)"
+        # Pre-read rows so we can compute the total number of fields available
+        rows = list(_read_csv(field_file))
+        def _row_counts_as_field(row: list[str]) -> bool:
+            try:
+                row = (row + [""] * 13)[:13]
+                req = row[8]
+                if not req or not (req.startswith("22") or req.startswith("21")):
+                    return False
+                sid = _sid_for_row(row)
+                return bool(sid)
+            except Exception:
+                return False
+        total_available = sum(1 for r in rows if _row_counts_as_field(r))
         print(f"\nECU: {ecu_label}")
         try:
             client.gateway_poke()
@@ -116,24 +130,24 @@ def scan_car(car: str, client: UDSClient) -> None:
                 client.use_mask_filter = False
                 try:
                     # Increase header settle and first-0x21 delays for LBC/LBC2
-                    client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 45.0)
+                    client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 55.0)
                     # LBC req=0x79B, LBC2 req=0x796
                     client.first_21_delay_by_req[0x79B] = max(
                         client.first_21_delay_by_req.get(0x79B, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
-                        150.0,
+                        160.0,
                     )
                     client.first_21_delay_by_req[0x796] = max(
                         client.first_21_delay_by_req.get(0x796, 0.0) if hasattr(client, "first_21_delay_by_req") else 0.0,
-                        120.0,
+                        150.0,
                     )
                     # Bigger ISO-TP CF window and slightly longer per-CF timeout for long LBC pages
                     # For PH2 (LBC2), use even larger windows to accommodate consistently longer pages
                     if ecu.upper() == "LBC2":
-                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 6.0)
-                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 2.2)
+                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 7.5)
+                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 2.5)
                     else:
-                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 4.5)
-                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 1.7)
+                        client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 6.5)
+                        client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 2.3)
                     # Allow wide-CF fallback (ATH1 + ATCF/ATCM 000) if CFs are lost
                     client.wide_cf_fallback = True
                     # Warm-up probe: read a couple robust identifiers to ensure header switch
@@ -145,6 +159,10 @@ def scan_car(car: str, client: UDSClient) -> None:
                         "7bb.32.6104",
                     ] if ecu.upper() == "LBC" else [
                         "7b6.56.6180",
+                        "7b6.200.6180",
+                        "7b6.16.6101",
+                        "7b6.192.6103",
+                        "7b6.32.6104",
                     ]
                     for ps in probe_sids:
                         try:
@@ -172,6 +190,25 @@ def scan_car(car: str, client: UDSClient) -> None:
                         pass
                 except Exception:
                     pass
+            elif ecu.upper() in ("USM", "PARKING-SONAR", "UPA", "UPA-ULS"):
+                # USM / Parking Sonar: prefer ATCRA and slightly bigger ISO-TP windows; try 0x10C0.
+                try:
+                    client.use_mask_filter = False
+                    client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 30.0)
+                    client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 3.5)
+                    client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 1.6)
+                    try:
+                        # Likely pairs: USM 0x74D->0x76D, UPA 0x74E->0x76E
+                        if ecu.upper().startswith("USM"):
+                            client._select_frame(0x74D, 0x76D)  # type: ignore[attr-defined]
+                        else:
+                            client._select_frame(0x74E, 0x76E)  # type: ignore[attr-defined]
+                        client._send("0210C0")  # type: ignore[attr-defined]
+                        client._read_lines(1.5)  # type: ignore[attr-defined]
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -184,8 +221,10 @@ def scan_car(car: str, client: UDSClient) -> None:
         nodata_reqs: set[str] = set()
         neg_reqs: set[str] = set()
         ensured_session = False
+        # Relax fast-fail if ECU is USM/UPA which may be slow to wake
+        max_nodata_without_ok = 20 if ecu.upper() in ("USM", "PARKING-SONAR", "UPA", "UPA-ULS") else 10
 
-        for row in _read_csv(field_file):
+        for row in rows:
             # Reset per-iteration transport flags to avoid stale placeholders
             try:
                 client.last_positive = False
@@ -277,8 +316,8 @@ def scan_car(car: str, client: UDSClient) -> None:
                     if fld is not None:
                         fr = frames.get(getattr(fld, "frame_id", 0)) if frames else None
                         same_ecu = not fr or not ecu or (fr.ecu.lower() == ecu.lower())
-                        # Don't over-prune for EVC: query fields even if the frame map is missing/misnamed
-                        if ecu.upper() == "EVC":
+                        # Don't over-prune for EVC/USM/LBC/LBC2: query fields even if frame map is missing/misnamed
+                        if ecu.upper() in ("EVC", "USM", "LBC", "LBC2"):
                             same_ecu = True
                         if not same_ecu:
                             value = None
@@ -315,8 +354,8 @@ def scan_car(car: str, client: UDSClient) -> None:
                 nodata_streak += 1
                 # Fast-fail: if we haven't seen any transport-positive response for this ECU
                 # and already hit 10 consecutive NO_DATA, skip the rest of the ECU to save time.
-                if ok == 0 and nodata_streak >= 10:
-                    print("No responses from this ECU after 10 NO_DATA. Skipping this ECU.")
+                if ok == 0 and nodata_streak >= max_nodata_without_ok:
+                    print(f"No responses from this ECU after {max_nodata_without_ok} NO_DATA. Skipping this ECU.")
                     break
                 threshold = getattr(args, "skip_nodata", 50)
                 if threshold > 0 and nodata_streak >= threshold:
@@ -451,7 +490,7 @@ def scan_car(car: str, client: UDSClient) -> None:
             suffix = f"; reasons: {'; '.join(parts)}" if parts else ""
         else:
             suffix = ""
-        print(f"-- {ecu_label}: {ok}/{total} values{suffix}")
+        print(f"-- {ecu_label}: {ok}/{total_available} values{suffix}")
 
 
 def main() -> None:
