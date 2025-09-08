@@ -1134,10 +1134,18 @@ class UDSClient:
             # with 0x00/0xFF padding or zero-valued data, and trimming here
             # can shorten the buffer below CSV-defined bit ranges causing
             # decoders to return None. Keep the full concatenated response.
-            min_len = 1 + (2 if ident_len == 2 else 1) + 1
+            #
+            # Minimal valid positive response is: [resp_sid] + echoed identifier
+            # (payload may be zero-length). Previously we required an extra data
+            # byte which incorrectly rejected valid responses like 62 DID with no
+            # payload beyond the echoed ID.
+            required_min = 1 + (2 if ident_len == 2 else 1)
+            # If the very first line contained a Single Frame PCI with a length
+            # nibble (b[0] < 0x10), that value denotes the total UDS PDU length
+            # (starting at resp_sid). Use it as a stricter lower bound when present.
             if expected_len:
-                min_len = max(min_len, expected_len)
-            if not out or out[0] != resp_sid or len(out) < min_len:
+                required_min = max(required_min, expected_len)
+            if not out or out[0] != resp_sid or len(out) < required_min:
                 self._adapt_on_failure()
                 return None
             self.last_status = None

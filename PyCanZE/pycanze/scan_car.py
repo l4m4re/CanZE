@@ -153,6 +153,25 @@ def scan_car(car: str, client: UDSClient) -> None:
                             pass
                 except Exception:
                     pass
+            elif ecu.upper() == "EVC":
+                # EVC: prefer ATCRA (some clones miss CFs with mask filters) and
+                # allow a small settle time plus slightly larger ISO-TP windows.
+                try:
+                    client.use_mask_filter = False
+                    client.header_settle_ms = max(getattr(client, "header_settle_ms", 0.0) or 0.0, 25.0)
+                    client.isotp_collect_timeout_s = max(getattr(client, "isotp_collect_timeout_s", 2.5) or 2.5, 3.5)
+                    client.cf_read_timeout_s = max(getattr(client, "cf_read_timeout_s", 1.2) or 1.2, 1.5)
+                    # Proactively switch to EVC and try an Extended session; many 0x22 DIDs
+                    # on EVC respond more reliably in 0x10 C0. Ignore failures.
+                    try:
+                        # EVC tester->ECU is 0x7E4, response 0x7EC
+                        client._select_frame(0x7E4, 0x7EC)  # type: ignore[attr-defined]
+                        client._send("0210C0")  # type: ignore[attr-defined]
+                        client._read_lines(1.5)  # type: ignore[attr-defined]
+                    except Exception:
+                        pass
+                except Exception:
+                    pass
         except Exception:
             pass
 
@@ -257,7 +276,11 @@ def scan_car(car: str, client: UDSClient) -> None:
                     fld = client.fields.get(sid_key)
                     if fld is not None:
                         fr = frames.get(getattr(fld, "frame_id", 0)) if frames else None
-                        if fr and ecu and fr.ecu.lower() != ecu.lower():
+                        same_ecu = not fr or not ecu or (fr.ecu.lower() == ecu.lower())
+                        # Don't over-prune for EVC: query fields even if the frame map is missing/misnamed
+                        if ecu.upper() == "EVC":
+                            same_ecu = True
+                        if not same_ecu:
                             value = None
                         else:
                             value = client.read_field(sid_key)
@@ -290,6 +313,11 @@ def scan_car(car: str, client: UDSClient) -> None:
             if getattr(client, "last_status", None) == "NO_DATA":
                 reason_counts["NO_DATA"] = reason_counts.get("NO_DATA", 0) + 1
                 nodata_streak += 1
+                # Fast-fail: if we haven't seen any transport-positive response for this ECU
+                # and already hit 10 consecutive NO_DATA, skip the rest of the ECU to save time.
+                if ok == 0 and nodata_streak >= 10:
+                    print("No responses from this ECU after 10 NO_DATA. Skipping this ECU.")
+                    break
                 threshold = getattr(args, "skip_nodata", 50)
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
