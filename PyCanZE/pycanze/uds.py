@@ -97,34 +97,30 @@ class UDSClient:
             _ecus = load_ecus(vehicle=veh)
         except Exception:
             _ecus = {}
-        self._ecu_by_can = {}
-        self._net_by_req = {}  # req_id -> list of networks
-        self._session_required_by_req = {}  # req_id -> bool
+        self._ecu_by_can: Dict[int, Tuple[int, int]] = {}
+        self._net_by_req: Dict[int, Sequence[str]] = {}  # req_id -> list of networks
+        self._session_required_by_req: Dict[int, bool] = {}  # req_id -> bool
         self._session_started = set()  # req_ids with active session
         self._last_tp = 0.0
         # Last UDS negative response code (e.g. 0x22 ConditionsNotCorrect)
         self.last_nrc_code = None
-        # Keep the EVC (0x7E4/0x7EC) session alive as a gateway keep-alive when
-        # talking to other ECUs. Some ZOE variants appear to require periodic
-        # TesterPresent to the EVC to allow bridging to V/E networks.
+        # EVC gateway/keepalive identifiers and cadence
         self._evc_req_id = 0x7E4
         self._evc_resp_id = 0x7EC
         self._last_evc_tp = 0.0
-        self._evc_tp_interval = 1.2  # seconds between EVC TesterPresent
-        # Use a slightly shorter TesterPresent cadence to keep ECUs lively
-        self._tp_interval = 1.2  # seconds between TesterPresent keep-alives
-        # Base read timeout for a single UDS request-prompt cycle (socket level)
-        # This is distinct from the TCP connect timeout; it is intentionally
-        # short and will be scaled adaptively similar to the Android app.
-        self.read_timeout_s = 0.8
-        # Adaptive timeout controls (Android-like intervalMultiplicator)
+        self._evc_tp_interval = 1.2
+        # TesterPresent cadence to target ECUs
+        self._tp_interval = 1.2
+        # Base read timeout; adaptive interval will scale as needed
+        self.read_timeout_s = 0.6
+        # Adaptive timeout controls
         self.adaptive_timeouts = True
         self._interval_multiplier = 1.6
         self._interval_min = 1.3
-        self._interval_max = 2.5
+        self._interval_max = 2.2
         self._interval_step_up = 0.10   # on failure
         self._interval_step_down = 0.01 # on success
-        # Short-lived cache for repeated 0x21 page reads: (req_id, service, ident) -> response bytes
+        # Short-lived cache for repeated 0x21 page reads
         self._last_tuple = None
         self._last_resp = None
         self._last_resp_ts = 0.0
@@ -145,7 +141,7 @@ class UDSClient:
                 resp = ecu.request_id & 0x1FFFFFFF
                 self._ecu_by_can[req] = (req, resp)
                 self._ecu_by_can[resp] = (req, resp)
-                self._net_by_req[req] = ecu.networks
+                self._net_by_req[req] = getattr(ecu, "networks", ())
                 self._session_required_by_req[req] = bool(
                     getattr(ecu, "session_required", 0)
                 )
@@ -162,8 +158,6 @@ class UDSClient:
         # Last ELM/CAN status hint (e.g. 'CAN_ERROR', 'NO_DATA')
         self.last_status = None
         # Whether the last read had any positive UDS response bytes
-        # (useful for scanners to count transport successes even if decoding
-        # yields a sentinel/invalid value and returns None)
         self.last_positive = False
         # Length of the last raw positive response (bytes)
         self.last_raw_len = 0
@@ -181,9 +175,7 @@ class UDSClient:
         self.fc_retry_enabled = True  # allow FC reassert retry
         self.wide_cf_fallback = False  # allow temporary ATH1/filter widening
         # Additional timing controls
-        self.isotp_collect_timeout_s = (
-            2.5  # total window to collect multi-frame payload
-        )
+        self.isotp_collect_timeout_s = 2.5  # total window to collect multi-frame payload
         self.cf_read_timeout_s = 1.2  # per read timeout while collecting CFs
         # Optional per-ECU first-0x21 delay (currently used for LBC 0x7BB)
         self.first_21_delay_by_req = {}

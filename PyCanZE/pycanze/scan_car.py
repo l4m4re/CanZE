@@ -98,25 +98,35 @@ def scan_car(car: str, client: UDSClient) -> None:
     except Exception:
         frames = {}
 
+    # Build a cached ECU -> list of SID keys index from the already loaded dataset
+    # to avoid re-reading CSV files per ECU. Fields come from UDSClient (parser lru_cache).
+    ecu_to_sids: dict[str, list[str]] = {}
+    generic_sids: list[str] = []
+    try:
+        for sid_key, fld in getattr(client, "fields", {}).items():
+            try:
+                fr = frames.get(getattr(fld, "frame_id", 0)) if frames else None
+                if fr and fr.ecu:
+                    ecu_to_sids.setdefault(fr.ecu, []).append(sid_key)
+                else:
+                    generic_sids.append(sid_key)
+            except Exception:
+                generic_sids.append(sid_key)
+    except Exception:
+        pass
+
     for field_file in field_files:
         ecu = field_file.stem.replace("_Fields", "")
         if filters and not any(tok == ecu.lower() for tok in filters):
             continue
 
         ecu_label = ecu if ecu else "_Fields (generic)"
-        # Pre-read rows so we can compute the total number of fields available
-        rows = list(_read_csv(field_file))
-        def _row_counts_as_field(row: list[str]) -> bool:
-            try:
-                row = (row + [""] * 13)[:13]
-                req = row[8]
-                if not req or not (req.startswith("22") or req.startswith("21")):
-                    return False
-                sid = _sid_for_row(row)
-                return bool(sid)
-            except Exception:
-                return False
-        total_available = sum(1 for r in rows if _row_counts_as_field(r))
+        # Use the cached ECU->SID mapping instead of re-reading CSV files
+        if ecu:
+            sids_for_ecu = ecu_to_sids.get(ecu, [])
+        else:
+            sids_for_ecu = generic_sids
+        total_available = len(sids_for_ecu)
         print(f"\nECU: {ecu_label}")
         try:
             client.gateway_poke()
@@ -218,13 +228,13 @@ def scan_car(car: str, client: UDSClient) -> None:
         start_ecu_ts = time.time()
         reason_counts: dict[str, int] = {}
         nrc_seen: set[int] = set()
-        nodata_reqs: set[str] = set()
+        nodata_reqs: set[str] = set()  # track by sid_key to avoid repeated queries
         neg_reqs: set[str] = set()
         ensured_session = False
         # Relax fast-fail if ECU is USM/UPA which may be slow to wake
         max_nodata_without_ok = 20 if ecu.upper() in ("USM", "PARKING-SONAR", "UPA", "UPA-ULS") else 10
 
-        for row in rows:
+        for sid_key in sids_for_ecu:
             # Reset per-iteration transport flags to avoid stale placeholders
             try:
                 client.last_positive = False
@@ -240,14 +250,12 @@ def scan_car(car: str, client: UDSClient) -> None:
                 print(f"-- time budget reached ({args.max_secs_per_ecu:.0f}s), skipping rest of {ecu_label}")
                 break
 
-            sid = _sid_for_row(row)
-            if not sid:
+            # sid_key already provided by index; fetch field meta
+            sid_key = str(sid_key).lower()
+            fld_meta = client.fields.get(sid_key)
+            if fld_meta is None:
                 continue
-            sid_key = sid.lower()
-            req = (row + [""] * 13)[8]
-            if not req or not (req.startswith("22") or req.startswith("21")):
-                continue
-            name = (row + [""] * 12)[11]
+            name = getattr(fld_meta, "name", "") or ""
 
             if sid_key not in client.fields:
                 try:
@@ -260,8 +268,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                     pass
             # If still unknown to the active dataset, skip this row to avoid
             # printing placeholders based on a previous request buffer.
-            if sid_key not in client.fields:
-                continue
+            # Already ensured fld_meta exists above
 
             if not ensured_session and sid_key in client.fields:
                 try:
@@ -307,9 +314,9 @@ def scan_car(car: str, client: UDSClient) -> None:
                 except Exception:
                     pass
 
-            if req and (req in nodata_reqs or req in neg_reqs) and ecu.upper() not in ("LBC", "LBC2"):
+            if (sid_key in nodata_reqs or sid_key in neg_reqs) and ecu.upper() not in ("LBC", "LBC2"):
                 value = None
-                client.last_status = "NEG" if req in neg_reqs else "NO_DATA"
+                client.last_status = "NEG" if sid_key in neg_reqs else "NO_DATA"
             else:
                 try:
                     fld = client.fields.get(sid_key)
@@ -361,14 +368,12 @@ def scan_car(car: str, client: UDSClient) -> None:
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
-                if req:
-                    nodata_reqs.add(req)
+                nodata_reqs.add(sid_key)
             elif getattr(client, "last_status", None) == "ELM_ERROR":
                 reason_counts["ELM_ERROR"] = reason_counts.get("ELM_ERROR", 0) + 1
             elif getattr(client, "last_status", None) == "NEG":
                 reason_counts["NEG"] = reason_counts.get("NEG", 0) + 1
-                if req:
-                    neg_reqs.add(req)
+                neg_reqs.add(sid_key)
             else:
                 nodata_streak = 0
 
