@@ -91,16 +91,21 @@ class UDSClient:
                 # Fallback to all fields if specific dataset load fails
                 self.fields = load_fields()[0]
         self.debug = bool(os.environ.get("PYCANZE_DEBUG"))
+        # Control whether read_field implicitly tries to start a session
+        self.auto_ensure_session = True
+        # Optional absolute deadline timestamp (seconds) to bound slow operations
+        self._deadline_ts = None
         # Map CAN IDs (both request and response) to (request_id, response_id)
         try:
             veh = os.environ.get("PYCANZE_VEHICLE", "ZOE")
             _ecus = load_ecus(vehicle=veh)
         except Exception:
             _ecus = {}
-        self._ecu_by_can: Dict[int, Tuple[int, int]] = {}
-        self._net_by_req: Dict[int, Sequence[str]] = {}  # req_id -> list of networks
-        self._session_required_by_req: Dict[int, bool] = {}  # req_id -> bool
+        self._ecu_by_can = {}
+        self._net_by_req = {}  # req_id -> list of networks
+        self._session_required_by_req = {}  # req_id -> bool
         self._session_started = set()  # req_ids with active session
+        self._session_attempted_ts = {}
         self._last_tp = 0.0
         # Last UDS negative response code (e.g. 0x22 ConditionsNotCorrect)
         self.last_nrc_code = None
@@ -247,26 +252,81 @@ class UDSClient:
         Non-fatal on failure.
         """
         try:
+            # Respect an absolute deadline if set (e.g., per-ECU budget)
+            if getattr(self, "_deadline_ts", None) is not None:
+                if time.time() >= float(self._deadline_ts):
+                    return
             if not force and not self._session_required_by_req.get(req_id):
                 return
             if req_id in self._session_started:
                 return
-            # Try common sessions: Extended (0xC0), EPS-specific (0xFA), Renault (0xF2), LGChem (0xF3),
-            # followed by default sessions (0x81 and 0x00). Some ECUs like DCM only accept 0x1000.
-            for mode, expect in (
-                ("0210C0", "50C0"),
-                ("0210FA", "50FA"),
-                ("0210F2", "50F2"),
-                ("0210F3", "50F3"),
-                ("021081", "5081"),
-                ("021000", "5000"),
-            ):
+            # Skip repeated failed attempts within cooldown window
+            cooldown_s = 0.0
+            try:
+                cooldown_s = float(os.environ.get("PYCANZE_SESSION_COOLDOWN_S", "30") or 30)
+            except Exception:
+                cooldown_s = 30.0
+            if cooldown_s > 0:
+                last = self._session_attempted_ts.get(req_id, 0.0)
+                if last and (time.time() - last) < cooldown_s:
+                    return
+            # Use a shorter per-attempt read timeout for session probes to avoid long waits
+            # on ECUs that don't answer certain 0x10 modes. Tunable via env.
+            try:
+                sess_t = float(os.environ.get("PYCANZE_SESSION_READ_S", "0.6"))
+            except Exception:
+                sess_t = 0.6
+            sess_t = max(0.2, min(2.0, sess_t))
+            # Build session attempt list: allow env override like "C0,81,00"
+            modes_env = os.environ.get("PYCANZE_SESSION_MODES")
+            if modes_env:
+                seq = []
+                for tok in modes_env.split(","):
+                    h = tok.strip().upper().replace("0X", "")
+                    if not h:
+                        continue
+                    if len(h) == 1:
+                        h = f"0{h}"
+                    seq.append((f"0210{h}", f"50{h}"))
+                session_modes = tuple(seq) if seq else (
+                    ("0210C0", "50C0"),
+                )
+            else:
+                # Default sequence: Extended, EPS, Renault, LGChem, then defaults
+                session_modes = (
+                    ("0210C0", "50C0"),
+                    ("0210FA", "50FA"),
+                    ("0210F2", "50F2"),
+                    ("0210F3", "50F3"),
+                    ("021081", "5081"),
+                    ("021000", "5000"),
+                )
+            try:
+                max_tries = int(os.environ.get("PYCANZE_SESSION_MAX_TRIES", "4") or 4)
+            except Exception:
+                max_tries = 4
+            tries = 0
+            # Temporarily disable adaptive multiplier to honor our explicit session timeout
+            saved_adapt = getattr(self, "adaptive_timeouts", True)
+            self.adaptive_timeouts = False
+            for mode, expect in session_modes:
+                if tries >= max_tries:
+                    break
+                if getattr(self, "_deadline_ts", None) is not None and time.time() >= float(self._deadline_ts):
+                    break
                 self._send(mode)
-                lines = self._read_lines()
+                # Short, bounded wait per attempt; success usually returns quickly.
+                lines = self._read_lines(sess_t)
                 up = [ln.upper().replace(" ", "") for ln in lines]
                 if any(expect in ln for ln in up):
                     self._session_started.add(req_id)
                     break
+                tries += 1
+            # Record an attempt time if we didn't start
+            if req_id not in self._session_started:
+                self._session_attempted_ts[req_id] = time.time()
+            # Restore adaptive behavior
+            self.adaptive_timeouts = saved_adapt
         except Exception:
             # Ignore, will continue without session
             return
@@ -327,11 +387,15 @@ class UDSClient:
     def gateway_poke(self) -> None:
         """Best-effort EVC poke to encourage gateway bridging.
 
-        Starts/refreshes a session on EVC (0x7E4) and queries configuration
-        DIDs that are safe and read-only. Then restores the previous header.
-        Non-fatal on failure.
+        Starts/refreshes a session on EVC (0x7E4) with minimal traffic to
+        encourage bridging. Restores the previous header. Throttled to avoid
+        excessive header switching overhead. Non-fatal on failure.
         """
         try:
+            # Throttle frequent calls (also configurable via _evc_tp_interval)
+            now = time.time()
+            if (now - getattr(self, "_last_evc_tp", 0.0)) < getattr(self, "_evc_tp_interval", 1.2):
+                return
             # Save current selection
             prev_req = self._current_req_id
             prev_resp = None
@@ -342,25 +406,22 @@ class UDSClient:
                     prev_resp = None
             # Switch to EVC
             self._select_frame(self._evc_req_id, self._evc_resp_id)
-            # Default session (ignore failure)
-            try:
-                self._send("021081")
-                self._read_lines(1.5)
-            except Exception:
-                pass
-            # Read two benign DIDs that list networks/ECUs
-            for cmd in ("0221B7", "0221B8"):
+            # Minimal poke mode (env: PYCANZE_GATEWAY_POKE_MODE = tp|sess|none)
+            mode = os.environ.get("PYCANZE_GATEWAY_POKE_MODE", "tp").strip().lower()
+            if mode and mode != "none":
                 try:
-                    self._send(cmd)
-                    self._read_lines(1.0)
+                    if mode == "sess":
+                        # Default session (keep short read)
+                        self._send("021081")
+                        self._read_lines(0.8)
+                    else:  # "tp"
+                        # TesterPresent with response
+                        self._send("023E01")
+                        self._read_lines(0.8)
                 except Exception:
                     pass
-            # TesterPresent (no response) to leave EVC quiet but alive
-            try:
-                self._send("023E00")
-                self._read_lines(0.5)
-            except Exception:
-                pass
+            # Update last poke timestamp regardless to enforce throttle
+            self._last_evc_tp = now
         finally:
             if prev_req is not None:
                 try:
@@ -1200,19 +1261,24 @@ class UDSClient:
             rid = f"{req_id & 0x7FF:03X}"
             rpid = (resp_id if resp_id is not None else (req_id + 0x8)) & 0x7FF
             resp = f"{rpid:03X}"
+        def _short_read(seconds: float = 0.8) -> None:
+            try:
+                self._read_lines(seconds)
+            except Exception:
+                pass
         self._send(f"ATSH{rid}")
-        self._read_lines(3.0)
+        _short_read(0.8)
         self._send(f"ATFCSH{rid}")
-        self._read_lines(3.0)
+        _short_read(0.8)
         if self.use_mask_filter:
             # Use filter/mask pair instead of ATCRA (some clones handle CFs better)
             self._send(f"ATCF {resp}")
-            self._read_lines(3.0)
+            _short_read(0.8)
             self._send("ATCM 7FF" if not ext else "ATCM 1FFFFFFF")
-            self._read_lines(3.0)
+            _short_read(0.8)
         else:
             self._send(f"ATCRA {resp}")
-            self._read_lines(3.0)
+            _short_read(0.8)
         self._current_req_id = req_id
         # Give the ELM/adapter a short settle time after header switch if configured
         if self.header_settle_ms and self.header_settle_ms > 0:
@@ -1360,7 +1426,8 @@ class UDSClient:
             fid = field.frame_id & 0x1FFFFFFF
             req_id, resp_id = self._pair_for_frame(fid)
             self._select_frame(req_id, resp_id)
-            self._ensure_session(req_id)
+            if getattr(self, "auto_ensure_session", True):
+                self._ensure_session(req_id)
         except Exception:
             # Fallback: keep current header; some fields may still respond
             pass

@@ -128,10 +128,12 @@ def scan_car(car: str, client: UDSClient) -> None:
             sids_for_ecu = generic_sids
         total_available = len(sids_for_ecu)
         print(f"\nECU: {ecu_label}")
-        try:
-            client.gateway_poke()
-        except Exception:
-            pass
+        # Optional, throttled EVC gateway poke once per ECU (disabled by default; enable by setting PYCANZE_DISABLE_GATEWAY_POKE=0)
+        if os.environ.get("PYCANZE_DISABLE_GATEWAY_POKE", "1").strip() not in ("1", "true", "True"):
+            try:
+                client.gateway_poke()
+            except Exception:
+                pass
         try:
             client.use_mask_filter = True
             # Some ELM clones drop CFs for LBC/LBC2 when using ATCF/ATCM.
@@ -231,8 +233,8 @@ def scan_car(car: str, client: UDSClient) -> None:
         nodata_reqs: set[str] = set()  # track by sid_key to avoid repeated queries
         neg_reqs: set[str] = set()
         ensured_session = False
-        # Relax fast-fail if ECU is USM/UPA which may be slow to wake
-        max_nodata_without_ok = 20 if ecu.upper() in ("USM", "PARKING-SONAR", "UPA", "UPA-ULS") else 10
+        # Use the CLI --skip-nodata threshold for fast-fail too; allow a gentler value for slow ECUs
+        max_nodata_without_ok = int(getattr(args, "skip_nodata", 50) or 0)
 
         for sid_key in sids_for_ecu:
             # Reset per-iteration transport flags to avoid stale placeholders
@@ -359,12 +361,8 @@ def scan_car(car: str, client: UDSClient) -> None:
             if getattr(client, "last_status", None) == "NO_DATA":
                 reason_counts["NO_DATA"] = reason_counts.get("NO_DATA", 0) + 1
                 nodata_streak += 1
-                # Fast-fail: if we haven't seen any transport-positive response for this ECU
-                # and already hit 10 consecutive NO_DATA, skip the rest of the ECU to save time.
-                if ok == 0 and nodata_streak >= max_nodata_without_ok:
-                    print(f"No responses from this ECU after {max_nodata_without_ok} NO_DATA. Skipping this ECU.")
-                    break
-                threshold = getattr(args, "skip_nodata", 50)
+                # Fast-fail and hard limit are unified via max_nodata_without_ok
+                threshold = max_nodata_without_ok
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
