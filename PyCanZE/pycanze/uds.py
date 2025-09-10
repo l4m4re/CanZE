@@ -450,13 +450,21 @@ class UDSClient:
             t = max(0.05, t * mult)
         self.sock.settimeout(t)
         buf = b""
-        while True:
-            chunk = self.sock.recv(4096)
-            if not chunk:
-                break
-            buf += chunk
-            if b">" in buf:
-                break
+        try:
+            while True:
+                chunk = self.sock.recv(4096)
+                if not chunk:
+                    break
+                buf += chunk
+                if b">" in buf:
+                    break
+        except socket.timeout:
+            # Mark as timeout without adapter-provided NO DATA text
+            try:
+                self.last_status = "NO_DATA_TIMEOUT"
+            except Exception:
+                pass
+            buf = b""
         text = buf.decode(errors="ignore").replace("\r", "\n")
         lines = [
             ln.strip() for ln in text.split("\n") if ln.strip() and ln.strip() != ">"
@@ -966,6 +974,11 @@ class UDSClient:
             return list(self._last_resp)
         # Clear last NRC before issuing request
         self.last_nrc_code = None
+        # Reset transient transport status for this request
+        try:
+            self.last_status = None
+        except Exception:
+            pass
         self._send(cmd)
         lines = self._read_lines()
         # Detect common ELM/CAN error statuses early
@@ -973,12 +986,13 @@ class UDSClient:
         if any(("CAN" in ln and "ERROR" in ln) or "CAN ERROR" in ln for ln in up):
             self.last_status = "CAN_ERROR"
         elif any("NO DATA" in ln for ln in up):
-            self.last_status = "NO_DATA"
+            # Adapter explicitly returned NO DATA
+            self.last_status = "NO_DATA_ADAPTER"
         elif any("ERROR" in ln for ln in up):
             self.last_status = "ELM_ERROR"
         b = self._only_hex_bytes(lines)
         # If adapter reported an error and we did not receive any hex bytes, adapt as failure
-        if getattr(self, "last_status", None) in {"CAN_ERROR", "NO_DATA", "ELM_ERROR"} and not b:
+        if getattr(self, "last_status", None) in {"CAN_ERROR", "NO_DATA", "NO_DATA_TIMEOUT", "NO_DATA_ADAPTER", "ELM_ERROR"} and not b:
             self._adapt_on_failure()
             self.last_positive = False
             self.last_raw_len = 0

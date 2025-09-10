@@ -40,7 +40,6 @@ PYBIN="${PYCANZE_PYTHON:-python}"
 set -x
 START_TS="$(date +%s)"
 "$PYBIN" scan_car.py ZOE \
-  --only-values \
   --skip-nodata 0 \
   --per-ecu-limit 0 \
   --max-secs-per-ecu 0 \

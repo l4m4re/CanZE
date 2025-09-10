@@ -18,13 +18,13 @@ from pathlib import Path
 
 try:
     from pycanze import UDSClient  # type: ignore
-    from pycanze.parser import _read_csv, load_frames  # type: ignore
+    from pycanze.parser import _read_csv, load_frames, load_ecus  # type: ignore
     from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
 except ModuleNotFoundError:
     # Allow running directly from the repo without installing the package
     sys.path.append(str(Path(__file__).resolve().parents[1]))
     from pycanze import UDSClient  # type: ignore
-    from pycanze.parser import _read_csv, load_frames  # type: ignore
+    from pycanze.parser import _read_csv, load_frames, load_ecus  # type: ignore
     from pycanze.uds import ELM_CMD_SLEEP  # type: ignore
 
 # Directory containing copied asset CSV files
@@ -97,6 +97,42 @@ def scan_car(car: str, client: UDSClient) -> None:
         frames = load_frames(DATA_DIR)
     except Exception:
         frames = {}
+    # Load ECU metadata to enrich headers with a short description
+    ecu_desc_map: dict[str, str] = {}
+    try:
+        ecus = load_ecus(DATA_DIR, vehicle=car)
+        for _sid, e in ecus.items():
+            try:
+                desc = (e.name or "").strip()
+            except Exception:
+                desc = ""
+            if not desc:
+                continue
+            # Index by mnemonic and aliases (upper-cased for case-insensitive match)
+            try:
+                if e.mnemonic:
+                    ecu_desc_map.setdefault(e.mnemonic.upper(), desc)
+            except Exception:
+                pass
+            try:
+                for al in (e.aliases or []):
+                    if al:
+                        ecu_desc_map.setdefault(al.upper(), desc)
+            except Exception:
+                pass
+    except Exception:
+        pass
+    # Fallback static descriptions for common ECUs when CSV lacks detail
+    static_desc = {
+        "EVC": "Electric Vehicle Controller (gateway)",
+        "LBC": "Lithium Battery Controller",
+        "LBC2": "Battery Controller (phase 2)",
+        "EPS": "Electric Power Steering",
+        "DCM": "Telematics/Connectivity module",
+        "BCB-OBC": "On-board charger",
+        "USM": "Ultrasonic sensor module",
+        "UPA": "Parking assistance",
+    }
 
     # Build a cached ECU -> list of SID keys index from the already loaded dataset
     # to avoid re-reading CSV files per ECU. Fields come from UDSClient (parser lru_cache).
@@ -105,10 +141,19 @@ def scan_car(car: str, client: UDSClient) -> None:
     try:
         for sid_key, fld in getattr(client, "fields", {}).items():
             try:
-                fr = frames.get(getattr(fld, "frame_id", 0)) if frames else None
-                if fr and fr.ecu:
+                fid = getattr(fld, "frame_id", 0)
+                fr = frames.get(fid) if frames else None
+                if fr and getattr(fr, "ecu", None):
                     ecu_to_sids.setdefault(fr.ecu, []).append(sid_key)
                 else:
+                    # Fallback grouping by well-known frame ids when frame->ECU map is missing
+                    if isinstance(fid, int):
+                        if fid == 0x7BB:
+                            ecu_to_sids.setdefault("LBC", []).append(sid_key)
+                            continue
+                        if fid == 0x7B6:
+                            ecu_to_sids.setdefault("LBC2", []).append(sid_key)
+                            continue
                     generic_sids.append(sid_key)
             except Exception:
                 generic_sids.append(sid_key)
@@ -127,7 +172,17 @@ def scan_car(car: str, client: UDSClient) -> None:
         else:
             sids_for_ecu = generic_sids
         total_available = len(sids_for_ecu)
-        print(f"\nECU: {ecu_label}")
+        # Try to show a short description for this ECU
+        desc = None
+        try:
+            key = ecu.upper()
+            desc = ecu_desc_map.get(key) or static_desc.get(key)
+        except Exception:
+            desc = None
+        if desc:
+            print(f"\nECU: {ecu_label} - {desc}")
+        else:
+            print(f"\nECU: {ecu_label}")
         # Optional, throttled EVC gateway poke once per ECU (disabled by default; enable by setting PYCANZE_DISABLE_GATEWAY_POKE=0)
         if os.environ.get("PYCANZE_DISABLE_GATEWAY_POKE", "1").strip() not in ("1", "true", "True"):
             try:
@@ -230,11 +285,35 @@ def scan_car(car: str, client: UDSClient) -> None:
         start_ecu_ts = time.time()
         reason_counts: dict[str, int] = {}
         nrc_seen: set[int] = set()
-        nodata_reqs: set[str] = set()  # track by sid_key to avoid repeated queries
+        nodata_reqs: dict[str, str] = {}  # track by sid_key with last status to avoid repeated queries
         neg_reqs: set[str] = set()
         ensured_session = False
+        # Known UDS service names for clearer unsupported reason printing
+        uds_service_names = {
+            0x10: "DiagnosticSessionControl",
+            0x14: "ClearDiagnosticInformation",
+            0x19: "ReadDiagnosticTroubleCodeInformation",
+            0x23: "ReadMemoryByAddress",
+            0x27: "SecurityAccess",
+            0x2E: "WriteDataByIdentifier",
+            0x2F: "IOControl",
+            0x31: "RoutineControl",
+            0x34: "RequestDownload",
+            0x36: "TransferData",
+            0x37: "RequestTransferExit",
+            0x3E: "TesterPresent",
+            0x85: "ControlDTCSetting",
+        }
         # Use the CLI --skip-nodata threshold for fast-fail too; allow a gentler value for slow ECUs
         max_nodata_without_ok = int(getattr(args, "skip_nodata", 50) or 0)
+        # Apply a hard time budget for this ECU inside UDSClient when supported
+        try:
+            if getattr(args, "max_secs_per_ecu", 0.0):
+                client._deadline_ts = start_ecu_ts + float(args.max_secs_per_ecu)
+            else:
+                client._deadline_ts = None
+        except Exception:
+            pass
 
         for sid_key in sids_for_ecu:
             # Reset per-iteration transport flags to avoid stale placeholders
@@ -245,6 +324,8 @@ def scan_car(car: str, client: UDSClient) -> None:
                 client.last_status = None
             except Exception:
                 pass
+
+            issued_req = False
             if getattr(args, "per_ecu_limit", 0) and total >= args.per_ecu_limit:
                 print(f"-- limit reached ({args.per_ecu_limit} fields), skipping rest of {ecu_label}")
                 break
@@ -254,20 +335,31 @@ def scan_car(car: str, client: UDSClient) -> None:
 
             # sid_key already provided by index; fetch field meta
             sid_key = str(sid_key).lower()
-            fld_meta = client.fields.get(sid_key)
-            if fld_meta is None:
-                continue
-            name = getattr(fld_meta, "name", "") or ""
+            fld = client.fields.get(sid_key)
+            name = getattr(fld, "name", sid_key)
 
-            if sid_key not in client.fields:
-                try:
-                    parts = sid_key.split(".")
-                    if len(parts) == 3 and all(parts):
-                        alt = f"{parts[0]}.{parts[2]}.{parts[1]}"
-                        if alt in client.fields:
-                            sid_key = alt
-                except Exception:
-                    pass
+            # Classify UDS service; only 0x21/0x22 are read-supported
+            svc = None
+            try:
+                rid = (fld.request_id or "").upper()
+                svc = int(rid[:2], 16) if len(rid) >= 2 else None
+            except Exception:
+                svc = None
+
+            if svc not in (0x21, 0x22):
+                svc_name = uds_service_names.get(svc, "UnknownService")
+                if svc is None:
+                    label = "UNSUPPORTED: (invalid or missing RequestId)"
+                else:
+                    label = f"UNSUPPORTED: 0x{svc:02X} {svc_name}"
+                # Keep counts under a generic bucket; summaries currently only include transport reasons
+                reason_counts["UNSUPPORTED"] = 1 + reason_counts.get("UNSUPPORTED", 0)
+                # Remember per-SID reason so we don’t re-query and can reprint the detail later
+                nodata_reqs[sid_key] = label
+                if not args.only_values:
+                    print(f" {sid_key:>16} {name} -> ({label})")
+                continue
+
             # If still unknown to the active dataset, skip this row to avoid
             # printing placeholders based on a previous request buffer.
             # Already ensured fld_meta exists above
@@ -318,7 +410,11 @@ def scan_car(car: str, client: UDSClient) -> None:
 
             if (sid_key in nodata_reqs or sid_key in neg_reqs) and ecu.upper() not in ("LBC", "LBC2"):
                 value = None
-                client.last_status = "NEG" if sid_key in neg_reqs else "NO_DATA"
+                if sid_key in neg_reqs:
+                    client.last_status = "NEG"
+                else:
+                    # Reuse the last recorded NO_DATA variant for accurate reason reporting
+                    client.last_status = nodata_reqs.get(sid_key, "NO_DATA")
             else:
                 try:
                     fld = client.fields.get(sid_key)
@@ -332,6 +428,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                             value = None
                         else:
                             value = client.read_field(sid_key)
+                            issued_req = True
                             if getattr(client, "last_status", None) == "NEG":
                                 try:
                                     code = getattr(client, "last_nrc_code", None)
@@ -353,23 +450,25 @@ def scan_car(car: str, client: UDSClient) -> None:
             # Prefer the presence of a fresh response buffer which is stable across
             # keep-alive calls that may follow inside read_field.
             transport_ok = bool(getattr(client, "last_resp_buf", None))
-            if getattr(client, "last_status", None) == "CAN_ERROR":
+            status = getattr(client, "last_status", None)
+            if status == "CAN_ERROR":
                 reason_counts["CAN_ERROR"] = reason_counts.get("CAN_ERROR", 0) + 1
                 if not full_scan:
                     print("Vehicle CAN is asleep (CAN_ERROR). Skipping this ECU.")
                     break
-            if getattr(client, "last_status", None) == "NO_DATA":
-                reason_counts["NO_DATA"] = reason_counts.get("NO_DATA", 0) + 1
+            if status in ("NO_DATA", "NO_DATA_TIMEOUT", "NO_DATA_ADAPTER"):
+                key = "NO_DATA_TIMEOUT" if status == "NO_DATA_TIMEOUT" else ("NO_DATA_ADAPTER" if status == "NO_DATA_ADAPTER" else "NO_DATA")
+                reason_counts[key] = reason_counts.get(key, 0) + 1
                 nodata_streak += 1
                 # Fast-fail and hard limit are unified via max_nodata_without_ok
                 threshold = max_nodata_without_ok
                 if threshold > 0 and nodata_streak >= threshold:
                     print(f"Too many NO_DATA in a row ({nodata_streak}). Skipping this ECU.")
                     break
-                nodata_reqs.add(sid_key)
-            elif getattr(client, "last_status", None) == "ELM_ERROR":
+                nodata_reqs[sid_key] = key
+            elif status == "ELM_ERROR":
                 reason_counts["ELM_ERROR"] = reason_counts.get("ELM_ERROR", 0) + 1
-            elif getattr(client, "last_status", None) == "NEG":
+            elif status == "NEG":
                 reason_counts["NEG"] = reason_counts.get("NEG", 0) + 1
                 neg_reqs.add(sid_key)
             else:
@@ -431,7 +530,7 @@ def scan_car(car: str, client: UDSClient) -> None:
             elif not args.only_values:
                 # Show a clearer reason instead of printing raw None
                 status = getattr(client, "last_status", None)
-                if status in {"NO_DATA", "NEG", "CAN_ERROR", "ELM_ERROR"}:
+                if status in {"NO_DATA", "NO_DATA_TIMEOUT", "NO_DATA_ADAPTER", "NEG", "CAN_ERROR", "ELM_ERROR"}:
                     extra = ""
                     if status == "NEG":
                         try:
@@ -442,6 +541,14 @@ def scan_car(car: str, client: UDSClient) -> None:
                             pass
                     print(f" {sid_key:>16} {name} -> ({status}){extra}")
                 else:
+                    # If previously marked unsupported, reprint its detailed reason
+                    try:
+                        detail = nodata_reqs.get(sid_key)
+                    except Exception:
+                        detail = None
+                    if isinstance(detail, str) and detail.startswith("UNSUPPORTED"):
+                        print(f" {sid_key:>16} {name} -> ({detail})")
+                        continue
                     # One-time forced reread for LBC/LBC2 to recover cached page and decode
                     recovered = None
                     try:
@@ -453,6 +560,7 @@ def scan_car(car: str, client: UDSClient) -> None:
                             client.cf_read_timeout_s = max(old_cf, 1.7)
                             try:
                                 _ = client.read_field(sid_key)
+                                issued_req = True
                                 fld2 = client.fields.get(sid_key)
                                 buf = getattr(client, 'last_resp_buf', None)
                                 if fld2 is not None and buf:
@@ -479,11 +587,13 @@ def scan_car(car: str, client: UDSClient) -> None:
                             pass
                         print(f" {sid_key:>16} {name} -> {recovered}{unit}")
                     else:
-                        print(f" {sid_key:>16} {name} -> {value}")
+                        # If we never issued a request, this was skipped; otherwise decoding produced no usable value.
+                        label = "(SKIPPED)" if not issued_req else "(DECODE_NA)"
+                        print(f" {sid_key:>16} {name} -> {label}")
 
         if reason_counts:
             parts: list[str] = []
-            for k in ("NO_DATA", "NEG", "CAN_ERROR", "ELM_ERROR"):
+            for k in ("NO_DATA", "NO_DATA_TIMEOUT", "NO_DATA_ADAPTER", "NEG", "CAN_ERROR", "ELM_ERROR"):
                 if k in reason_counts:
                     if k == "NEG" and nrc_seen:
                         nrcs = ",".join(f"0x{c:02X}" for c in sorted(nrc_seen))
@@ -493,7 +603,13 @@ def scan_car(car: str, client: UDSClient) -> None:
             suffix = f"; reasons: {'; '.join(parts)}" if parts else ""
         else:
             suffix = ""
-        print(f"-- {ecu_label}: {ok}/{total_available} values{suffix}")
+        elapsed = time.time() - start_ecu_ts
+        print(f"-- {ecu_label}: {ok}/{total_available} values in {elapsed:.1f}s{suffix}")
+        # Clear any deadline to avoid affecting the next ECU
+        try:
+            client._deadline_ts = None
+        except Exception:
+            pass
 
 
 def main() -> None:
